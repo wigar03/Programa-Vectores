@@ -12,7 +12,18 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarModuloCombinacion();
   inicializarModuloMatrices();
   inicializarModuloEcuaciones();
+  refrescarIconosLucide();
 });
+
+function refrescarIconosLucide() {
+  if (window.lucide && window.lucide.createIcons) {
+    try {
+      window.lucide.createIcons();
+    } catch (e) {
+      console.warn("Lucide icons warning:", e);
+    }
+  }
+}
 
 /* ==========================================================================
    1. Utilidades de Renderizado LaTeX (KaTeX) Adaptativo y Multilínea
@@ -170,15 +181,17 @@ function aplicarTema(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   const btnToggle = document.getElementById("btn-theme-toggle");
   const textEl = document.getElementById("theme-btn-text");
-  if (btnToggle && textEl) {
+  const iconContainer = btnToggle ? btnToggle.querySelector(".icon") : null;
+  if (btnToggle && textEl && iconContainer) {
     if (theme === "dark") {
-      btnToggle.querySelector(".icon").innerText = "☀️";
+      iconContainer.innerHTML = '<i data-lucide="sun"></i>';
       textEl.innerText = "Modo Claro";
     } else {
-      btnToggle.querySelector(".icon").innerText = "🌙";
+      iconContainer.innerHTML = '<i data-lucide="moon"></i>';
       textEl.innerText = "Modo Oscuro";
     }
   }
+  refrescarIconosLucide();
 }
 
 /* ==========================================================================
@@ -196,6 +209,7 @@ function inicializarNavegacion() {
         pane.classList.remove("active");
       });
       document.getElementById(targetId)?.classList.add("active");
+      refrescarIconosLucide();
     });
   });
 }
@@ -204,7 +218,8 @@ function mostrarToast(mensaje, duracion = 3000) {
   const toast = document.getElementById("notification-toast");
   const msgEl = document.getElementById("toast-message");
   if (!toast || !msgEl) return;
-  msgEl.innerText = mensaje;
+  msgEl.innerHTML = `<i data-lucide="check-circle-2" class="toast-icon"></i> <span>${mensaje}</span>`;
+  refrescarIconosLucide();
   toast.classList.remove("hidden");
   setTimeout(() => {
     toast.classList.add("hidden");
@@ -421,6 +436,7 @@ function renderizarResultadoVectorUI(calc) {
     });
     resultBox.appendChild(stepsWrapper);
   }
+  refrescarIconosLucide();
 }
 
 /* ==========================================================================
@@ -751,6 +767,7 @@ function renderizarResultadoCombinacionUI(calc) {
     });
     resultBox.appendChild(stepsWrapper);
   }
+  refrescarIconosLucide();
 }
 
 /* ==========================================================================
@@ -963,6 +980,7 @@ async function operarMatrices(operacion) {
       });
       resultBox.appendChild(stepsWrapper);
     }
+    refrescarIconosLucide();
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
@@ -1199,6 +1217,7 @@ async function resolverEcuacionMatricialUI() {
       });
       resultBox.appendChild(stepsWrapper);
     }
+    refrescarIconosLucide();
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";

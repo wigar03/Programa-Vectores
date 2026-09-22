@@ -9,25 +9,31 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- KaTeX para Renderizado Profesional de Ecuaciones en LaTeX -->
+  <!-- KaTeX para Renderizado de Ecuaciones en LaTeX -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  
+  <!-- Iconos Minimalistas Open Source (Lucide) -->
+  <script src="lucide.min.js"></script>
   
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="app-container">
-    <!-- Header Principal -->
+    <!-- Header Principal Minimalista -->
     <header class="main-header">
       <div class="header-brand">
-        <div class="brand-badge">UAM • FIA</div>
+        <div class="brand-badge">
+          <i data-lucide="binary" class="brand-icon"></i>
+          <span>UAM • FIA</span>
+        </div>
         <h1>Calculadora de Álgebra Lineal</h1>
-        <p class="subtitle" id="header-subtitle">Vectores en Rⁿ, Combinación Lineal, Matrices y Ecuaciones Ax = b</p>
+        <p class="subtitle" id="header-subtitle">Vectores en ℝⁿ, Combinación Lineal, Matrices y Ecuaciones A·x = b</p>
       </div>
       <div class="header-actions">
         <button id="btn-theme-toggle" class="btn-theme" title="Alternar entre modo claro y modo oscuro">
-          <span class="icon">🌙</span>
+          <span class="icon"><i data-lucide="moon"></i></span>
           <span id="theme-btn-text">Modo Oscuro</span>
         </button>
       </div>
@@ -36,19 +42,19 @@
     <!-- Barra de Navegación por Módulos -->
     <nav class="module-nav">
       <button class="nav-tab active" data-tab="tab-vectores">
-        <span class="tab-icon">📐</span>
+        <i data-lucide="move" class="tab-icon"></i>
         <span class="tab-label">Operaciones con Vectores</span>
       </button>
       <button class="nav-tab" data-tab="tab-combinacion">
-        <span class="tab-icon">🎯</span>
+        <i data-lucide="layers" class="tab-icon"></i>
         <span class="tab-label">Combinación Lineal</span>
       </button>
       <button class="nav-tab" data-tab="tab-matrices">
-        <span class="tab-icon">🔢</span>
+        <i data-lucide="grid-3x3" class="tab-icon"></i>
         <span class="tab-label">Operaciones con Matrices</span>
       </button>
       <button class="nav-tab" data-tab="tab-ecuaciones">
-        <span class="tab-icon">⚖️</span>
+        <i data-lucide="equal" class="tab-icon"></i>
         <span class="tab-label">Ecuaciones Matriciales Ax = b</span>
       </button>
     </nav>
@@ -71,9 +77,13 @@
             <div class="selector-row">
               <label for="vec-dim" class="field-label">Dimensión del Espacio (n):</label>
               <div class="stepper-box">
-                <button type="button" class="btn-step" onclick="cambiarDimVector(-1)" title="Disminuir dimensión">−</button>
+                <button type="button" class="btn-step" onclick="cambiarDimVector(-1)" title="Disminuir dimensión">
+                  <i data-lucide="minus"></i>
+                </button>
                 <input type="number" id="vec-dim" min="1" max="20" value="3" onchange="actualizarEntradasVectores()">
-                <button type="button" class="btn-step" onclick="cambiarDimVector(1)" title="Aumentar dimensión">+</button>
+                <button type="button" class="btn-step" onclick="cambiarDimVector(1)" title="Aumentar dimensión">
+                  <i data-lucide="plus"></i>
+                </button>
               </div>
             </div>
 
@@ -102,16 +112,20 @@
             <!-- Botones de Acción de Vectores -->
             <div class="action-grid">
               <button type="button" class="btn-primary" onclick="calcularOperacionVector('suma')">
-                <span>➕</span> Suma (u + v)
+                <i data-lucide="plus" class="btn-icon"></i>
+                <span>Suma (u + v)</span>
               </button>
               <button type="button" class="btn-primary" onclick="calcularOperacionVector('resta')">
-                <span>➖</span> Resta (u − v)
+                <i data-lucide="minus" class="btn-icon"></i>
+                <span>Resta (u − v)</span>
               </button>
               <button type="button" class="btn-secondary" onclick="calcularOperacionVector('escalar_u')">
-                <span>✖️</span> Escalar (c · u)
+                <i data-lucide="x" class="btn-icon"></i>
+                <span>Escalar (c · u)</span>
               </button>
               <button type="button" class="btn-secondary" onclick="calcularOperacionVector('producto_punto')">
-                <span>🔘</span> Producto Punto (u · v)
+                <i data-lucide="circle-dot" class="btn-icon"></i>
+                <span>Producto Punto (u · v)</span>
               </button>
             </div>
 
@@ -123,7 +137,8 @@
                 <button type="button" class="btn-text" onclick="cargarEjemploVector(20)">Prueba R²⁰</button>
               </div>
               <button type="button" class="btn-clear" onclick="limpiarModuloVectores()" title="Limpiar todas las casillas">
-                <span>🗑️</span> Limpiar
+                <i data-lucide="trash-2" class="btn-icon"></i>
+                <span>Limpiar</span>
               </button>
             </div>
           </div>
@@ -158,17 +173,25 @@
               <div class="selector-card">
                 <label for="comb-dim-n" class="field-label">Dimensión (n):</label>
                 <div class="stepper-box">
-                  <button type="button" class="btn-step" onclick="cambiarDimCombN(-1)" title="Disminuir dimensión">−</button>
+                  <button type="button" class="btn-step" onclick="cambiarDimCombN(-1)" title="Disminuir dimensión">
+                    <i data-lucide="minus"></i>
+                  </button>
                   <input type="number" id="comb-dim-n" min="1" max="15" value="2" onchange="actualizarEntradasCombinacion()">
-                  <button type="button" class="btn-step" onclick="cambiarDimCombN(1)" title="Aumentar dimensión">+</button>
+                  <button type="button" class="btn-step" onclick="cambiarDimCombN(1)" title="Aumentar dimensión">
+                    <i data-lucide="plus"></i>
+                  </button>
                 </div>
               </div>
               <div class="selector-card">
                 <label for="comb-num-k" class="field-label">Cantidad de Vectores (k):</label>
                 <div class="stepper-box">
-                  <button type="button" class="btn-step" onclick="cambiarDimCombK(-1)" title="Disminuir cantidad">−</button>
+                  <button type="button" class="btn-step" onclick="cambiarDimCombK(-1)" title="Disminuir cantidad">
+                    <i data-lucide="minus"></i>
+                  </button>
                   <input type="number" id="comb-num-k" min="1" max="10" value="2" onchange="actualizarEntradasCombinacion()">
-                  <button type="button" class="btn-step" onclick="cambiarDimCombK(1)" title="Aumentar cantidad">+</button>
+                  <button type="button" class="btn-step" onclick="cambiarDimCombK(1)" title="Aumentar cantidad">
+                    <i data-lucide="plus"></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -186,7 +209,8 @@
             </div>
 
             <button type="button" class="btn-primary btn-large" onclick="evaluarCombinacionLinealUI()">
-              <span>🔍</span> Evaluar Combinación Lineal y Resolver Escalares
+              <i data-lucide="search" class="btn-icon"></i>
+              <span>Evaluar Combinación Lineal y Resolver Escalares</span>
             </button>
 
             <!-- Barra de Herramientas y Ejemplos -->
@@ -197,7 +221,8 @@
                 <button type="button" class="btn-text" onclick="cargarEjemploCombinacion(3)">Caso 3: Infinitas (SCI)</button>
               </div>
               <button type="button" class="btn-clear" onclick="limpiarModuloCombinacion()" title="Limpiar todas las casillas">
-                <span>🗑️</span> Limpiar
+                <i data-lucide="trash-2" class="btn-icon"></i>
+                <span>Limpiar</span>
               </button>
             </div>
           </div>
@@ -235,17 +260,17 @@
                   <div class="dim-chip">
                     <span>Filas (m):</span>
                     <div class="mini-stepper">
-                      <button type="button" onclick="cambiarDimMatA(-1, 0)">−</button>
+                      <button type="button" onclick="cambiarDimMatA(-1, 0)"><i data-lucide="minus"></i></button>
                       <input type="number" id="mat-a-m" min="1" max="8" value="2" onchange="renderizarMatrizA()">
-                      <button type="button" onclick="cambiarDimMatA(1, 0)">+</button>
+                      <button type="button" onclick="cambiarDimMatA(1, 0)"><i data-lucide="plus"></i></button>
                     </div>
                   </div>
                   <div class="dim-chip">
                     <span>Cols (n):</span>
                     <div class="mini-stepper">
-                      <button type="button" onclick="cambiarDimMatA(0, -1)">−</button>
+                      <button type="button" onclick="cambiarDimMatA(0, -1)"><i data-lucide="minus"></i></button>
                       <input type="number" id="mat-a-n" min="1" max="8" value="3" onchange="renderizarMatrizA()">
-                      <button type="button" onclick="cambiarDimMatA(0, 1)">+</button>
+                      <button type="button" onclick="cambiarDimMatA(0, 1)"><i data-lucide="plus"></i></button>
                     </div>
                   </div>
                 </div>
@@ -261,17 +286,17 @@
                   <div class="dim-chip">
                     <span>Filas (r):</span>
                     <div class="mini-stepper">
-                      <button type="button" onclick="cambiarDimMatB(-1, 0)">−</button>
+                      <button type="button" onclick="cambiarDimMatB(-1, 0)"><i data-lucide="minus"></i></button>
                       <input type="number" id="mat-b-r" min="1" max="8" value="3" onchange="renderizarMatrizB()">
-                      <button type="button" onclick="cambiarDimMatB(1, 0)">+</button>
+                      <button type="button" onclick="cambiarDimMatB(1, 0)"><i data-lucide="plus"></i></button>
                     </div>
                   </div>
                   <div class="dim-chip">
                     <span>Cols (p):</span>
                     <div class="mini-stepper">
-                      <button type="button" onclick="cambiarDimMatB(0, -1)">−</button>
+                      <button type="button" onclick="cambiarDimMatB(0, -1)"><i data-lucide="minus"></i></button>
                       <input type="number" id="mat-b-r_col" min="1" max="8" value="2" onchange="renderizarMatrizB()">
-                      <button type="button" onclick="cambiarDimMatB(0, 1)">+</button>
+                      <button type="button" onclick="cambiarDimMatB(0, 1)"><i data-lucide="plus"></i></button>
                     </div>
                   </div>
                 </div>
@@ -287,22 +312,28 @@
             <!-- Botones de Acciones Matriciales -->
             <div class="action-grid action-grid-3">
               <button type="button" class="btn-primary" onclick="operarMatrices('suma')">
-                <span>➕</span> Suma (A + B)
+                <i data-lucide="plus" class="btn-icon"></i>
+                <span>Suma (A + B)</span>
               </button>
               <button type="button" class="btn-primary" onclick="operarMatrices('resta')">
-                <span>➖</span> Resta (A − B)
+                <i data-lucide="minus" class="btn-icon"></i>
+                <span>Resta (A − B)</span>
               </button>
               <button type="button" class="btn-primary" onclick="operarMatrices('multiplicacion')">
-                <span>✨</span> Multiplicar (A · B)
+                <i data-lucide="sparkles" class="btn-icon"></i>
+                <span>Multiplicar (A · B)</span>
               </button>
               <button type="button" class="btn-secondary" onclick="operarMatrices('escalar_a')">
-                <span>✖️</span> Escalar (k · A)
+                <i data-lucide="x" class="btn-icon"></i>
+                <span>Escalar (k · A)</span>
               </button>
               <button type="button" class="btn-secondary" onclick="operarMatrices('transpuesta_a')">
-                <span>🔄</span> Transpuesta (Aᵀ)
+                <i data-lucide="refresh-cw" class="btn-icon"></i>
+                <span>Transpuesta (Aᵀ)</span>
               </button>
               <button type="button" class="btn-secondary" onclick="operarMatrices('transpuesta_b')">
-                <span>🔄</span> Transpuesta (Bᵀ)
+                <i data-lucide="refresh-cw" class="btn-icon"></i>
+                <span>Transpuesta (Bᵀ)</span>
               </button>
             </div>
 
@@ -313,7 +344,8 @@
                 <button type="button" class="btn-text" onclick="cargarEjemploMatrices(2)">Ejemplo 2: Suma A(3x3) + B(3x3)</button>
               </div>
               <button type="button" class="btn-clear" onclick="limpiarModuloMatrices()" title="Limpiar todas las casillas">
-                <span>🗑️</span> Limpiar
+                <i data-lucide="trash-2" class="btn-icon"></i>
+                <span>Limpiar</span>
               </button>
             </div>
           </div>
@@ -348,17 +380,25 @@
               <div class="selector-card">
                 <label for="eq-rows-m" class="field-label">Ecuaciones / Filas (m):</label>
                 <div class="stepper-box">
-                  <button type="button" class="btn-step" onclick="cambiarDimEqM(-1)" title="Disminuir filas">−</button>
+                  <button type="button" class="btn-step" onclick="cambiarDimEqM(-1)" title="Disminuir filas">
+                    <i data-lucide="minus"></i>
+                  </button>
                   <input type="number" id="eq-rows-m" min="1" max="10" value="3" onchange="renderizarEcuacionMatricial()">
-                  <button type="button" class="btn-step" onclick="cambiarDimEqM(1)" title="Aumentar filas">+</button>
+                  <button type="button" class="btn-step" onclick="cambiarDimEqM(1)" title="Aumentar filas">
+                    <i data-lucide="plus"></i>
+                  </button>
                 </div>
               </div>
               <div class="selector-card">
                 <label for="eq-cols-n" class="field-label">Incógnitas / Columnas (n):</label>
                 <div class="stepper-box">
-                  <button type="button" class="btn-step" onclick="cambiarDimEqN(-1)" title="Disminuir columnas">−</button>
+                  <button type="button" class="btn-step" onclick="cambiarDimEqN(-1)" title="Disminuir columnas">
+                    <i data-lucide="minus"></i>
+                  </button>
                   <input type="number" id="eq-cols-n" min="1" max="10" value="3" onchange="renderizarEcuacionMatricial()">
-                  <button type="button" class="btn-step" onclick="cambiarDimEqN(1)" title="Aumentar columnas">+</button>
+                  <button type="button" class="btn-step" onclick="cambiarDimEqN(1)" title="Aumentar columnas">
+                    <i data-lucide="plus"></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -381,7 +421,8 @@
             </div>
 
             <button type="button" class="btn-primary btn-large" onclick="resolverEcuacionMatricialUI()">
-              <span>⚡</span> Resolver Ecuación Matricial Ax = b
+              <i data-lucide="play" class="btn-icon"></i>
+              <span>Resolver Ecuación Matricial Ax = b</span>
             </button>
 
             <!-- Barra de Herramientas y Ejemplos -->
@@ -392,7 +433,8 @@
                 <button type="button" class="btn-text" onclick="cargarEjemploEcuacion(3)">Ejemplo SCI (Infinitas)</button>
               </div>
               <button type="button" class="btn-clear" onclick="limpiarModuloEcuaciones()" title="Limpiar todas las casillas">
-                <span>🗑️</span> Limpiar
+                <i data-lucide="trash-2" class="btn-icon"></i>
+                <span>Limpiar</span>
               </button>
             </div>
           </div>
