@@ -15,11 +15,25 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ==========================================================================
-   1. Utilidades de Renderizado LaTeX (KaTeX)
+   1. Utilidades de Renderizado LaTeX (KaTeX) Adaptativo y Multilínea
    ========================================================================== */
+let notacionVectorial = "auto"; // "auto", "transpuesta", "columna"
+let ultimoCalculoVector = null;
+let ultimoCalculoCombinacion = null;
+
+function cambiarNotacionVectorial(modo) {
+  notacionVectorial = modo;
+  if (ultimoCalculoVector) {
+    renderizarResultadoVectorUI(ultimoCalculoVector);
+  }
+  if (ultimoCalculoCombinacion) {
+    renderizarResultadoCombinacionUI(ultimoCalculoCombinacion);
+  }
+}
+
 function formatLatexFrac(val) {
   if (val === undefined || val === null) return "0";
-  const s = String(val).trim();
+  let s = String(val).trim();
   if (s.includes("/")) {
     const parts = s.split("/");
     if (parts.length === 2) {
@@ -29,26 +43,35 @@ function formatLatexFrac(val) {
       return isNeg ? `-\\frac{${num}}{${den}}` : `\\frac{${num}}{${den}}`;
     }
   }
+  if (s.includes("_")) {
+    s = s.replace(/_([0-9a-zA-Z]+)/g, "_{$1}");
+  }
   return s;
 }
 
-function vectorToLatexCol(vec, maxItems = 20) {
-  if (!vec || vec.length === 0) return "\\begin{pmatrix} 0 \\end{pmatrix}";
-  if (vec.length > maxItems) {
-    const top = vec.slice(0, 3).map(formatLatexFrac).join(" \\\\ ");
-    const bottom = formatLatexFrac(vec[vec.length - 1]);
-    return `\\begin{pmatrix} ${top} \\\\ \\vdots \\\\ ${bottom} \\end{pmatrix}`;
+/**
+ * Formatea un vector de forma inteligente:
+ * - En modo 'transpuesta' o si n > 4 en modo 'auto': produce (v1, v2, ..., vn)^T (compacto, sin scroll).
+ * - En modo 'columna' o si n <= 4 en modo 'auto': produce matriz columna pmatrix.
+ */
+function formatVectorSmart(vec, modo = "auto") {
+  if (!vec || vec.length === 0) return "(0)";
+  const n = vec.length;
+  const usarTranspuesta = (modo === "transpuesta") || (modo === "auto" && n > 4);
+
+  if (usarTranspuesta) {
+    return `(${vec.map(formatLatexFrac).join(",\\; ")})^T`;
   }
+  return `\\begin{pmatrix} ${vec.map(formatLatexFrac).join(" \\\\ ")} \\end{pmatrix}`;
+}
+
+function vectorToLatexCol(vec) {
+  if (!vec || vec.length === 0) return "\\begin{pmatrix} 0 \\end{pmatrix}";
   return "\\begin{pmatrix} " + vec.map(formatLatexFrac).join(" \\\\ ") + " \\end{pmatrix}";
 }
 
-function vectorToLatexRow(vec, maxItems = 20) {
+function vectorToLatexRow(vec) {
   if (!vec || vec.length === 0) return "(0)";
-  if (vec.length > maxItems) {
-    const top = vec.slice(0, 4).map(formatLatexFrac).join(",\\; ");
-    const bottom = formatLatexFrac(vec[vec.length - 1]);
-    return `(${top},\\; \\dots,\\; ${bottom})`;
-  }
   return "(" + vec.map(formatLatexFrac).join(",\\; ") + ")";
 }
 
@@ -280,49 +303,9 @@ async function calcularOperacionVector(operacion) {
     badge.className = "badge badge-success";
     badge.innerText = "Éxito";
 
-    // Construcción de la Ecuación Matemática en LaTeX
-    let latexStr = "";
-    if (operacion === "suma") {
-      latexStr = `\\vec{u} + \\vec{v} = ${vectorToLatexCol(u)} + ${vectorToLatexCol(v)} = ${vectorToLatexCol(u.map((x, i) => {
-        // Parse simple string from server or calculate
-        return data.resultado_str.replace(/[()]/g, "").split(",")[i] || "0";
-      }))}`;
-    } else if (operacion === "resta") {
-      latexStr = `\\vec{u} - \\vec{v} = ${vectorToLatexCol(u)} - ${vectorToLatexCol(v)} = ${vectorToLatexCol(u.map((x, i) => {
-        return data.resultado_str.replace(/[()]/g, "").split(",")[i] || "0";
-      }))}`;
-    } else if (operacion === "escalar_u") {
-      const cLatex = formatLatexFrac(c);
-      latexStr = `${cLatex} \\cdot \\vec{u} = ${cLatex} ${vectorToLatexCol(u)} = ${vectorToLatexCol(u.map((x, i) => {
-        return data.resultado_str.replace(/[()]/g, "").split(",")[i] || "0";
-      }))}`;
-    } else if (operacion === "producto_punto") {
-      latexStr = `\\vec{u} \\cdot \\vec{v} = ${vectorToLatexRow(u)} \\cdot ${vectorToLatexCol(v)} = ${formatLatexFrac(data.resultado_str)}`;
-    }
-
-    resultBox.innerHTML = `
-      <div class="latex-equation-card">
-        <div class="latex-header">${data.titulo_operacion} (Ecuación en LaTeX)</div>
-        <div id="vec-latex-target" class="latex-display-box"></div>
-        <div class="result-explanation">${data.explicacion_teorica}</div>
-      </div>
-    `;
-
-    const targetEl = document.getElementById("vec-latex-target");
-    renderLatexElement(targetEl, latexStr);
-
-    if (data.desglose_componentes && data.desglose_componentes.length > 0) {
-      const stepsWrapper = document.createElement("div");
-      stepsWrapper.className = "steps-container";
-      stepsWrapper.innerHTML = `<h4>Desglose componente a componente:</h4>`;
-      data.desglose_componentes.forEach(paso => {
-        const item = document.createElement("div");
-        item.className = "step-item";
-        item.innerHTML = `<div class="step-item-desc">${paso}</div>`;
-        stepsWrapper.appendChild(item);
-      });
-      resultBox.appendChild(stepsWrapper);
-    }
+    // Guardar para permitir cambio de notación en tiempo real
+    ultimoCalculoVector = { data, u, v, c, operacion };
+    renderizarResultadoVectorUI(ultimoCalculoVector);
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
@@ -332,6 +315,60 @@ async function calcularOperacionVector(operacion) {
         <p>${err.message}</p>
       </div>
     `;
+  }
+}
+
+function renderizarResultadoVectorUI(calc) {
+  const { data, u, v, c, operacion } = calc;
+  const resultBox = document.getElementById("vec-result-content");
+  if (!resultBox) return;
+
+  const n = u.length;
+  // Desglose de componentes del resultado
+  const wRaw = data.resultado_str.replace(/[()]/g, "").split(",").map(x => x.trim());
+
+  // Construcción de la Ecuación Matemática en LaTeX según el modo activo
+  let latexStr = "";
+  if (operacion === "suma") {
+    latexStr = `\\vec{u} + \\vec{v} = ${formatVectorSmart(u, notacionVectorial)} + ${formatVectorSmart(v, notacionVectorial)} = ${formatVectorSmart(wRaw, notacionVectorial)}`;
+  } else if (operacion === "resta") {
+    latexStr = `\\vec{u} - \\vec{v} = ${formatVectorSmart(u, notacionVectorial)} - ${formatVectorSmart(v, notacionVectorial)} = ${formatVectorSmart(wRaw, notacionVectorial)}`;
+  } else if (operacion === "escalar_u") {
+    const cLatex = formatLatexFrac(c);
+    latexStr = `${cLatex} \\cdot \\vec{u} = ${cLatex} ${formatVectorSmart(u, notacionVectorial)} = ${formatVectorSmart(wRaw, notacionVectorial)}`;
+  } else if (operacion === "producto_punto") {
+    latexStr = `\\vec{u} \\cdot \\vec{v} = ${vectorToLatexRow(u)} \\cdot ${formatVectorSmart(v, notacionVectorial)} = ${formatLatexFrac(data.resultado_str)}`;
+  }
+
+  resultBox.innerHTML = `
+    <div class="latex-equation-card">
+      <div class="notation-bar">
+        <span class="latex-header">${data.titulo_operacion}</span>
+        <div class="notation-toggle-group">
+          <button type="button" class="btn-not-toggle ${notacionVectorial==='auto'?'active':''}" onclick="cambiarNotacionVectorial('auto')" title="Compacto si n > 4 para evitar altura excesiva">Auto (Sin Scroll)</button>
+          <button type="button" class="btn-not-toggle ${notacionVectorial==='transpuesta'?'active':''}" onclick="cambiarNotacionVectorial('transpuesta')" title="Notación matemática ( )ᵀ compacta">Transpuesta ( )ᵀ</button>
+          <button type="button" class="btn-not-toggle ${notacionVectorial==='columna'?'active':''}" onclick="cambiarNotacionVectorial('columna')" title="Notación vertical completa">Columna ( )</button>
+        </div>
+      </div>
+      <div id="vec-latex-target" class="latex-display-box"></div>
+      <div class="result-explanation">${data.explicacion_teorica}</div>
+    </div>
+  `;
+
+  const targetEl = document.getElementById("vec-latex-target");
+  renderLatexElement(targetEl, latexStr);
+
+  if (data.desglose_componentes && data.desglose_componentes.length > 0) {
+    const stepsWrapper = document.createElement("div");
+    stepsWrapper.className = "steps-container";
+    stepsWrapper.innerHTML = `<h4>Desglose componente a componente:</h4>`;
+    data.desglose_componentes.forEach(paso => {
+      const item = document.createElement("div");
+      item.className = "step-item";
+      item.innerHTML = `<div class="step-item-desc">${paso}</div>`;
+      stepsWrapper.appendChild(item);
+    });
+    resultBox.appendChild(stepsWrapper);
   }
 }
 
@@ -518,51 +555,9 @@ async function evaluarCombinacionLinealUI() {
       badge.innerText = "NO es Combinación (SI)";
     }
 
-    // Construcción de la Ecuación Formal en LaTeX
-    let latexComb = "";
-    if (data.es_combinacion) {
-      const terminosCols = [];
-      for (let j = 0; j < combK; j++) {
-        const cVal = formatLatexFrac(data.escalares_vector[j]);
-        terminosCols.push(`${cVal} ${vectorToLatexCol(vectores[j])}`);
-      }
-      latexComb = `\\vec{b} = \\sum_{j=1}^{${combK}} c_j \\vec{v}_j \\implies ${vectorToLatexCol(b)} = ${terminosCols.join(" + ")}`;
-    } else {
-      latexComb = `\\vec{b} = ${vectorToLatexCol(b)} \\notin \\operatorname{gen}\\left\\{ \\vec{v}_1, \\dots, \\vec{v}_${combK} \\right\\}`;
-    }
-
-    resultBox.innerHTML = `
-      <div class="latex-equation-card">
-        <div class="latex-header">Ecuación Vectorial en LaTeX</div>
-        <div id="comb-latex-target" class="latex-display-box"></div>
-        <div class="result-explanation" style="white-space: pre-line; margin-top: 0.5rem;">${data.justificacion_teorica}</div>
-      </div>
-    `;
-
-    const targetEl = document.getElementById("comb-latex-target");
-    renderLatexElement(targetEl, latexComb);
-
-    if (data.comprobacion && data.comprobacion.length > 0) {
-      const verifEl = document.createElement("div");
-      verifEl.className = "verification-box";
-      verifEl.innerHTML = `<h4>Comprobación Componente por Componente:</h4>${data.comprobacion.map(c => `<div>${c}</div>`).join("")}`;
-      resultBox.appendChild(verifEl);
-    }
-
-    if (data.pasos && data.pasos.length > 0) {
-      const stepsWrapper = document.createElement("div");
-      stepsWrapper.className = "steps-container";
-      stepsWrapper.innerHTML = `<h4>Pasos de Reducción por Filas (Gauss-Jordan):</h4>`;
-      data.pasos.forEach(p => {
-        stepsWrapper.innerHTML += `
-          <div class="step-item">
-            <div class="step-item-title">Paso ${p.step_number}: ${p.title}</div>
-            <div class="step-item-desc">${p.description}</div>
-          </div>
-        `;
-      });
-      resultBox.appendChild(stepsWrapper);
-    }
+    // Guardar estado para reactividad al alternar modo de notación
+    ultimoCalculoCombinacion = { data, vectores, b };
+    renderizarResultadoCombinacionUI(ultimoCalculoCombinacion);
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
@@ -572,6 +567,123 @@ async function evaluarCombinacionLinealUI() {
         <p>${err.message}</p>
       </div>
     `;
+  }
+}
+
+function renderizarResultadoCombinacionUI(calc) {
+  const { data, vectores, b } = calc;
+  const resultBox = document.getElementById("comb-result-content");
+  if (!resultBox) return;
+
+  const k = vectores.length;
+  const n = b.length;
+  const usarTranspuesta = (notacionVectorial === "transpuesta") || (notacionVectorial === "auto" && n > 4);
+
+  function vectorFmt(v) {
+    if (usarTranspuesta) {
+      return `(${v.map(formatLatexFrac).join(",\\; ")})^T`;
+    }
+    return vectorToLatexCol(v);
+  }
+
+  // Generación de LaTeX adaptativo y multilínea (sin scroll horizontal)
+  let latexComb = "";
+  if (data.es_combinacion) {
+    const terminos = [];
+    for (let j = 0; j < k; j++) {
+      const cVal = formatLatexFrac(data.escalares_vector[j]);
+      terminos.push(`${cVal} ${vectorFmt(vectores[j])}`);
+    }
+
+    if (k <= 2 && !usarTranspuesta && n <= 3) {
+      // Si son 2 o menos vectores pequeños, una sola línea es cómoda
+      latexComb = `\\vec{b} = \\sum_{j=1}^{${k}} c_j \\vec{v}_j \\implies ${vectorFmt(b)} = ${terminos.join(" + ")}`;
+    } else {
+      // Chunking multilínea con alineación LaTeX para eliminar por completo el desbordamiento
+      const chunkSize = usarTranspuesta ? (n > 6 ? 2 : 3) : 2;
+      const chunks = [];
+      for (let i = 0; i < terminos.length; i += chunkSize) {
+        chunks.push(terminos.slice(i, i + chunkSize));
+      }
+
+      const lineasAligned = [];
+      lineasAligned.push(`\\vec{b} &= \\sum_{j=1}^{${k}} c_j \\vec{v}_j`);
+      lineasAligned.push(`${vectorFmt(b)} &= ${chunks[0].join(" + ")}`);
+      for (let c = 1; c < chunks.length; c++) {
+        lineasAligned.push(`&\\quad + ${chunks[c].join(" + ")}`);
+      }
+
+      latexComb = `\\begin{aligned}\n${lineasAligned.join(" \\\\[6pt]\n")}\n\\end{aligned}`;
+    }
+  } else {
+    latexComb = `\\vec{b} = ${vectorFmt(b)} \\notin \\operatorname{gen}\\left\\{ \\vec{v}_1, \\dots, \\vec{v}_${k} \\right\\}`;
+  }
+
+  // Resumen compacto de escalares
+  let scalarsHtml = "";
+  if (data.es_combinacion && data.escalares_vector) {
+    const tipoTexto = (data.tipo_solucion === "UNICA") ? "Solución Única" : "Solución Paramétrica (Infinitas Soluciones)";
+    scalarsHtml = `
+      <div class="latex-scalars-summary">
+        <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.35rem; text-transform: uppercase;">
+          Escalares de la Combinación (${tipoTexto}):
+        </div>
+        <div id="comb-scalars-latex" style="overflow-x: auto; padding: 0.2rem 0;"></div>
+      </div>
+    `;
+  }
+
+  resultBox.innerHTML = `
+    <div class="latex-equation-card">
+      <div class="notation-bar">
+        <span class="latex-header">Ecuación Vectorial en LaTeX</span>
+        <div class="notation-toggle-group">
+          <button type="button" class="btn-not-toggle ${notacionVectorial==='auto'?'active':''}" onclick="cambiarNotacionVectorial('auto')" title="Alineación multilínea inteligente para evitar scroll horizontal">Auto (Sin Scroll)</button>
+          <button type="button" class="btn-not-toggle ${notacionVectorial==='transpuesta'?'active':''}" onclick="cambiarNotacionVectorial('transpuesta')" title="Notación matemática ( )ᵀ compacta">Transpuesta ( )ᵀ</button>
+          <button type="button" class="btn-not-toggle ${notacionVectorial==='columna'?'active':''}" onclick="cambiarNotacionVectorial('columna')" title="Notación vertical en columnas">Columna ( )</button>
+        </div>
+      </div>
+      ${scalarsHtml}
+      <div id="comb-latex-target" class="latex-display-box"></div>
+      <div class="result-explanation" style="white-space: pre-line; margin-top: 0.5rem;">${data.justificacion_teorica}</div>
+    </div>
+  `;
+
+  // Renderizar la ecuación principal en KaTeX
+  const targetEl = document.getElementById("comb-latex-target");
+  renderLatexElement(targetEl, latexComb);
+
+  // Renderizar los escalares
+  if (data.es_combinacion && data.escalares_vector) {
+    const scalarsTarget = document.getElementById("comb-scalars-latex");
+    if (scalarsTarget) {
+      const scalarsLatex = data.escalares_vector.map((val, idx) => `c_{${idx + 1}} = ${formatLatexFrac(val)}`).join(",\\quad ");
+      renderLatexElement(scalarsTarget, scalarsLatex, false);
+    }
+  }
+
+  // Desglose de Comprobación
+  if (data.comprobacion && data.comprobacion.length > 0) {
+    const verifEl = document.createElement("div");
+    verifEl.className = "verification-box";
+    verifEl.innerHTML = `<h4>Comprobación Componente por Componente:</h4>${data.comprobacion.map(c => `<div>${c}</div>`).join("")}`;
+    resultBox.appendChild(verifEl);
+  }
+
+  // Pasos de Gauss-Jordan
+  if (data.pasos && data.pasos.length > 0) {
+    const stepsWrapper = document.createElement("div");
+    stepsWrapper.className = "steps-container";
+    stepsWrapper.innerHTML = `<h4>Pasos de Reducción por Filas (Gauss-Jordan):</h4>`;
+    data.pasos.forEach(p => {
+      stepsWrapper.innerHTML += `
+        <div class="step-item">
+          <div class="step-item-title">Paso ${p.step_number}: ${p.title}</div>
+          <div class="step-item-desc">${p.description}</div>
+        </div>
+      `;
+    });
+    resultBox.appendChild(stepsWrapper);
   }
 }
 

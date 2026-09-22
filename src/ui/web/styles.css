@@ -819,19 +819,68 @@ input[type="number"] {
   margin-bottom: 0.4rem;
 }
 
+/* Barra de Opciones de Formato Matemático */
+.notation-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.notation-toggle-group {
+  display: inline-flex;
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.btn-not-toggle {
+  background: transparent;
+  border: none;
+  padding: 0.25rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-not-toggle.active {
+  background: var(--accent-cyan);
+  color: #ffffff;
+}
+
+.btn-not-toggle:hover:not(.active) {
+  color: var(--text-main);
+  background: rgba(2, 132, 199, 0.08);
+}
+
 .latex-display-box {
-  margin: 0.75rem 0;
+  margin: 0.6rem 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.4rem 0;
+  padding: 0.4rem 0.2rem;
+  text-align: center;
+}
+
+.latex-scalars-summary {
+  background: rgba(2, 132, 199, 0.06);
+  border: 1px dashed var(--card-highlight-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
   text-align: center;
 }
 
 .katex-display {
-  margin: 0.5rem 0 !important;
+  margin: 0.4rem 0 !important;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.25rem 0;
+  padding: 0.2rem 0;
 }
 
 .katex {
