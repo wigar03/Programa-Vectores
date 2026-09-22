@@ -4,16 +4,49 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  inicializarTema();
   inicializarNavegacion();
   inicializarModuloVectores();
   inicializarModuloCombinacion();
   inicializarModuloMatrices();
   inicializarModuloEcuaciones();
-  inicializarBotonProgramaAnterior();
 });
 
 /* ==========================================================================
-   1. Navegación por Pestañas
+   1. Control de Tema (Modo Claro por Defecto con Toggle a Modo Oscuro)
+   ========================================================================== */
+function inicializarTema() {
+  const savedTheme = localStorage.getItem("algebra_theme") || "light";
+  aplicarTema(savedTheme);
+
+  const btnToggle = document.getElementById("btn-theme-toggle");
+  if (btnToggle) {
+    btnToggle.addEventListener("click", () => {
+      const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+      const newTheme = currentTheme === "light" ? "dark" : "light";
+      aplicarTema(newTheme);
+      localStorage.setItem("algebra_theme", newTheme);
+    });
+  }
+}
+
+function aplicarTema(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  const btnToggle = document.getElementById("btn-theme-toggle");
+  const textEl = document.getElementById("theme-btn-text");
+  if (btnToggle && textEl) {
+    if (theme === "dark") {
+      btnToggle.querySelector(".icon").innerText = "☀️";
+      textEl.innerText = "Modo Claro";
+    } else {
+      btnToggle.querySelector(".icon").innerText = "🌙";
+      textEl.innerText = "Modo Oscuro";
+    }
+  }
+}
+
+/* ==========================================================================
+   2. Navegación por Pestañas
    ========================================================================== */
 function inicializarNavegacion() {
   const tabs = document.querySelectorAll(".nav-tab");
@@ -31,7 +64,7 @@ function inicializarNavegacion() {
   });
 }
 
-function mostrarToast(mensaje, duracion = 3500) {
+function mostrarToast(mensaje, duracion = 3000) {
   const toast = document.getElementById("notification-toast");
   const msgEl = document.getElementById("toast-message");
   if (!toast || !msgEl) return;
@@ -43,7 +76,7 @@ function mostrarToast(mensaje, duracion = 3500) {
 }
 
 /* ==========================================================================
-   2. Módulo de Vectores
+   3. Módulo de Vectores en R^n
    ========================================================================== */
 let vectorDim = 3;
 
@@ -95,6 +128,28 @@ function obtenerValoresVector(prefijo) {
     res.push(el ? el.value.trim() || "0" : "0");
   }
   return res;
+}
+
+function limpiarModuloVectores() {
+  for (let i = 0; i < vectorDim; i++) {
+    const elU = document.getElementById(`vec-u-${i}`);
+    const elV = document.getElementById(`vec-v-${i}`);
+    if (elU) elU.value = "0";
+    if (elV) elV.value = "0";
+  }
+  const elC = document.getElementById("vec-scalar-c");
+  if (elC) elC.value = "1";
+
+  const badge = document.getElementById("vec-badge-status");
+  const resultBox = document.getElementById("vec-result-content");
+  if (badge) {
+    badge.className = "badge";
+    badge.innerText = "Casillas limpias";
+  }
+  if (resultBox) {
+    resultBox.innerHTML = '<p class="placeholder-text">Seleccione una operación vectorial para ver el resultado y desglose algebraico.</p>';
+  }
+  mostrarToast("Casillas de vectores limpiadas.");
 }
 
 function cargarEjemploVector(tipo) {
@@ -159,14 +214,14 @@ async function calcularOperacionVector(operacion) {
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
-    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(244,63,94,0.4);"><div class="result-formula" style="color:#fda4af;">Error:</div><p>${err.message}</p></div>`;
+    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(225,29,72,0.4);"><div class="result-formula" style="color:var(--accent-rose);">Error:</div><p>${err.message}</p></div>`;
   }
 }
 
 /* ==========================================================================
-   3. Módulo de Combinación Lineal
+   4. Módulo de Combinación Lineal
    ========================================================================== */
-let combN = 3;
+let combN = 2;
 let combK = 2;
 
 function inicializarModuloCombinacion() {
@@ -176,7 +231,7 @@ function inicializarModuloCombinacion() {
 
 function cambiarDimCombN(delta) {
   const el = document.getElementById("comb-dim-n");
-  let val = Math.max(1, Math.min(15, (parseInt(el.value, 10) || 3) + delta));
+  let val = Math.max(1, Math.min(15, (parseInt(el.value, 10) || 2) + delta));
   el.value = val;
   actualizarEntradasCombinacion();
 }
@@ -189,7 +244,7 @@ function cambiarDimCombK(delta) {
 }
 
 function actualizarEntradasCombinacion() {
-  combN = parseInt(document.getElementById("comb-dim-n").value, 10) || 3;
+  combN = parseInt(document.getElementById("comb-dim-n").value, 10) || 2;
   combK = parseInt(document.getElementById("comb-num-k").value, 10) || 2;
 
   const listContainer = document.getElementById("comb-vectors-list");
@@ -229,9 +284,31 @@ function actualizarEntradasCombinacion() {
   }
 }
 
+function limpiarModuloCombinacion() {
+  for (let j = 0; j < combK; j++) {
+    for (let i = 0; i < combN; i++) {
+      const el = document.getElementById(`comb-v-${j}-${i}`);
+      if (el) el.value = "0";
+    }
+  }
+  for (let i = 0; i < combN; i++) {
+    const elB = document.getElementById(`comb-b-${i}`);
+    if (elB) elB.value = "0";
+  }
+  const badge = document.getElementById("comb-badge-status");
+  const resultBox = document.getElementById("comb-result-content");
+  if (badge) {
+    badge.className = "badge";
+    badge.innerText = "Pendiente";
+  }
+  if (resultBox) {
+    resultBox.innerHTML = '<p class="placeholder-text">Configure los vectores y presione "Evaluar Combinación Lineal".</p>';
+  }
+  mostrarToast("Casillas de combinación lineal limpiadas.");
+}
+
 function cargarEjemploCombinacion(caso) {
   if (caso === 1) {
-    // SCD: Combinación única
     document.getElementById("comb-dim-n").value = 2;
     document.getElementById("comb-num-k").value = 2;
     actualizarEntradasCombinacion();
@@ -242,7 +319,6 @@ function cargarEjemploCombinacion(caso) {
     document.getElementById("comb-b-0").value = "5";
     document.getElementById("comb-b-1").value = "6";
   } else if (caso === 2) {
-    // SI: No es combinación lineal
     document.getElementById("comb-dim-n").value = 3;
     document.getElementById("comb-num-k").value = 2;
     actualizarEntradasCombinacion();
@@ -254,9 +330,8 @@ function cargarEjemploCombinacion(caso) {
     document.getElementById("comb-v-1-2").value = "0";
     document.getElementById("comb-b-0").value = "2";
     document.getElementById("comb-b-1").value = "3";
-    document.getElementById("comb-b-2").value = "7"; // componente z imposible
+    document.getElementById("comb-b-2").value = "7";
   } else {
-    // SCI: Infinitas combinaciones
     document.getElementById("comb-dim-n").value = 2;
     document.getElementById("comb-num-k").value = 3;
     actualizarEntradasCombinacion();
@@ -343,17 +418,33 @@ async function evaluarCombinacionLinealUI() {
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
-    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(244,63,94,0.4);"><div class="result-formula" style="color:#fda4af;">Error:</div><p>${err.message}</p></div>`;
+    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(225,29,72,0.4);"><div class="result-formula" style="color:var(--accent-rose);">Error:</div><p>${err.message}</p></div>`;
   }
 }
 
 /* ==========================================================================
-   4. Módulo de Matrices Básicas
+   5. Módulo de Matrices Básicas
    ========================================================================== */
 function inicializarModuloMatrices() {
   renderizarMatrizA();
   renderizarMatrizB();
   cargarEjemploMatrices(1);
+}
+
+function cambiarDimMatA(dm, dn) {
+  const elM = document.getElementById("mat-a-m");
+  const elN = document.getElementById("mat-a-n");
+  if (dm !== 0) elM.value = Math.max(1, Math.min(8, (parseInt(elM.value, 10) || 2) + dm));
+  if (dn !== 0) elN.value = Math.max(1, Math.min(8, (parseInt(elN.value, 10) || 3) + dn));
+  renderizarMatrizA();
+}
+
+function cambiarDimMatB(dr, dp) {
+  const elR = document.getElementById("mat-b-r");
+  const elP = document.getElementById("mat-b-p");
+  if (dr !== 0) elR.value = Math.max(1, Math.min(8, (parseInt(elR.value, 10) || 3) + dr));
+  if (dp !== 0) elP.value = Math.max(1, Math.min(8, (parseInt(elP.value, 10) || 2) + dp));
+  renderizarMatrizB();
 }
 
 function renderizarMatrizA() {
@@ -407,9 +498,41 @@ function obtenerMatrizValores(prefijo, filas, cols) {
   return M;
 }
 
+function limpiarModuloMatrices() {
+  const m = parseInt(document.getElementById("mat-a-m").value, 10) || 2;
+  const n = parseInt(document.getElementById("mat-a-n").value, 10) || 3;
+  const r = parseInt(document.getElementById("mat-b-r").value, 10) || 3;
+  const p = parseInt(document.getElementById("mat-b-p").value, 10) || 2;
+
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
+      const el = document.getElementById(`mat-a-${i}-${j}`);
+      if (el) el.value = "0";
+    }
+  }
+  for (let i = 0; i < r; i++) {
+    for (let j = 0; j < p; j++) {
+      const el = document.getElementById(`mat-b-${i}-${j}`);
+      if (el) el.value = "0";
+    }
+  }
+  const elK = document.getElementById("mat-scalar-k");
+  if (elK) elK.value = "1";
+
+  const badge = document.getElementById("mat-badge-status");
+  const resultBox = document.getElementById("mat-result-content");
+  if (badge) {
+    badge.className = "badge";
+    badge.innerText = "Casillas limpias";
+  }
+  if (resultBox) {
+    resultBox.innerHTML = '<p class="placeholder-text">Seleccione una operación matricial para calcular.</p>';
+  }
+  mostrarToast("Matrices A y B limpiadas.");
+}
+
 function cargarEjemploMatrices(tipo) {
   if (tipo === 1) {
-    // Multiplicación A(2x3) x B(3x2)
     document.getElementById("mat-a-m").value = 2;
     document.getElementById("mat-a-n").value = 3;
     document.getElementById("mat-b-r").value = 3;
@@ -421,7 +544,6 @@ function cargarEjemploMatrices(tipo) {
     for (let i = 0; i < 2; i++) for (let j = 0; j < 3; j++) document.getElementById(`mat-a-${i}-${j}`).value = aVals[i][j];
     for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) document.getElementById(`mat-b-${i}-${j}`).value = bVals[i][j];
   } else {
-    // Suma A(3x3) + B(3x3)
     document.getElementById("mat-a-m").value = 3;
     document.getElementById("mat-a-n").value = 3;
     document.getElementById("mat-b-r").value = 3;
@@ -461,13 +583,13 @@ async function operarMatrices(operacion) {
     let html = `
       <div class="result-card-highlight">
         <div class="result-formula">${data.titulo_operacion}</div>
-        <pre class="result-formula" style="font-size: 0.95rem; margin-top: 0.5rem; color:#f8fafc;">${data.matriz_formateada}</pre>
+        <pre class="result-formula" style="font-size: 0.95rem; margin-top: 0.5rem; color: var(--text-main); font-family: 'JetBrains Mono', monospace;">${data.matriz_formateada}</pre>
         <div class="result-explanation">${data.explicacion_teorica}</div>
       </div>
     `;
 
     if (data.pasos_multiplicacion && data.pasos_multiplicacion.length > 0) {
-      html += `<div class="steps-container"><h4>Cálculo de cada entrada c_ij (Producto Punto Renglón · Columna):</h4>`;
+      html += `<div class="steps-container"><h4>Cálculo de cada entrada c_ij (Producto Renglón · Columna):</h4>`;
       data.pasos_multiplicacion.forEach(paso => {
         html += `<div class="step-item"><div class="step-item-desc">${paso}</div></div>`;
       });
@@ -478,12 +600,12 @@ async function operarMatrices(operacion) {
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
-    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(244,63,94,0.4);"><div class="result-formula" style="color:#fda4af;">Error Dimensional:</div><p>${err.message}</p></div>`;
+    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(225,29,72,0.4);"><div class="result-formula" style="color:var(--accent-rose);">Error Dimensional:</div><p>${err.message}</p></div>`;
   }
 }
 
 /* ==========================================================================
-   5. Módulo de Ecuaciones Matriciales Ax = b
+   6. Módulo de Ecuaciones Matriciales Ax = b
    ========================================================================== */
 let eqM = 3;
 let eqN = 3;
@@ -516,7 +638,6 @@ function renderizarEcuacionMatricial() {
   grid.innerHTML = "";
 
   for (let i = 0; i < eqM; i++) {
-    // Columnas de A
     for (let j = 0; j < eqN; j++) {
       const inp = document.createElement("input");
       inp.type = "text";
@@ -525,17 +646,15 @@ function renderizarEcuacionMatricial() {
       inp.value = (i === j ? "1" : "0");
       grid.appendChild(inp);
     }
-    // Separador visual |
     const sep = document.createElement("div");
     sep.style.display = "flex";
     sep.style.alignItems = "center";
     sep.style.justifyContent = "center";
-    sep.style.color = "#64748b";
+    sep.style.color = "var(--text-dim)";
     sep.style.fontWeight = "bold";
     sep.innerText = "│";
     grid.appendChild(sep);
 
-    // Columna de b
     const inpB = document.createElement("input");
     inpB.type = "text";
     inpB.className = "cell-input augmented-cell-b";
@@ -545,9 +664,30 @@ function renderizarEcuacionMatricial() {
   }
 }
 
+function limpiarModuloEcuaciones() {
+  for (let i = 0; i < eqM; i++) {
+    for (let j = 0; j < eqN; j++) {
+      const elA = document.getElementById(`eq-a-${i}-${j}`);
+      if (elA) elA.value = "0";
+    }
+    const elB = document.getElementById(`eq-b-${i}`);
+    if (elB) elB.value = "0";
+  }
+
+  const badge = document.getElementById("eq-badge-status");
+  const resultBox = document.getElementById("eq-result-content");
+  if (badge) {
+    badge.className = "badge";
+    badge.innerText = "Casillas limpias";
+  }
+  if (resultBox) {
+    resultBox.innerHTML = '<p class="placeholder-text">Ingrese los coeficientes del sistema y presione "Resolver Ecuación Matricial".</p>';
+  }
+  mostrarToast("Sistema Ax = b limpiado.");
+}
+
 function cargarEjemploEcuacion(caso) {
   if (caso === 1) {
-    // SCD: 3x3 único
     document.getElementById("eq-rows-m").value = 3;
     document.getElementById("eq-cols-n").value = 3;
     renderizarEcuacionMatricial();
@@ -558,7 +698,6 @@ function cargarEjemploEcuacion(caso) {
       document.getElementById(`eq-b-${i}`).value = b[i];
     }
   } else if (caso === 2) {
-    // SI: Sin solución
     document.getElementById("eq-rows-m").value = 2;
     document.getElementById("eq-cols-n").value = 2;
     renderizarEcuacionMatricial();
@@ -569,7 +708,6 @@ function cargarEjemploEcuacion(caso) {
     document.getElementById("eq-a-1-1").value = "4";
     document.getElementById("eq-b-1").value = "10";
   } else {
-    // SCI: Infinitas soluciones
     document.getElementById("eq-rows-m").value = 2;
     document.getElementById("eq-cols-n").value = 3;
     renderizarEcuacionMatricial();
@@ -630,8 +768,8 @@ async function resolverEcuacionMatricialUI() {
       <div class="result-card-highlight">
         <div class="result-formula">Sistema: ${data.tipo_sistema}</div>
         <div class="result-explanation" style="white-space: pre-line;">${data.descripcion_sistema}</div>
-        <div style="margin-top: 0.75rem; font-family: var(--font-mono); color: #38bdf8;">
-          Vector Solución x: [ ${data.vector_solucion.join(", ")} ]
+        <div style="margin-top: 0.75rem; font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); font-weight: 600;">
+          Vector Solución x = [ ${data.vector_solucion.join(", ")} ]
         </div>
       </div>
     `;
@@ -662,31 +800,6 @@ async function resolverEcuacionMatricialUI() {
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
-    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(244,63,94,0.4);"><div class="result-formula" style="color:#fda4af;">Error al resolver:</div><p>${err.message}</p></div>`;
+    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(225,29,72,0.4);"><div class="result-formula" style="color:var(--accent-rose);">Error al resolver:</div><p>${err.message}</p></div>`;
   }
-}
-
-/* ==========================================================================
-   6. Botón de Invocación del Programa Anterior (Semana #3)
-   ========================================================================== */
-function inicializarBotonProgramaAnterior() {
-  const btn = document.getElementById("btn-launch-previous");
-  if (!btn) return;
-  btn.addEventListener("click", async () => {
-    btn.disabled = true;
-    mostrarToast("Iniciando programa anterior (Semana #3)...");
-    try {
-      const res = await fetch("/api/programa-anterior/lanzar", { method: "POST" });
-      const data = await res.json();
-      if (data.exito) {
-        mostrarToast("¡Programa anterior iniciado exitosamente!");
-      } else {
-        mostrarToast("Aviso: " + data.mensaje, 5000);
-      }
-    } catch (e) {
-      mostrarToast("Error al invocar programa anterior: " + e.message);
-    } finally {
-      btn.disabled = false;
-    }
-  });
 }

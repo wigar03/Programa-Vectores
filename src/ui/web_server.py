@@ -37,10 +37,6 @@ from src.matrices.operaciones import (
     transpuesta_matriz,
 )
 from src.ecuaciones.ecuacion_matricial import resolver_ecuacion_matricial
-from src.solver.anterior_programa import (
-    ejecutar_programa_anterior,
-    buscar_ruta_programa_anterior,
-)
 
 
 def serialize_fraction_or_str(val):
@@ -93,9 +89,6 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 self._handle_matrices_operar(body)
             elif parsed.path == "/api/ecuaciones/resolver":
                 self._handle_ecuaciones_resolver(body)
-            elif parsed.path == "/api/programa-anterior/lanzar":
-                exito, msg = ejecutar_programa_anterior()
-                self._send_json({"exito": exito, "mensaje": msg})
             else:
                 self._send_json({"error": f"Ruta API no encontrada: {parsed.path}"}, status=404)
         except Exception as err:

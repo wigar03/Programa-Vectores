@@ -108,10 +108,9 @@ Programa Vectores/
 │   │   └── anterior_programa.py    # Invocación del programa de la Semana #3
 │   ├── ecuaciones/                 # Módulo 3: Ecuaciones matriciales
 │   │   └── ecuacion_matricial.py   # Resolución computacional y residuo de Ax = b
-│   └── ui/                         # Interfaz de usuario de alta estética
+│   └── ui/                         # Interfaz web de usuario de alta estética
 │       ├── web_server.py           # Servidor local estándar en Python (cero dependencias)
-│       ├── gui_tk.py               # Interfaz nativa de escritorio alternativa (Tkinter)
-│       └── web/                    # Frontend SPA moderno (HTML5, CSS Glass, JS reactivo)
+│       └── web/                    # Frontend SPA moderno (HTML5, CSS, JS reactivo, Modo Claro/Oscuro)
 │           ├── index.html
 │           ├── styles.css
 │           └── app.js
@@ -130,8 +129,8 @@ Programa Vectores/
 - Python 3.8 o superior instalado en el sistema.
 - **Sin necesidad de instalar paquetes externos vía `pip`**: el programa funciona 100% con la biblioteca estándar.
 
-### 1. Ejecutar la Interfaz Web Interactiva (Recomendado)
-Inicia la aplicación moderna con renderizado matemático KaTeX, tarjetas translúcidas e interactividad dinámica:
+### 1. Ejecutar la Interfaz Web Interactiva
+Inicia la aplicación moderna con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y botones de reseteo:
 ```bash
 python main.py
 ```
@@ -141,12 +140,6 @@ Opciones adicionales:
 ```bash
 python main.py --port 9000      # Cambiar el puerto
 python main.py --no-browser     # Iniciar servidor sin abrir navegador automáticamente
-```
-
-### 2. Ejecutar la Interfaz Gráfica Nativa de Escritorio (Tkinter)
-Para ejecutar la ventana nativa de escritorio:
-```bash
-python main.py --tk
 ```
 
 ### 3. Ejecutar las Pruebas Unitarias Automatizadas
