@@ -51,50 +51,98 @@ Un vector $v \in \mathbb{R}^n$ es una $n$-tupla ordenada de escalares: $v = (v_1
 - **Suma Vectorial**: $u + v = (u_1 + v_1, u_2 + v_2, \dots, u_n + v_n)$. Requiere $\dim(u) = \dim(v) = n$.
 - **Resta Vectorial**: $u - v = u + (-1)v = (u_1 - v_1, \dots, u_n - v_n)$.
 - **Multiplicación por Escalar**: $c \cdot v = (c \cdot v_1, c \cdot v_2, \dots, c \cdot v_n)$, para $c \in \mathbb{R}$.
-- **Producto Escalar Euclídeo (Producto Punto)**: $\langle u, v \rangle = \sum_{i=1}^n u_i \cdot v_i$.
-- **Norma al Cuadrado**: $\|v\|^2 = \langle v, v \rangle = \sum_{i=1}^n v_i^2$.
+- **Producto Escalar Euclídeo (Producto Punto)**:
+
+  $$
+  \langle u, v \rangle = \sum_{i=1}^n u_i \cdot v_i
+  $$
+
+- **Norma al Cuadrado**:
+
+  $$
+  \|v\|^2 = \langle v, v \rangle = \sum_{i=1}^n v_i^2
+  $$
 
 ### Módulo 2: Evaluación de Combinación Lineal
 Dado un conjunto $S = \{v_1, v_2, \dots, v_k\} \subset \mathbb{R}^n$ y un vector $b \in \mathbb{R}^n$, $b$ es combinación lineal de $S$ si existen escalares $c_1, \dots, c_k$ tales que:
-$$c_1 v_1 + c_2 v_2 + \dots + c_k v_k = b$$
+
+$$
+c_1 v_1 + c_2 v_2 + \dots + c_k v_k = b
+$$
 
 Se construye la matriz aumentada $[V \mid b]$ donde la columna $j$ de $V$ es el vector $v_j$:
-$$\begin{pmatrix}
+
+$$
+\begin{pmatrix}
 v_{11} & v_{12} & \cdots & v_{1k} & \bigm| & b_1 \\
 v_{21} & v_{22} & \cdots & v_{2k} & \bigm| & b_2 \\
 \vdots & \vdots & \ddots & \vdots & \bigm| & \vdots \\
 v_{n1} & v_{n2} & \cdots & v_{nk} & \bigm| & b_n
-\end{pmatrix}$$
+\end{pmatrix}
+$$
 
 Mediante el **Teorema de Rouché-Capelli**:
-1. **Sistema Compatible Determinado (SCD)**:
-   $$\mathrm{rg}(V) = \mathrm{rg}(V \mid b) = k \implies b \in \mathrm{gen}(S)$$
-   Existe una **combinación lineal única**.
-2. **Sistema Compatible Indeterminado (SCI)**:
-   $$\mathrm{rg}(V) = \mathrm{rg}(V \mid b) < k \implies b \in \mathrm{gen}(S)$$
-   Existen **infinitas combinaciones lineales** posibles.
-3. **Sistema Incompatible (SI)**:
-   $$\mathrm{rg}(V) < \mathrm{rg}(V \mid b) \implies b \notin \mathrm{gen}(S)$$
-   El vector $b$ **NO es combinación lineal**.
+
+1. **Sistema Compatible Determinado (SCD)**: combinación lineal única.
+
+   $$
+   \mathrm{rg}(V) = \mathrm{rg}(V \mid b) = k \implies b \in \mathrm{gen}(S)
+   $$
+
+2. **Sistema Compatible Indeterminado (SCI)**: infinitas combinaciones lineales.
+
+   $$
+   \mathrm{rg}(V) = \mathrm{rg}(V \mid b) < k \implies b \in \mathrm{gen}(S)
+   $$
+
+3. **Sistema Incompatible (SI)**: el vector $b$ no es combinación lineal.
+
+   $$
+   \mathrm{rg}(V) < \mathrm{rg}(V \mid b) \implies b \notin \mathrm{gen}(S)
+   $$
 
 ### Módulo 3: Operaciones Matriciales Básicas
 Para matrices $A, B \in \mathcal{M}_{m \times n}(\mathbb{R})$:
-- **Adición y Sustracción**:
-  $$(A \pm B)_{ij} = a_{ij} \pm b_{ij}$$
-  Válida solo si $\dim(A) = \dim(B)$.
+
+- **Adición y Sustracción** (válida si $\dim(A) = \dim(B)$):
+
+  $$
+  (A \pm B)_{ij} = a_{ij} \pm b_{ij}
+  $$
+
 - **Multiplicación por Escalar**:
-  $$(k \cdot A)_{ij} = k \cdot a_{ij}$$
+
+  $$
+  (k \cdot A)_{ij} = k \cdot a_{ij}
+  $$
+
 - **Multiplicación de Matrices**:
-  $$C_{m \times p} = A_{m \times n} \cdot B_{n \times p}$$
+
+  $$
+  C_{m \times p} = A_{m \times n} \cdot B_{n \times p}
+  $$
+
   - Condición de existencia: $\mathrm{cols}(A) = \mathrm{filas}(B) = n$.
   - Desglose componente a componente:
-    $$c_{ij} = \sum_{k=1}^n a_{ik} \cdot b_{kj}$$
+
+    $$
+    c_{ij} = \sum_{k=1}^n a_{ik} \cdot b_{kj}
+    $$
 
 ### Módulo 4: Ecuaciones Matriciales $Ax = b$ y Enlace al Programa Anterior
-- Planteamiento del sistema lineal en forma compacta $A \cdot x = b$.
+- Planteamiento del sistema lineal en forma compacta:
+
+  $$
+  A \cdot x = b
+  $$
+
 - Construcción de la matriz aumentada $[A \mid b]$.
 - **Llamada directa al programa elaborado en la Semana #3**: el motor de eliminación de renglones de Gauss y Gauss-Jordan se conecta para resolver el sistema y registrar las operaciones elementales de fila ($F_i \leftrightarrow F_j$, $F_i \leftarrow k F_i$, $F_i \leftarrow F_i + k F_j$).
-- Comprobación computacional del vector residual: $r = A \cdot x_{\mathrm{sol}} - b = 0$.
+- Comprobación computacional del vector residual:
+
+  $$
+  r = A \cdot x_{\mathrm{sol}} - b = 0
+  $$
 
 ---
 
