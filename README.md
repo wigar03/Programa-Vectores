@@ -67,23 +67,34 @@ v_{n1} & v_{n2} & \cdots & v_{nk} & \bigm| & b_n
 \end{pmatrix}$$
 
 Mediante el **Teorema de Rouché-Capelli**:
-1. **$\operatorname{rg}(V) = \operatorname{rg}(V \mid b) = k$**: Sistema Compatible Determinado (**SCD**). $b \in \operatorname{gen}(S)$ mediante una **combinación lineal única**.
-2. **$\operatorname{rg}(V) = \operatorname{rg}(V \mid b) < k$**: Sistema Compatible Indeterminado (**SCI**). $b \in \operatorname{gen}(S)$ con **infinitas combinaciones lineales** posibles.
-3. **$\operatorname{rg}(V) < \operatorname{rg}(V \mid b)$**: Sistema Incompatible (**SI**). $b \notin \operatorname{gen}(S)$, por lo que **NO es combinación lineal**.
+1. **Sistema Compatible Determinado (SCD)**:
+   $$\mathrm{rg}(V) = \mathrm{rg}(V \mid b) = k \implies b \in \mathrm{gen}(S)$$
+   Existe una **combinación lineal única**.
+2. **Sistema Compatible Indeterminado (SCI)**:
+   $$\mathrm{rg}(V) = \mathrm{rg}(V \mid b) < k \implies b \in \mathrm{gen}(S)$$
+   Existen **infinitas combinaciones lineales** posibles.
+3. **Sistema Incompatible (SI)**:
+   $$\mathrm{rg}(V) < \mathrm{rg}(V \mid b) \implies b \notin \mathrm{gen}(S)$$
+   El vector $b$ **NO es combinación lineal**.
 
 ### Módulo 3: Operaciones Matriciales Básicas
 Para matrices $A, B \in \mathcal{M}_{m \times n}(\mathbb{R})$:
-- **Adición y Sustracción**: $(A \pm B)_{ij} = a_{ij} \pm b_{ij}$. Válida solo si $\dim(A) = \dim(B)$.
-- **Multiplicación por Escalar**: $(k \cdot A)_{ij} = k \cdot a_{ij}$.
-- **Multiplicación de Matrices**: $C_{m \times p} = A_{m \times n} \cdot B_{n \times p}$.
-  - Condición de existencia: $\operatorname{cols}(A) = \operatorname{filas}(B) = n$.
-  - Desglose componente a componente: $c_{ij} = \sum_{k=1}^n a_{ik} \cdot b_{kj}$.
+- **Adición y Sustracción**:
+  $$(A \pm B)_{ij} = a_{ij} \pm b_{ij}$$
+  Válida solo si $\dim(A) = \dim(B)$.
+- **Multiplicación por Escalar**:
+  $$(k \cdot A)_{ij} = k \cdot a_{ij}$$
+- **Multiplicación de Matrices**:
+  $$C_{m \times p} = A_{m \times n} \cdot B_{n \times p}$$
+  - Condición de existencia: $\mathrm{cols}(A) = \mathrm{filas}(B) = n$.
+  - Desglose componente a componente:
+    $$c_{ij} = \sum_{k=1}^n a_{ik} \cdot b_{kj}$$
 
 ### Módulo 4: Ecuaciones Matriciales $Ax = b$ y Enlace al Programa Anterior
 - Planteamiento del sistema lineal en forma compacta $A \cdot x = b$.
 - Construcción de la matriz aumentada $[A \mid b]$.
 - **Llamada directa al programa elaborado en la Semana #3**: el motor de eliminación de renglones de Gauss y Gauss-Jordan se conecta para resolver el sistema y registrar las operaciones elementales de fila ($F_i \leftrightarrow F_j$, $F_i \leftarrow k F_i$, $F_i \leftarrow F_i + k F_j$).
-- Comprobación computacional del vector residual: $r = A \cdot x_{\text{sol}} - b = 0$.
+- Comprobación computacional del vector residual: $r = A \cdot x_{\mathrm{sol}} - b = 0$.
 
 ---
 
