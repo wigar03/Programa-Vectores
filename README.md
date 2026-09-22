@@ -47,102 +47,106 @@ El presente proyecto integrador implementa un sistema computacional integral par
 ## 3. Fundamentos Algebraicos por Módulo
 
 ### Módulo 1: Operaciones Vectoriales en $\mathbb{R}^n$
-Un vector $v \in \mathbb{R}^n$ es una $n$-tupla ordenada de escalares: $v = (v_1, v_2, \dots, v_n)$. El programa admite cualquier dimensión $n \ge 1$.
-- **Suma Vectorial**: $u + v = (u_1 + v_1, u_2 + v_2, \dots, u_n + v_n)$. Requiere $\dim(u) = \dim(v) = n$.
+
+Un vector $v \in \mathbb{R}^n$ es una $n$-tupla ordenada de escalares: $v = (v_1, v_2, \dots, v_n)$. El programa admite cualquier dimensión $n \ge 1$:
+
+- **Suma Vectorial**: $u + v = (u_1 + v_1, u_2 + v_2, \dots, u_n + v_n)$, requiriendo $\dim(u) = \dim(v) = n$.
 - **Resta Vectorial**: $u - v = u + (-1)v = (u_1 - v_1, \dots, u_n - v_n)$.
 - **Multiplicación por Escalar**: $c \cdot v = (c \cdot v_1, c \cdot v_2, \dots, c \cdot v_n)$, para $c \in \mathbb{R}$.
-- **Producto Escalar Euclídeo (Producto Punto)**:
-
-  $$
-  \langle u, v \rangle = \sum_{i=1}^n u_i \cdot v_i
-  $$
-
-- **Norma al Cuadrado**:
-
-  $$
-  \|v\|^2 = \langle v, v \rangle = \sum_{i=1}^n v_i^2
-  $$
+- **Producto Escalar Euclídeo (Producto Punto)**: $\langle u, v \rangle = \sum_{i=1}^n u_i \cdot v_i$.
+- **Norma al Cuadrado**: $\|v\|^2 = \langle v, v \rangle = \sum_{i=1}^n v_i^2$.
 
 ### Módulo 2: Evaluación de Combinación Lineal
-Dado un conjunto $S = \{v_1, v_2, \dots, v_k\} \subset \mathbb{R}^n$ y un vector $b \in \mathbb{R}^n$, $b$ es combinación lineal de $S$ si existen escalares $c_1, \dots, c_k$ tales que:
+
+Dado un conjunto de vectores $S = \{v_1, v_2, \dots, v_k\} \subset \mathbb{R}^n$ y un vector objetivo $b \in \mathbb{R}^n$, $b$ es combinación lineal de $S$ si existen escalares $c_1, c_2, \dots, c_k \in \mathbb{R}$ tales que:
 
 $$
 c_1 v_1 + c_2 v_2 + \dots + c_k v_k = b
 $$
 
-Se construye la matriz aumentada $[V \mid b]$ donde la columna $j$ de $V$ es el vector $v_j$:
+Para resolverlo computacionalmente, se construye la matriz aumentada $[V \mid b]$ donde cada vector $v_j$ forma una columna de coeficientes:
 
 $$
-\begin{pmatrix}
-v_{11} & v_{12} & \cdots & v_{1k} & \bigm| & b_1 \\
-v_{21} & v_{22} & \cdots & v_{2k} & \bigm| & b_2 \\
-\vdots & \vdots & \ddots & \vdots & \bigm| & \vdots \\
-v_{n1} & v_{n2} & \cdots & v_{nk} & \bigm| & b_n
-\end{pmatrix}
+\left(\begin{array}{cccc|c}
+v_{11} & v_{12} & \cdots & v_{1k} & b_1 \\
+v_{21} & v_{22} & \cdots & v_{2k} & b_2 \\
+\vdots & \vdots & \ddots & \vdots & \vdots \\
+v_{n1} & v_{n2} & \cdots & v_{nk} & b_n
+\end{array}\right)
 $$
 
-Mediante el **Teorema de Rouché-Capelli**:
+El sistema se resuelve y clasifica rigurosamente mediante el **Teorema de Rouché-Capelli**:
 
-1. **Sistema Compatible Determinado (SCD)**: combinación lineal única.
+#### 1. Sistema Compatible Determinado (SCD)
+Existe una **combinación lineal única** si y solo si el rango de la matriz de coeficientes coincide con el de la matriz aumentada y es igual al número de vectores:
 
-   $$
-   \mathrm{rg}(V) = \mathrm{rg}(V \mid b) = k \implies b \in \mathrm{gen}(S)
-   $$
+$$
+\mathrm{rg}(V) = \mathrm{rg}(V \mid b) = k \implies b \in \mathrm{gen}(S)
+$$
 
-2. **Sistema Compatible Indeterminado (SCI)**: infinitas combinaciones lineales.
+#### 2. Sistema Compatible Indeterminado (SCI)
+Existen **infinitas combinaciones lineales** si el rango coincide pero es estrictamente menor al número de vectores:
 
-   $$
-   \mathrm{rg}(V) = \mathrm{rg}(V \mid b) < k \implies b \in \mathrm{gen}(S)
-   $$
+$$
+\mathrm{rg}(V) = \mathrm{rg}(V \mid b) < k \implies b \in \mathrm{gen}(S)
+$$
 
-3. **Sistema Incompatible (SI)**: el vector $b$ no es combinación lineal.
+#### 3. Sistema Incompatible (SI)
+El vector $b$ **no es combinación lineal** ($b \notin \mathrm{gen}(S)$) si el rango de la matriz aumentada es estrictamente mayor al de la matriz de coeficientes:
 
-   $$
-   \mathrm{rg}(V) < \mathrm{rg}(V \mid b) \implies b \notin \mathrm{gen}(S)
-   $$
+$$
+\mathrm{rg}(V) < \mathrm{rg}(V \mid b) \implies b \notin \mathrm{gen}(S)
+$$
 
 ### Módulo 3: Operaciones Matriciales Básicas
-Para matrices $A, B \in \mathcal{M}_{m \times n}(\mathbb{R})$:
 
-- **Adición y Sustracción** (válida si $\dim(A) = \dim(B)$):
+Para matrices $A, B \in \mathcal{M}_{m \times n}(\mathbb{R})$ y un escalar $k \in \mathbb{R}$:
 
-  $$
-  (A \pm B)_{ij} = a_{ij} \pm b_{ij}
-  $$
+#### Adición y Sustracción
+Válida únicamente si $\dim(A) = \dim(B)$ ($m \times n$):
 
-- **Multiplicación por Escalar**:
+$$
+(A \pm B)_{ij} = a_{ij} \pm b_{ij}
+$$
 
-  $$
-  (k \cdot A)_{ij} = k \cdot a_{ij}
-  $$
+#### Multiplicación por Escalar
+Para cualquier escalar real $k \in \mathbb{R}$:
 
-- **Multiplicación de Matrices**:
+$$
+(k \cdot A)_{ij} = k \cdot a_{ij}
+$$
 
-  $$
-  C_{m \times p} = A_{m \times n} \cdot B_{n \times p}
-  $$
+#### Multiplicación de Matrices
+Dadas $A \in \mathcal{M}_{m \times n}(\mathbb{R})$ y $B \in \mathcal{M}_{n \times p}(\mathbb{R})$, la multiplicación está definida si y solo si $\mathrm{cols}(A) = \mathrm{filas}(B) = n$:
 
-  - Condición de existencia: $\mathrm{cols}(A) = \mathrm{filas}(B) = n$.
-  - Desglose componente a componente:
+$$
+C_{m \times p} = A_{m \times n} \cdot B_{n \times p}
+$$
 
-    $$
-    c_{ij} = \sum_{k=1}^n a_{ik} \cdot b_{kj}
-    $$
+Donde cada entrada de la matriz resultante se obtiene mediante la suma de productos de fila por columna:
+
+$$
+c_{ij} = \sum_{k=1}^n a_{ik} \cdot b_{kj}
+$$
 
 ### Módulo 4: Ecuaciones Matriciales $Ax = b$ y Enlace al Programa Anterior
-- Planteamiento del sistema lineal en forma compacta:
 
-  $$
-  A \cdot x = b
-  $$
+Dada una matriz de coeficientes $A \in \mathcal{M}_{m \times n}(\mathbb{R})$ y un vector de términos independientes $b \in \mathbb{R}^m$, el sistema lineal se expresa en forma matricial compacta:
 
-- Construcción de la matriz aumentada $[A \mid b]$.
-- **Llamada directa al programa elaborado en la Semana #3**: el motor de eliminación de renglones de Gauss y Gauss-Jordan se conecta para resolver el sistema y registrar las operaciones elementales de fila ($F_i \leftrightarrow F_j$, $F_i \leftarrow k F_i$, $F_i \leftarrow F_i + k F_j$).
-- Comprobación computacional del vector residual:
+$$
+A \cdot x = b
+$$
 
-  $$
-  r = A \cdot x_{\mathrm{sol}} - b = 0
-  $$
+El proceso de análisis y resolución comprende:
+
+1. **Matriz Aumentada**: Se construye $[A \mid b] \in \mathcal{M}_{m \times (n+1)}(\mathbb{R})$.
+2. **Llamada Directa al Motor de la Semana #3**: Se invoca directamente el módulo de eliminación por renglones desarrollado en el proyecto anterior, obteniendo la matriz escalonada y reducida junto con el registro detallado de operaciones elementales de fila ($F_i \leftrightarrow F_j$, $F_i \leftarrow k F_i$, $F_i \leftarrow F_i + k F_j$).
+3. **Clasificación y Solución**: Aplicación rigurosa del Teorema de Rouché-Capelli para determinar si el sistema es Compatible Determinado (solución única), Compatible Indeterminado (infinitas soluciones con parámetros libres) o Incompatible (sin solución).
+4. **Comprobación Computacional del Residuo**: En sistemas consistentes con solución $x_{\mathrm{sol}}$, el programa comprueba computacionalmente que el vector residual sea exactamente cero:
+
+$$
+r = A \cdot x_{\mathrm{sol}} - b = 0
+$$
 
 ---
 
@@ -150,7 +154,7 @@ Para matrices $A, B \in \mathcal{M}_{m \times n}(\mathbb{R})$:
 
 ```text
 Programa Vectores/
-├── main.py                         # Punto de entrada principal con selector de GUI
+├── main.py                         # Punto de entrada principal con selector y lanzador web
 ├── README.md                       # Documentación institucional completa
 ├── .gitignore                      # Exclusiones de control de versiones
 ├── src/
@@ -170,14 +174,16 @@ Programa Vectores/
 │   └── ui/                         # Interfaz web de usuario de alta estética
 │       ├── web_server.py           # Servidor local estándar en Python (cero dependencias)
 │       └── web/                    # Frontend SPA moderno (HTML5, CSS, JS reactivo, Modo Claro/Oscuro)
-│           ├── index.html
-│           ├── styles.css
-│           └── app.js
-└── tests/                          # Suite completa de pruebas unitarias
+│           ├── index.html          # Estructura semántica accesible con iconografía Lucide
+│           ├── styles.css          # Paleta visual minimalista y diseño responsivo
+│           ├── app.js              # Controlador cliente reactivo y renderizado KaTeX
+│           └── lucide.min.js       # Librería de iconos minimalistas (offline, open source)
+└── tests/                          # Suite completa de pruebas unitarias automatizadas
     ├── test_vectores.py            # Tests de operaciones vectoriales
     ├── test_matrices.py            # Tests de álgebra de matrices
     ├── test_combinacion_lineal.py  # Tests de combinación lineal (SCD, SCI, SI)
-    └── test_ecuaciones.py          # Tests de Ax = b y compatibilidad
+    ├── test_ecuaciones.py          # Tests de Ax = b y compatibilidad
+    └── test_api_latex.py           # Tests de integración API y formateo matemático
 ```
 
 ---
@@ -201,8 +207,8 @@ python main.py --port 9000      # Cambiar el puerto
 python main.py --no-browser     # Iniciar servidor sin abrir navegador automáticamente
 ```
 
-### 3. Ejecutar las Pruebas Unitarias Automatizadas
-El proyecto incluye una suite de 29 pruebas unitarias que validan la exactitud de cada algoritmo:
+### 2. Ejecutar las Pruebas Unitarias Automatizadas
+El proyecto incluye una suite de **37 pruebas unitarias y de integración** que validan la exactitud de cada algoritmo y la fidelidad matemática de las respuestas:
 ```bash
 python -m unittest discover tests -v
 ```
@@ -211,15 +217,24 @@ python -m unittest discover tests -v
 
 ## 6. Registro de Commits del Desarrollo
 
-El desarrollo se organizó e integró cronológicamente en **10 commits** siguiendo la especificación *Conventional Commits*:
+El desarrollo del proyecto se estructuró e integró cronológicamente mediante **commits semánticos** siguiendo el estándar *Conventional Commits*:
 
-1. `chore: inicializar estructura del proyecto y configuración base`
-2. `feat(core): implementar módulo aritmético exacto y validación de dimensiones`
-3. `feat(vectores): implementar operaciones básicas en R^n (suma, resta y producto escalar)`
-4. `feat(matrices): implementar operaciones matriciales básicas (suma, resta, escalar y producto A*B)`
-5. `feat(solver): integrar motor Gauss-Jordan del programa anterior y mecanismo de llamada`
-6. `feat(vectores): implementar evaluación rigurosa de combinación lineal en R^n`
-7. `feat(ecuaciones): implementar resolución computacional de ecuaciones matriciales Ax = b`
-8. `test: agregar suite completa de pruebas unitarias automatizadas`
-9. `feat(ui): implementar interfaz gráfica moderna e interactiva para vectores y matrices`
-10. `docs: actualizar README del proyecto con instrucciones de uso y teoría algebraica`
+1. `46b076b` - `first commit`: Inicialización del repositorio Git.
+2. `caea445` - `chore: inicializar estructura del proyecto y configuración base`: Estructuración de directorios modulares `src/`, `tests/` y archivos de configuración base.
+3. `428ed00` - `feat(core): implementar módulo aritmético exacto y validación de dimensiones`: Manejo exacto en $\mathbb{Q}$ mediante `fractions.Fraction` y validación dimensional.
+4. `f70d01a` - `feat(vectores): implementar operaciones básicas en R^n (suma, resta y producto escalar)`: Algoritmos de suma, resta, producto escalar euclídeo y norma al cuadrado.
+5. `d92feee` - `feat(matrices): implementar operaciones matriciales básicas (suma, resta, escalar y producto A*B)`: Operaciones matriciales con verificación dimensional estricta.
+6. `25ecffb` - `feat(solver): integrar motor Gauss-Jordan del programa anterior y mecanismo de llamada`: Conexión directa y resolución paso a paso basada en el algoritmo de eliminación de la Semana #3.
+7. `9c06188` - `feat(vectores): implementar evaluación rigurosa de combinación lineal en R^n`: Construcción de matriz aumentada y clasificación SCD, SCI y SI con Teorema de Rouché-Capelli.
+8. `d0def47` - `feat(ecuaciones): implementar resolución computacional de ecuaciones matriciales Ax = b`: Solución computacional completa y comprobación del vector residual.
+9. `3ab8aa2` - `test: agregar suite completa de pruebas unitarias automatizadas`: Batería inicial de 29 pruebas unitarias automatizadas.
+10. `88fb5ed` - `feat(ui): implementar interfaz gráfica moderna e interactiva para vectores y matrices`: Creación de la interfaz web SPA interactiva con servidor HTTP nativo de Python.
+11. `8801309` - `docs: actualizar README del proyecto con instrucciones de uso y teoría algebraica`: Documentación formal institucional y fundamentos matemáticos.
+12. `f0b4b0b` - `refactor(ui): implementar modo claro por defecto, boton limpiar, remover tkinter y enlace previo`: Rediseño UI con modo claro por defecto, botón de limpieza, selectores simétricos y eliminación de dependencias GUI heredadas.
+13. `1d94f3a` - `feat(ui): agregar renderizado formal de ecuaciones en LaTeX y optimizacion responsiva para dimension 20`: Integración de KaTeX para notación matemática formal y optimización de rejillas para dimensiones hasta $n = 20$.
+14. `e67e1a8` - `feat(ui): implementar formato multilineal y notacion transpuesta para evitar scroll horizontal`: Notación transpuesta $v^T$ y saltos de renglón adaptativos en visualización de vectores.
+15. `fe6ff2a` - `feat(ui): fijar formato columna en vectores, transpuesta en combinacion lineal y remover menciones de LaTeX`: Presentación en columnas simétricas y limpieza de textos de interfaz.
+16. `9487ebe` - `fix(math): renderizar con KaTeX explicaciones teoricas, desgloses y comprobaciones paso a paso`: Desglose formal matemático en todas las tarjetas de procedimiento y comprobación de residuales.
+17. `7996e98` - `feat(ui): sustituir emojis por iconografia minimalista Lucide y refinar paleta visual`: Incorporación de iconos SVG minimalistas Lucide offline y armonización cromática.
+18. `aafdbc4` - `docs: corregir compatibilidad de formulas matematicas con MathJax en GitHub`: Sustitución de macros no permitidas (`\operatorname` $\to$ `\mathrm`) para el motor de GitHub.
+19. `0f83efc` - `docs(readme): separar bloques matematicos en lineas dedicadas para renderizado MathJax en GitHub`: Ajuste inicial de saltos de línea para visualización de ecuaciones.
