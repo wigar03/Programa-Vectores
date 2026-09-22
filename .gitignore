@@ -1,0 +1,21 @@
+# Entornos virtuales y paquetes
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Archivos de distribución / temporales
+dist/
+build/
+*.egg-info/
+scratch/
