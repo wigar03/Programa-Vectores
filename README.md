@@ -92,7 +92,7 @@ $$
 $$
 
 #### 3. Sistema Incompatible (SI)
-El vector $b$ **no es combinación lineal** ($b \notin \mathrm{gen}(S)$) si el rango de la matriz aumentada es estrictamente mayor al de la matriz de coeficientes:
+El vector $b$ **no es combinación lineal** de los vectores de $S$ si el rango de la matriz aumentada es estrictamente mayor al de la matriz de coeficientes:
 
 $$
 \mathrm{rg}(V) < \mathrm{rg}(V \mid b) \implies b \notin \mathrm{gen}(S)
@@ -103,7 +103,13 @@ $$
 Para matrices $A, B \in \mathcal{M}_{m \times n}(\mathbb{R})$ y un escalar $k \in \mathbb{R}$:
 
 #### Adición y Sustracción
-Válida únicamente si $\dim(A) = \dim(B)$ ($m \times n$):
+Válida únicamente si ambas matrices tienen la misma dimensión:
+
+$$
+\dim(A) = \dim(B) = m \times n
+$$
+
+La suma y resta se calculan componente a componente:
 
 $$
 (A \pm B)_{ij} = a_{ij} \pm b_{ij}
@@ -117,7 +123,13 @@ $$
 $$
 
 #### Multiplicación de Matrices
-Dadas $A \in \mathcal{M}_{m \times n}(\mathbb{R})$ y $B \in \mathcal{M}_{n \times p}(\mathbb{R})$, la multiplicación está definida si y solo si $\mathrm{cols}(A) = \mathrm{filas}(B) = n$:
+Dadas una matriz $A$ de dimensión $m \times n$ y una matriz $B$ de dimensión $n \times p$, el producto está definido si y solo si el número de columnas de $A$ coincide con el número de filas de $B$:
+
+$$
+\mathrm{cols}(A) = \mathrm{filas}(B) = n
+$$
+
+La matriz resultante $C = A \cdot B$ tiene dimensión $m \times p$:
 
 $$
 C_{m \times p} = A_{m \times n} \cdot B_{n \times p}
@@ -140,7 +152,7 @@ $$
 El proceso de análisis y resolución comprende:
 
 1. **Matriz Aumentada**: Se construye $[A \mid b] \in \mathcal{M}_{m \times (n+1)}(\mathbb{R})$.
-2. **Llamada Directa al Motor de la Semana #3**: Se invoca directamente el módulo de eliminación por renglones desarrollado en el proyecto anterior, obteniendo la matriz escalonada y reducida junto con el registro detallado de operaciones elementales de fila ($F_i \leftrightarrow F_j$, $F_i \leftarrow k F_i$, $F_i \leftarrow F_i + k F_j$).
+2. **Llamada Directa al Motor de la Semana #3**: Se invoca directamente el módulo de eliminación por renglones desarrollado en el proyecto anterior, obteniendo la matriz escalonada y reducida junto con el registro detallado de las operaciones elementales de fila (intercambio de filas, multiplicación por escalar y adición de múltiplos de otra fila).
 3. **Clasificación y Solución**: Aplicación rigurosa del Teorema de Rouché-Capelli para determinar si el sistema es Compatible Determinado (solución única), Compatible Indeterminado (infinitas soluciones con parámetros libres) o Incompatible (sin solución).
 4. **Comprobación Computacional del Residuo**: En sistemas consistentes con solución $x_{\mathrm{sol}}$, el programa comprueba computacionalmente que el vector residual sea exactamente cero:
 
@@ -239,3 +251,4 @@ El desarrollo del proyecto se estructuró e integró cronológicamente mediante 
 18. `aafdbc4` - `docs: corregir compatibilidad de formulas matematicas con MathJax en GitHub`: Sustitución de macros no permitidas (`\operatorname` $\to$ `\mathrm`) para el motor de GitHub.
 19. `0f83efc` - `docs(readme): separar bloques matematicos en lineas dedicadas para renderizado MathJax en GitHub`: Ajuste inicial de saltos de línea para visualización de ecuaciones.
 20. `cdc1dbd` - `docs(readme): estructurar bloques matematicos de nivel superior y sincronizar historial completo de commits`: Desacoplamiento de bloques matemáticos fuera de listas para renderizado nativo en GitHub y actualización del árbol de archivos.
+21. `506703e` - `docs(readme): registrar commit 20 en la relacion de cambios del desarrollo`: Sincronización del commit 20 en el registro histórico de desarrollo.
