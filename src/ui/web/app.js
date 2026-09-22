@@ -17,18 +17,25 @@ document.addEventListener("DOMContentLoaded", () => {
 /* ==========================================================================
    1. Utilidades de Renderizado LaTeX (KaTeX) Adaptativo y Multilínea
    ========================================================================== */
-let notacionVectorial = "auto"; // "auto", "transpuesta", "columna"
+let notacionCombinacion = "transpuesta"; // "transpuesta" por defecto para combinación lineal
 let ultimoCalculoVector = null;
 let ultimoCalculoCombinacion = null;
 
-function cambiarNotacionVectorial(modo) {
-  notacionVectorial = modo;
-  if (ultimoCalculoVector) {
-    renderizarResultadoVectorUI(ultimoCalculoVector);
-  }
+function cambiarNotacionCombinacion(modo) {
+  notacionCombinacion = modo;
   if (ultimoCalculoCombinacion) {
     renderizarResultadoCombinacionUI(ultimoCalculoCombinacion);
   }
+}
+
+function formatScalarCoeff(cVal) {
+  const s = formatLatexFrac(cVal);
+  // Si contiene suma o resta interna (ej: "3 - 2t", "1 + s"), envolver en paréntesis
+  const innerOp = s.slice(1).includes("+") || s.slice(1).includes("-");
+  if (innerOp && !s.startsWith("(") && !s.startsWith("\\left(")) {
+    return `(${s})`;
+  }
+  return s;
 }
 
 function formatLatexFrac(val) {
@@ -246,7 +253,7 @@ function limpiarModuloVectores() {
     badge.innerText = "Casillas limpias";
   }
   if (resultBox) {
-    resultBox.innerHTML = '<p class="placeholder-text">Seleccione una operación vectorial para ver la ecuación formal en LaTeX y su desglose algebraico.</p>';
+    resultBox.innerHTML = '<p class="placeholder-text">Seleccione una operación vectorial para ver la expresión matemática y su desglose algebraico.</p>';
   }
   mostrarToast("Casillas de vectores limpiadas.");
 }
@@ -323,33 +330,25 @@ function renderizarResultadoVectorUI(calc) {
   const resultBox = document.getElementById("vec-result-content");
   if (!resultBox) return;
 
-  const n = u.length;
   // Desglose de componentes del resultado
   const wRaw = data.resultado_str.replace(/[()]/g, "").split(",").map(x => x.trim());
 
-  // Construcción de la Ecuación Matemática en LaTeX según el modo activo
+  // Construcción de la Expresión Matemática en formato columna
   let latexStr = "";
   if (operacion === "suma") {
-    latexStr = `\\vec{u} + \\vec{v} = ${formatVectorSmart(u, notacionVectorial)} + ${formatVectorSmart(v, notacionVectorial)} = ${formatVectorSmart(wRaw, notacionVectorial)}`;
+    latexStr = `\\vec{u} + \\vec{v} = ${vectorToLatexCol(u)} + ${vectorToLatexCol(v)} = ${vectorToLatexCol(wRaw)}`;
   } else if (operacion === "resta") {
-    latexStr = `\\vec{u} - \\vec{v} = ${formatVectorSmart(u, notacionVectorial)} - ${formatVectorSmart(v, notacionVectorial)} = ${formatVectorSmart(wRaw, notacionVectorial)}`;
+    latexStr = `\\vec{u} - \\vec{v} = ${vectorToLatexCol(u)} - ${vectorToLatexCol(v)} = ${vectorToLatexCol(wRaw)}`;
   } else if (operacion === "escalar_u") {
     const cLatex = formatLatexFrac(c);
-    latexStr = `${cLatex} \\cdot \\vec{u} = ${cLatex} ${formatVectorSmart(u, notacionVectorial)} = ${formatVectorSmart(wRaw, notacionVectorial)}`;
+    latexStr = `${cLatex} \\cdot \\vec{u} = ${cLatex} ${vectorToLatexCol(u)} = ${vectorToLatexCol(wRaw)}`;
   } else if (operacion === "producto_punto") {
-    latexStr = `\\vec{u} \\cdot \\vec{v} = ${vectorToLatexRow(u)} \\cdot ${formatVectorSmart(v, notacionVectorial)} = ${formatLatexFrac(data.resultado_str)}`;
+    latexStr = `\\vec{u} \\cdot \\vec{v} = ${vectorToLatexRow(u)} \\cdot ${vectorToLatexCol(v)} = ${formatLatexFrac(data.resultado_str)}`;
   }
 
   resultBox.innerHTML = `
     <div class="latex-equation-card">
-      <div class="notation-bar">
-        <span class="latex-header">${data.titulo_operacion}</span>
-        <div class="notation-toggle-group">
-          <button type="button" class="btn-not-toggle ${notacionVectorial==='auto'?'active':''}" onclick="cambiarNotacionVectorial('auto')" title="Compacto si n > 4 para evitar altura excesiva">Auto (Sin Scroll)</button>
-          <button type="button" class="btn-not-toggle ${notacionVectorial==='transpuesta'?'active':''}" onclick="cambiarNotacionVectorial('transpuesta')" title="Notación matemática ( )ᵀ compacta">Transpuesta ( )ᵀ</button>
-          <button type="button" class="btn-not-toggle ${notacionVectorial==='columna'?'active':''}" onclick="cambiarNotacionVectorial('columna')" title="Notación vertical completa">Columna ( )</button>
-        </div>
-      </div>
+      <div class="latex-header">${data.titulo_operacion}</div>
       <div id="vec-latex-target" class="latex-display-box"></div>
       <div class="result-explanation">${data.explicacion_teorica}</div>
     </div>
@@ -577,7 +576,7 @@ function renderizarResultadoCombinacionUI(calc) {
 
   const k = vectores.length;
   const n = b.length;
-  const usarTranspuesta = (notacionVectorial === "transpuesta") || (notacionVectorial === "auto" && n > 4);
+  const usarTranspuesta = (notacionCombinacion === "transpuesta");
 
   function vectorFmt(v) {
     if (usarTranspuesta) {
@@ -586,21 +585,21 @@ function renderizarResultadoCombinacionUI(calc) {
     return vectorToLatexCol(v);
   }
 
-  // Generación de LaTeX adaptativo y multilínea (sin scroll horizontal)
+  // Generación de expresión matemática adaptativa y multilínea (sin scroll horizontal)
   let latexComb = "";
   if (data.es_combinacion) {
     const terminos = [];
     for (let j = 0; j < k; j++) {
-      const cVal = formatLatexFrac(data.escalares_vector[j]);
-      terminos.push(`${cVal} ${vectorFmt(vectores[j])}`);
+      const cCoeff = formatScalarCoeff(data.escalares_vector[j]);
+      terminos.push(`${cCoeff} ${vectorFmt(vectores[j])}`);
     }
 
-    if (k <= 2 && !usarTranspuesta && n <= 3) {
-      // Si son 2 o menos vectores pequeños, una sola línea es cómoda
+    if (k <= 3 && usarTranspuesta && n <= 4) {
+      // Para pocos vectores en transpuesta, una sola línea es limpia y sin scroll
       latexComb = `\\vec{b} = \\sum_{j=1}^{${k}} c_j \\vec{v}_j \\implies ${vectorFmt(b)} = ${terminos.join(" + ")}`;
     } else {
-      // Chunking multilínea con alineación LaTeX para eliminar por completo el desbordamiento
-      const chunkSize = usarTranspuesta ? (n > 6 ? 2 : 3) : 2;
+      // Chunking multilínea: en transpuesta 3 por línea (o 2 si n > 5), en columna 2 por línea
+      const chunkSize = usarTranspuesta ? (n > 5 ? 2 : 3) : 2;
       const chunks = [];
       for (let i = 0; i < terminos.length; i += chunkSize) {
         chunks.push(terminos.slice(i, i + chunkSize));
@@ -636,11 +635,10 @@ function renderizarResultadoCombinacionUI(calc) {
   resultBox.innerHTML = `
     <div class="latex-equation-card">
       <div class="notation-bar">
-        <span class="latex-header">Ecuación Vectorial en LaTeX</span>
+        <span class="latex-header">Ecuación Vectorial</span>
         <div class="notation-toggle-group">
-          <button type="button" class="btn-not-toggle ${notacionVectorial==='auto'?'active':''}" onclick="cambiarNotacionVectorial('auto')" title="Alineación multilínea inteligente para evitar scroll horizontal">Auto (Sin Scroll)</button>
-          <button type="button" class="btn-not-toggle ${notacionVectorial==='transpuesta'?'active':''}" onclick="cambiarNotacionVectorial('transpuesta')" title="Notación matemática ( )ᵀ compacta">Transpuesta ( )ᵀ</button>
-          <button type="button" class="btn-not-toggle ${notacionVectorial==='columna'?'active':''}" onclick="cambiarNotacionVectorial('columna')" title="Notación vertical en columnas">Columna ( )</button>
+          <button type="button" class="btn-not-toggle ${notacionCombinacion==='transpuesta'?'active':''}" onclick="cambiarNotacionCombinacion('transpuesta')" title="Notación matemática ( )ᵀ compacta">Transpuesta ( )ᵀ</button>
+          <button type="button" class="btn-not-toggle ${notacionCombinacion==='columna'?'active':''}" onclick="cambiarNotacionCombinacion('columna')" title="Notación vertical en columnas">Columna ( )</button>
         </div>
       </div>
       ${scalarsHtml}
@@ -649,7 +647,7 @@ function renderizarResultadoCombinacionUI(calc) {
     </div>
   `;
 
-  // Renderizar la ecuación principal en KaTeX
+  // Renderizar la ecuación principal
   const targetEl = document.getElementById("comb-latex-target");
   renderLatexElement(targetEl, latexComb);
 
@@ -863,7 +861,7 @@ async function operarMatrices(operacion) {
 
     resultBox.innerHTML = `
       <div class="latex-equation-card">
-        <div class="latex-header">${data.titulo_operacion} (Ecuación en LaTeX)</div>
+        <div class="latex-header">${data.titulo_operacion}</div>
         <div id="mat-latex-target" class="latex-display-box"></div>
         <div class="latex-header" style="margin-top: 0.85rem;">Matriz Resultante:</div>
         <pre class="result-formula" style="font-size: 0.95rem; color: var(--text-main); font-family: 'JetBrains Mono', monospace; overflow-x: auto;">${data.matriz_formateada}</pre>
@@ -1070,7 +1068,7 @@ async function resolverEcuacionMatricialUI() {
 
     resultBox.innerHTML = `
       <div class="latex-equation-card">
-        <div class="latex-header">Sistema Matricial en LaTeX:</div>
+        <div class="latex-header">Sistema Matricial:</div>
         <div id="eq-latex-system" class="latex-display-box"></div>
         <div class="latex-header" style="margin-top: 0.85rem;">Vector Solución:</div>
         <div id="eq-latex-sol" class="latex-display-box"></div>
