@@ -238,3 +238,4 @@ El desarrollo del proyecto se estructuró e integró cronológicamente mediante 
 17. `7996e98` - `feat(ui): sustituir emojis por iconografia minimalista Lucide y refinar paleta visual`: Incorporación de iconos SVG minimalistas Lucide offline y armonización cromática.
 18. `aafdbc4` - `docs: corregir compatibilidad de formulas matematicas con MathJax en GitHub`: Sustitución de macros no permitidas (`\operatorname` $\to$ `\mathrm`) para el motor de GitHub.
 19. `0f83efc` - `docs(readme): separar bloques matematicos en lineas dedicadas para renderizado MathJax en GitHub`: Ajuste inicial de saltos de línea para visualización de ecuaciones.
+20. `cdc1dbd` - `docs(readme): estructurar bloques matematicos de nivel superior y sincronizar historial completo de commits`: Desacoplamiento de bloques matemáticos fuera de listas para renderizado nativo en GitHub y actualización del árbol de archivos.
