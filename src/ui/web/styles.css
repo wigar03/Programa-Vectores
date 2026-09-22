@@ -129,9 +129,10 @@ body {
 }
 
 .app-container {
-  max-width: 1380px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 1.5rem 2rem;
+  width: 100%;
 }
 
 /* ==========================================================================
@@ -148,7 +149,7 @@ input[type="number"] {
   appearance: textfield !important;
 }
 
-/* Scrollbars discretos y limpios */
+/* Scrollbars discretos */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -275,7 +276,7 @@ input[type="number"] {
 }
 
 /* ==========================================================================
-   Estructura de Tarjetas y Cuadrículas
+   Estructura de Tarjetas y Cuadrícula RESPONSIVA (Fix de 20 dimensiones)
    ========================================================================== */
 .tab-pane {
   display: none;
@@ -291,11 +292,18 @@ input[type="number"] {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* minmax(0, ...) garantiza que las columnas no se desborden ante inputs anchos */
 .pane-grid {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.15fr);
   gap: 1.5rem;
   align-items: start;
+  width: 100%;
+}
+
+.pane-grid > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 @media (max-width: 1024px) {
@@ -311,6 +319,9 @@ input[type="number"] {
   padding: 1.5rem;
   box-shadow: var(--shadow-card);
   transition: background 0.25s ease, border-color 0.25s ease;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .card-header {
@@ -443,43 +454,73 @@ input[type="number"] {
 }
 
 /* ==========================================================================
-   Entradas Vectoriales y Celdas
+   Entradas Vectoriales y Celdas con Soporte de Envoltura (Fix n=20)
    ========================================================================== */
 .vector-input-group {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
   margin-bottom: 1.5rem;
+  max-width: 100%;
 }
 
 .vec-block {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  max-width: 100%;
+}
+
+.vec-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
 }
 
 .vec-label {
   font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: var(--text-main);
 }
 
+.vec-hint {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* flex-wrap: wrap hace que 20 celdas se organicen en líneas limpias dentro de la tarjeta */
 .cells-row {
   display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding: 2px 0 6px 0;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 4px 0 6px 0;
+}
+
+.cell-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.cell-sublabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .cell-input {
-  width: 58px;
-  height: 38px;
+  width: 54px;
+  height: 36px;
   background: var(--bg-input);
   border: 1px solid var(--bg-input-border);
   border-radius: 6px;
   color: var(--text-main);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   text-align: center;
   outline: none;
   transition: all 0.15s ease;
@@ -505,6 +546,7 @@ input[type="number"] {
   border-radius: 12px;
   padding: 1rem;
   margin-bottom: 1.25rem;
+  max-width: 100%;
 }
 
 .matrix-setup-header {
@@ -572,6 +614,7 @@ input[type="number"] {
   overflow-x: auto;
   padding: 0.4rem 0;
   justify-content: start;
+  max-width: 100%;
 }
 
 .augmented-grid {
@@ -584,6 +627,7 @@ input[type="number"] {
   border-radius: 10px;
   margin: 0.75rem 0;
   justify-content: start;
+  max-width: 100%;
 }
 
 .augmented-cell-b {
@@ -608,7 +652,7 @@ input[type="number"] {
 }
 
 /* ==========================================================================
-   Botones de Acción (SIN saltos de línea raros)
+   Botones de Acción
    ========================================================================== */
 .action-grid {
   display: grid;
@@ -622,8 +666,9 @@ input[type="number"] {
 }
 
 @media (max-width: 600px) {
+  .action-grid,
   .action-grid-3 {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -739,13 +784,14 @@ input[type="number"] {
 }
 
 /* ==========================================================================
-   Caja de Resultados y Desglose
+   Caja de Resultados y Soporte LaTeX (KaTeX)
    ========================================================================== */
 .result-box {
   min-height: 250px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-width: 100%;
 }
 
 .placeholder-text {
@@ -755,20 +801,42 @@ input[type="number"] {
   text-align: center;
 }
 
-.result-card-highlight {
+.latex-equation-card {
   background: var(--card-highlight-bg);
   border: 1px solid var(--card-highlight-border);
   border-radius: 12px;
-  padding: 1.2rem;
+  padding: 1.25rem;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
-.result-formula {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.1rem;
+.latex-header {
+  font-size: 0.84rem;
   font-weight: 700;
-  color: var(--highlight-formula);
-  margin-bottom: 0.5rem;
-  word-break: break-word;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-cyan);
+  margin-bottom: 0.4rem;
+}
+
+.latex-display-box {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.4rem 0;
+  text-align: center;
+}
+
+.katex-display {
+  margin: 0.5rem 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
+
+.katex {
+  font-size: 1.15em !important;
+  color: var(--text-main);
 }
 
 .result-explanation {
@@ -785,6 +853,7 @@ input[type="number"] {
   max-height: 420px;
   overflow-y: auto;
   padding-right: 0.3rem;
+  max-width: 100%;
 }
 
 .steps-container h4 {
@@ -812,6 +881,7 @@ input[type="number"] {
   font-size: 0.85rem;
   color: var(--step-desc);
   font-family: 'JetBrains Mono', monospace;
+  overflow-x: auto;
 }
 
 .verification-box {
@@ -821,6 +891,8 @@ input[type="number"] {
   padding: 1rem;
   font-size: 0.88rem;
   color: var(--text-main);
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .verification-box h4 {

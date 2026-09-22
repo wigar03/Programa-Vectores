@@ -1,6 +1,8 @@
 /**
  * Lógica de la Interfaz Web Interactiva - Calculadora de Álgebra Lineal
  * UAM - Facultad de Ingeniería y Arquitectura (FIA)
+ * 
+ * Incluye formateador y renderizador dinámico de LaTeX mediante KaTeX.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -13,7 +15,67 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ==========================================================================
-   1. Control de Tema (Modo Claro por Defecto con Toggle a Modo Oscuro)
+   1. Utilidades de Renderizado LaTeX (KaTeX)
+   ========================================================================== */
+function formatLatexFrac(val) {
+  if (val === undefined || val === null) return "0";
+  const s = String(val).trim();
+  if (s.includes("/")) {
+    const parts = s.split("/");
+    if (parts.length === 2) {
+      const isNeg = parts[0].startsWith("-");
+      const num = parts[0].replace("-", "").trim();
+      const den = parts[1].trim();
+      return isNeg ? `-\\frac{${num}}{${den}}` : `\\frac{${num}}{${den}}`;
+    }
+  }
+  return s;
+}
+
+function vectorToLatexCol(vec, maxItems = 20) {
+  if (!vec || vec.length === 0) return "\\begin{pmatrix} 0 \\end{pmatrix}";
+  if (vec.length > maxItems) {
+    const top = vec.slice(0, 3).map(formatLatexFrac).join(" \\\\ ");
+    const bottom = formatLatexFrac(vec[vec.length - 1]);
+    return `\\begin{pmatrix} ${top} \\\\ \\vdots \\\\ ${bottom} \\end{pmatrix}`;
+  }
+  return "\\begin{pmatrix} " + vec.map(formatLatexFrac).join(" \\\\ ") + " \\end{pmatrix}";
+}
+
+function vectorToLatexRow(vec, maxItems = 20) {
+  if (!vec || vec.length === 0) return "(0)";
+  if (vec.length > maxItems) {
+    const top = vec.slice(0, 4).map(formatLatexFrac).join(",\\; ");
+    const bottom = formatLatexFrac(vec[vec.length - 1]);
+    return `(${top},\\; \\dots,\\; ${bottom})`;
+  }
+  return "(" + vec.map(formatLatexFrac).join(",\\; ") + ")";
+}
+
+function matrixToLatex(mat) {
+  if (!mat || mat.length === 0) return "\\begin{pmatrix} 0 \\end{pmatrix}";
+  const rows = mat.map(row => row.map(formatLatexFrac).join(" & "));
+  return "\\begin{pmatrix} " + rows.join(" \\\\ ") + " \\end{pmatrix}";
+}
+
+function renderLatexElement(element, latexCode, displayMode = true) {
+  if (!element) return;
+  if (window.katex) {
+    try {
+      katex.render(latexCode, element, {
+        displayMode: displayMode,
+        throwOnError: false,
+      });
+      return;
+    } catch (err) {
+      console.warn("KaTeX render error:", err);
+    }
+  }
+  element.innerText = latexCode;
+}
+
+/* ==========================================================================
+   2. Control de Tema (Modo Claro por Defecto con Toggle a Modo Oscuro)
    ========================================================================== */
 function inicializarTema() {
   const savedTheme = localStorage.getItem("algebra_theme") || "light";
@@ -46,7 +108,7 @@ function aplicarTema(theme) {
 }
 
 /* ==========================================================================
-   2. Navegación por Pestañas
+   3. Navegación por Pestañas
    ========================================================================== */
 function inicializarNavegacion() {
   const tabs = document.querySelectorAll(".nav-tab");
@@ -76,7 +138,7 @@ function mostrarToast(mensaje, duracion = 3000) {
 }
 
 /* ==========================================================================
-   3. Módulo de Vectores en R^n
+   4. Módulo de Vectores en R^n (Responsivo hasta n = 20)
    ========================================================================== */
 let vectorDim = 3;
 
@@ -103,21 +165,35 @@ function actualizarEntradasVectores() {
   contV.innerHTML = "";
 
   for (let i = 0; i < vectorDim; i++) {
+    // Casilla u_i
+    const wrapU = document.createElement("div");
+    wrapU.className = "cell-wrapper";
+    const subU = document.createElement("span");
+    subU.className = "cell-sublabel";
+    subU.innerText = `u${i + 1}`;
     const inpU = document.createElement("input");
     inpU.type = "text";
     inpU.className = "cell-input";
     inpU.id = `vec-u-${i}`;
-    inpU.placeholder = `u_${i + 1}`;
     inpU.value = (i + 1).toString();
-    contU.appendChild(inpU);
+    wrapU.appendChild(subU);
+    wrapU.appendChild(inpU);
+    contU.appendChild(wrapU);
 
+    // Casilla v_i
+    const wrapV = document.createElement("div");
+    wrapV.className = "cell-wrapper";
+    const subV = document.createElement("span");
+    subV.className = "cell-sublabel";
+    subV.innerText = `v${i + 1}`;
     const inpV = document.createElement("input");
     inpV.type = "text";
     inpV.className = "cell-input";
     inpV.id = `vec-v-${i}`;
-    inpV.placeholder = `v_${i + 1}`;
     inpV.value = (vectorDim - i).toString();
-    contV.appendChild(inpV);
+    wrapV.appendChild(subV);
+    wrapV.appendChild(inpV);
+    contV.appendChild(wrapV);
   }
 }
 
@@ -147,7 +223,7 @@ function limpiarModuloVectores() {
     badge.innerText = "Casillas limpias";
   }
   if (resultBox) {
-    resultBox.innerHTML = '<p class="placeholder-text">Seleccione una operación vectorial para ver el resultado y desglose algebraico.</p>';
+    resultBox.innerHTML = '<p class="placeholder-text">Seleccione una operación vectorial para ver la ecuación formal en LaTeX y su desglose algebraico.</p>';
   }
   mostrarToast("Casillas de vectores limpiadas.");
 }
@@ -162,7 +238,7 @@ function cargarEjemploVector(tipo) {
     uVals.forEach((val, i) => document.getElementById(`vec-u-${i}`).value = val);
     vVals.forEach((val, i) => document.getElementById(`vec-v-${i}`).value = val);
     document.getElementById("vec-scalar-c").value = "3";
-  } else {
+  } else if (tipo === 2) {
     input.value = 4;
     actualizarEntradasVectores();
     const uVals = ["1/2", "-3/4", "1", "5/2"];
@@ -170,6 +246,15 @@ function cargarEjemploVector(tipo) {
     uVals.forEach((val, i) => document.getElementById(`vec-u-${i}`).value = val);
     vVals.forEach((val, i) => document.getElementById(`vec-v-${i}`).value = val);
     document.getElementById("vec-scalar-c").value = "-2";
+  } else if (tipo === 20) {
+    input.value = 20;
+    actualizarEntradasVectores();
+    for (let i = 0; i < 20; i++) {
+      document.getElementById(`vec-u-${i}`).value = (i + 1).toString();
+      document.getElementById(`vec-v-${i}`).value = (20 - i).toString();
+    }
+    document.getElementById("vec-scalar-c").value = "2";
+    mostrarToast("Cargado ejemplo responsivo con dimensión n = 20");
   }
 }
 
@@ -195,31 +280,63 @@ async function calcularOperacionVector(operacion) {
     badge.className = "badge badge-success";
     badge.innerText = "Éxito";
 
-    let html = `
-      <div class="result-card-highlight">
-        <div class="result-formula">${data.titulo_operacion}: ${data.resultado_str}</div>
+    // Construcción de la Ecuación Matemática en LaTeX
+    let latexStr = "";
+    if (operacion === "suma") {
+      latexStr = `\\vec{u} + \\vec{v} = ${vectorToLatexCol(u)} + ${vectorToLatexCol(v)} = ${vectorToLatexCol(u.map((x, i) => {
+        // Parse simple string from server or calculate
+        return data.resultado_str.replace(/[()]/g, "").split(",")[i] || "0";
+      }))}`;
+    } else if (operacion === "resta") {
+      latexStr = `\\vec{u} - \\vec{v} = ${vectorToLatexCol(u)} - ${vectorToLatexCol(v)} = ${vectorToLatexCol(u.map((x, i) => {
+        return data.resultado_str.replace(/[()]/g, "").split(",")[i] || "0";
+      }))}`;
+    } else if (operacion === "escalar_u") {
+      const cLatex = formatLatexFrac(c);
+      latexStr = `${cLatex} \\cdot \\vec{u} = ${cLatex} ${vectorToLatexCol(u)} = ${vectorToLatexCol(u.map((x, i) => {
+        return data.resultado_str.replace(/[()]/g, "").split(",")[i] || "0";
+      }))}`;
+    } else if (operacion === "producto_punto") {
+      latexStr = `\\vec{u} \\cdot \\vec{v} = ${vectorToLatexRow(u)} \\cdot ${vectorToLatexCol(v)} = ${formatLatexFrac(data.resultado_str)}`;
+    }
+
+    resultBox.innerHTML = `
+      <div class="latex-equation-card">
+        <div class="latex-header">${data.titulo_operacion} (Ecuación en LaTeX)</div>
+        <div id="vec-latex-target" class="latex-display-box"></div>
         <div class="result-explanation">${data.explicacion_teorica}</div>
       </div>
     `;
 
-    if (data.desglose_componentes && data.desglose_componentes.length > 0) {
-      html += `<div class="steps-container"><h4>Desglose componente a componente:</h4>`;
-      data.desglose_componentes.forEach(paso => {
-        html += `<div class="step-item"><div class="step-item-desc">${paso}</div></div>`;
-      });
-      html += `</div>`;
-    }
+    const targetEl = document.getElementById("vec-latex-target");
+    renderLatexElement(targetEl, latexStr);
 
-    resultBox.innerHTML = html;
+    if (data.desglose_componentes && data.desglose_componentes.length > 0) {
+      const stepsWrapper = document.createElement("div");
+      stepsWrapper.className = "steps-container";
+      stepsWrapper.innerHTML = `<h4>Desglose componente a componente:</h4>`;
+      data.desglose_componentes.forEach(paso => {
+        const item = document.createElement("div");
+        item.className = "step-item";
+        item.innerHTML = `<div class="step-item-desc">${paso}</div>`;
+        stepsWrapper.appendChild(item);
+      });
+      resultBox.appendChild(stepsWrapper);
+    }
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
-    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(225,29,72,0.4);"><div class="result-formula" style="color:var(--accent-rose);">Error:</div><p>${err.message}</p></div>`;
+    resultBox.innerHTML = `
+      <div class="latex-equation-card" style="border-color: rgba(225,29,72,0.4);">
+        <div class="latex-header" style="color:var(--accent-rose);">Error:</div>
+        <p>${err.message}</p>
+      </div>
+    `;
   }
 }
 
 /* ==========================================================================
-   4. Módulo de Combinación Lineal
+   5. Módulo de Combinación Lineal
    ========================================================================== */
 let combN = 2;
 let combK = 2;
@@ -254,18 +371,28 @@ function actualizarEntradasCombinacion() {
     const block = document.createElement("div");
     block.className = "vec-block";
     block.style.marginBottom = "0.75rem";
-    block.innerHTML = `<span class="vec-label">Vector v_${j + 1} en R^${combN}:</span>`;
+    block.innerHTML = `
+      <div class="vec-label-row">
+        <span class="vec-label">Vector v_${j + 1} en R^${combN}:</span>
+      </div>
+    `;
 
     const row = document.createElement("div");
-    row.className = "cells-row";
+    row.className = "cells-row cells-wrap";
     for (let i = 0; i < combN; i++) {
+      const wrap = document.createElement("div");
+      wrap.className = "cell-wrapper";
+      const sub = document.createElement("span");
+      sub.className = "cell-sublabel";
+      sub.innerText = `c_${i + 1}`;
       const inp = document.createElement("input");
       inp.type = "text";
       inp.className = "cell-input";
       inp.id = `comb-v-${j}-${i}`;
-      inp.placeholder = `v${j + 1}_${i + 1}`;
       inp.value = (i === j ? "1" : "0");
-      row.appendChild(inp);
+      wrap.appendChild(sub);
+      wrap.appendChild(inp);
+      row.appendChild(wrap);
     }
     block.appendChild(row);
     listContainer.appendChild(block);
@@ -274,13 +401,19 @@ function actualizarEntradasCombinacion() {
   const targetContainer = document.getElementById("comb-target-inputs");
   targetContainer.innerHTML = "";
   for (let i = 0; i < combN; i++) {
+    const wrap = document.createElement("div");
+    wrap.className = "cell-wrapper";
+    const sub = document.createElement("span");
+    sub.className = "cell-sublabel";
+    sub.innerText = `b_${i + 1}`;
     const inp = document.createElement("input");
     inp.type = "text";
     inp.className = "cell-input";
     inp.id = `comb-b-${i}`;
-    inp.placeholder = `b_${i + 1}`;
     inp.value = "1";
-    targetContainer.appendChild(inp);
+    wrap.appendChild(sub);
+    wrap.appendChild(inp);
+    targetContainer.appendChild(wrap);
   }
 }
 
@@ -385,45 +518,65 @@ async function evaluarCombinacionLinealUI() {
       badge.innerText = "NO es Combinación (SI)";
     }
 
-    let html = `
-      <div class="result-card-highlight">
-        <div class="result-formula">${data.expresion_algebraica}</div>
-        <div class="result-explanation" style="white-space: pre-line;">${data.justificacion_teorica}</div>
+    // Construcción de la Ecuación Formal en LaTeX
+    let latexComb = "";
+    if (data.es_combinacion) {
+      const terminosCols = [];
+      for (let j = 0; j < combK; j++) {
+        const cVal = formatLatexFrac(data.escalares_vector[j]);
+        terminosCols.push(`${cVal} ${vectorToLatexCol(vectores[j])}`);
+      }
+      latexComb = `\\vec{b} = \\sum_{j=1}^{${combK}} c_j \\vec{v}_j \\implies ${vectorToLatexCol(b)} = ${terminosCols.join(" + ")}`;
+    } else {
+      latexComb = `\\vec{b} = ${vectorToLatexCol(b)} \\notin \\operatorname{gen}\\left\\{ \\vec{v}_1, \\dots, \\vec{v}_${combK} \\right\\}`;
+    }
+
+    resultBox.innerHTML = `
+      <div class="latex-equation-card">
+        <div class="latex-header">Ecuación Vectorial en LaTeX</div>
+        <div id="comb-latex-target" class="latex-display-box"></div>
+        <div class="result-explanation" style="white-space: pre-line; margin-top: 0.5rem;">${data.justificacion_teorica}</div>
       </div>
     `;
 
+    const targetEl = document.getElementById("comb-latex-target");
+    renderLatexElement(targetEl, latexComb);
+
     if (data.comprobacion && data.comprobacion.length > 0) {
-      html += `
-        <div class="verification-box">
-          <h4>Comprobación Componente por Componente:</h4>
-          ${data.comprobacion.map(c => `<div>${c}</div>`).join("")}
-        </div>
-      `;
+      const verifEl = document.createElement("div");
+      verifEl.className = "verification-box";
+      verifEl.innerHTML = `<h4>Comprobación Componente por Componente:</h4>${data.comprobacion.map(c => `<div>${c}</div>`).join("")}`;
+      resultBox.appendChild(verifEl);
     }
 
     if (data.pasos && data.pasos.length > 0) {
-      html += `<div class="steps-container"><h4>Pasos de Reducción por Filas (Gauss-Jordan):</h4>`;
+      const stepsWrapper = document.createElement("div");
+      stepsWrapper.className = "steps-container";
+      stepsWrapper.innerHTML = `<h4>Pasos de Reducción por Filas (Gauss-Jordan):</h4>`;
       data.pasos.forEach(p => {
-        html += `
+        stepsWrapper.innerHTML += `
           <div class="step-item">
             <div class="step-item-title">Paso ${p.step_number}: ${p.title}</div>
             <div class="step-item-desc">${p.description}</div>
           </div>
         `;
       });
-      html += `</div>`;
+      resultBox.appendChild(stepsWrapper);
     }
-
-    resultBox.innerHTML = html;
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
-    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(225,29,72,0.4);"><div class="result-formula" style="color:var(--accent-rose);">Error:</div><p>${err.message}</p></div>`;
+    resultBox.innerHTML = `
+      <div class="latex-equation-card" style="border-color: rgba(225,29,72,0.4);">
+        <div class="latex-header" style="color:var(--accent-rose);">Error:</div>
+        <p>${err.message}</p>
+      </div>
+    `;
   }
 }
 
 /* ==========================================================================
-   5. Módulo de Matrices Básicas
+   6. Módulo de Matrices Básicas
    ========================================================================== */
 function inicializarModuloMatrices() {
   renderizarMatrizA();
@@ -441,7 +594,7 @@ function cambiarDimMatA(dm, dn) {
 
 function cambiarDimMatB(dr, dp) {
   const elR = document.getElementById("mat-b-r");
-  const elP = document.getElementById("mat-b-p");
+  const elP = document.getElementById("mat-b-r_col");
   if (dr !== 0) elR.value = Math.max(1, Math.min(8, (parseInt(elR.value, 10) || 3) + dr));
   if (dp !== 0) elP.value = Math.max(1, Math.min(8, (parseInt(elP.value, 10) || 2) + dp));
   renderizarMatrizB();
@@ -468,7 +621,7 @@ function renderizarMatrizA() {
 
 function renderizarMatrizB() {
   const r = parseInt(document.getElementById("mat-b-r").value, 10) || 3;
-  const p = parseInt(document.getElementById("mat-b-p").value, 10) || 2;
+  const p = parseInt(document.getElementById("mat-b-r_col").value, 10) || 2;
   const grid = document.getElementById("mat-b-grid");
   grid.style.gridTemplateColumns = `repeat(${p}, auto)`;
   grid.innerHTML = "";
@@ -502,7 +655,7 @@ function limpiarModuloMatrices() {
   const m = parseInt(document.getElementById("mat-a-m").value, 10) || 2;
   const n = parseInt(document.getElementById("mat-a-n").value, 10) || 3;
   const r = parseInt(document.getElementById("mat-b-r").value, 10) || 3;
-  const p = parseInt(document.getElementById("mat-b-p").value, 10) || 2;
+  const p = parseInt(document.getElementById("mat-b-r_col").value, 10) || 2;
 
   for (let i = 0; i < m; i++) {
     for (let j = 0; j < n; j++) {
@@ -536,7 +689,7 @@ function cargarEjemploMatrices(tipo) {
     document.getElementById("mat-a-m").value = 2;
     document.getElementById("mat-a-n").value = 3;
     document.getElementById("mat-b-r").value = 3;
-    document.getElementById("mat-b-p").value = 2;
+    document.getElementById("mat-b-r_col").value = 2;
     renderizarMatrizA();
     renderizarMatrizB();
     const aVals = [["1", "2", "3"], ["4", "5", "6"]];
@@ -547,7 +700,7 @@ function cargarEjemploMatrices(tipo) {
     document.getElementById("mat-a-m").value = 3;
     document.getElementById("mat-a-n").value = 3;
     document.getElementById("mat-b-r").value = 3;
-    document.getElementById("mat-b-p").value = 3;
+    document.getElementById("mat-b-r_col").value = 3;
     renderizarMatrizA();
     renderizarMatrizB();
   }
@@ -557,7 +710,7 @@ async function operarMatrices(operacion) {
   const m = parseInt(document.getElementById("mat-a-m").value, 10);
   const n = parseInt(document.getElementById("mat-a-n").value, 10);
   const r = parseInt(document.getElementById("mat-b-r").value, 10);
-  const p = parseInt(document.getElementById("mat-b-p").value, 10);
+  const p = parseInt(document.getElementById("mat-b-r_col").value, 10);
 
   const A = obtenerMatrizValores("a", m, n);
   const B = obtenerMatrizValores("b", r, p);
@@ -580,32 +733,58 @@ async function operarMatrices(operacion) {
     badge.className = "badge badge-success";
     badge.innerText = "Completado";
 
-    let html = `
-      <div class="result-card-highlight">
-        <div class="result-formula">${data.titulo_operacion}</div>
-        <pre class="result-formula" style="font-size: 0.95rem; margin-top: 0.5rem; color: var(--text-main); font-family: 'JetBrains Mono', monospace;">${data.matriz_formateada}</pre>
+    // Formulación LaTeX de matrices
+    let latexMat = "";
+    if (operacion === "suma") {
+      latexMat = `A + B = ${matrixToLatex(A)} + ${matrixToLatex(B)}`;
+    } else if (operacion === "resta") {
+      latexMat = `A - B = ${matrixToLatex(A)} - ${matrixToLatex(B)}`;
+    } else if (operacion === "multiplicacion") {
+      latexMat = `A \\cdot B = ${matrixToLatex(A)} \\cdot ${matrixToLatex(B)}`;
+    } else if (operacion === "escalar_a") {
+      latexMat = `${formatLatexFrac(k)} \\cdot A = ${formatLatexFrac(k)} ${matrixToLatex(A)}`;
+    } else if (operacion === "transpuesta_a") {
+      latexMat = `A^T = ${matrixToLatex(A)}^T`;
+    } else if (operacion === "transpuesta_b") {
+      latexMat = `B^T = ${matrixToLatex(B)}^T`;
+    }
+
+    resultBox.innerHTML = `
+      <div class="latex-equation-card">
+        <div class="latex-header">${data.titulo_operacion} (Ecuación en LaTeX)</div>
+        <div id="mat-latex-target" class="latex-display-box"></div>
+        <div class="latex-header" style="margin-top: 0.85rem;">Matriz Resultante:</div>
+        <pre class="result-formula" style="font-size: 0.95rem; color: var(--text-main); font-family: 'JetBrains Mono', monospace; overflow-x: auto;">${data.matriz_formateada}</pre>
         <div class="result-explanation">${data.explicacion_teorica}</div>
       </div>
     `;
 
-    if (data.pasos_multiplicacion && data.pasos_multiplicacion.length > 0) {
-      html += `<div class="steps-container"><h4>Cálculo de cada entrada c_ij (Producto Renglón · Columna):</h4>`;
-      data.pasos_multiplicacion.forEach(paso => {
-        html += `<div class="step-item"><div class="step-item-desc">${paso}</div></div>`;
-      });
-      html += `</div>`;
-    }
+    const targetEl = document.getElementById("mat-latex-target");
+    renderLatexElement(targetEl, latexMat);
 
-    resultBox.innerHTML = html;
+    if (data.pasos_multiplicacion && data.pasos_multiplicacion.length > 0) {
+      const stepsWrapper = document.createElement("div");
+      stepsWrapper.className = "steps-container";
+      stepsWrapper.innerHTML = `<h4>Cálculo de cada entrada c_ij (Producto Renglón · Columna):</h4>`;
+      data.pasos_multiplicacion.forEach(paso => {
+        stepsWrapper.innerHTML += `<div class="step-item"><div class="step-item-desc">${paso}</div></div>`;
+      });
+      resultBox.appendChild(stepsWrapper);
+    }
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
-    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(225,29,72,0.4);"><div class="result-formula" style="color:var(--accent-rose);">Error Dimensional:</div><p>${err.message}</p></div>`;
+    resultBox.innerHTML = `
+      <div class="latex-equation-card" style="border-color: rgba(225,29,72,0.4);">
+        <div class="latex-header" style="color:var(--accent-rose);">Error Dimensional:</div>
+        <p>${err.message}</p>
+      </div>
+    `;
   }
 }
 
 /* ==========================================================================
-   6. Módulo de Ecuaciones Matriciales Ax = b
+   7. Módulo de Ecuaciones Matriciales Ax = b
    ========================================================================== */
 let eqM = 3;
 let eqN = 3;
@@ -764,42 +943,61 @@ async function resolverEcuacionMatricialUI() {
       badge.innerText = "Sin Solución (SI)";
     }
 
-    let html = `
-      <div class="result-card-highlight">
-        <div class="result-formula">Sistema: ${data.tipo_sistema}</div>
-        <div class="result-explanation" style="white-space: pre-line;">${data.descripcion_sistema}</div>
-        <div style="margin-top: 0.75rem; font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); font-weight: 600;">
-          Vector Solución x = [ ${data.vector_solucion.join(", ")} ]
-        </div>
+    // LaTeX del Sistema y de la Solución
+    const xVars = Array.from({ length: eqN }, (_, i) => `x_{${i + 1}}`);
+    const latexSystem = `A \\vec{x} = \\vec{b} \\iff ${matrixToLatex(A)} ${vectorToLatexCol(xVars)} = ${vectorToLatexCol(b)}`;
+    
+    let latexSol = "";
+    if (data.tipo_sistema === "SCD") {
+      latexSol = `\\vec{x}^* = ${vectorToLatexCol(data.vector_solucion)}`;
+    } else if (data.tipo_sistema === "SCI") {
+      latexSol = `\\vec{x} = ${vectorToLatexCol(data.vector_solucion)} \\quad (\\text{Infinitas soluciones})`;
+    } else {
+      latexSol = `\\text{No existe } \\vec{x} \\in \\mathbb{R}^${eqN} \\text{ tal que } A\\vec{x} = \\vec{b}`;
+    }
+
+    resultBox.innerHTML = `
+      <div class="latex-equation-card">
+        <div class="latex-header">Sistema Matricial en LaTeX:</div>
+        <div id="eq-latex-system" class="latex-display-box"></div>
+        <div class="latex-header" style="margin-top: 0.85rem;">Vector Solución:</div>
+        <div id="eq-latex-sol" class="latex-display-box"></div>
+        <div class="result-explanation" style="white-space: pre-line; margin-top: 0.5rem;">${data.descripcion_sistema}</div>
       </div>
     `;
 
+    renderLatexElement(document.getElementById("eq-latex-system"), latexSystem);
+    renderLatexElement(document.getElementById("eq-latex-sol"), latexSol);
+
     if (data.verificacion && data.verificacion.length > 0) {
-      html += `
-        <div class="verification-box">
-          <h4>Comprobación de Residuo Ax = b:</h4>
-          ${data.verificacion.map(v => `<div>${v}</div>`).join("")}
-        </div>
-      `;
+      const verifEl = document.createElement("div");
+      verifEl.className = "verification-box";
+      verifEl.innerHTML = `<h4>Comprobación de Residuo Ax = b:</h4>${data.verificacion.map(v => `<div>${v}</div>`).join("")}`;
+      resultBox.appendChild(verifEl);
     }
 
     if (data.pasos && data.pasos.length > 0) {
-      html += `<div class="steps-container"><h4>Pasos de Eliminación por Renglones:</h4>`;
+      const stepsWrapper = document.createElement("div");
+      stepsWrapper.className = "steps-container";
+      stepsWrapper.innerHTML = `<h4>Pasos de Eliminación por Renglones:</h4>`;
       data.pasos.forEach(p => {
-        html += `
+        stepsWrapper.innerHTML += `
           <div class="step-item">
             <div class="step-item-title">Paso ${p.step_number}: ${p.title}</div>
             <div class="step-item-desc">${p.description}</div>
           </div>
         `;
       });
-      html += `</div>`;
+      resultBox.appendChild(stepsWrapper);
     }
-
-    resultBox.innerHTML = html;
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";
-    resultBox.innerHTML = `<div class="result-card-highlight" style="border-color: rgba(225,29,72,0.4);"><div class="result-formula" style="color:var(--accent-rose);">Error al resolver:</div><p>${err.message}</p></div>`;
+    resultBox.innerHTML = `
+      <div class="latex-equation-card" style="border-color: rgba(225,29,72,0.4);">
+        <div class="latex-header" style="color:var(--accent-rose);">Error al resolver:</div>
+        <p>${err.message}</p>
+      </div>
+    `;
   }
 }

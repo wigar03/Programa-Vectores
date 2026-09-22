@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX para Renderizado Profesional de Ecuaciones en LaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,7 +22,7 @@
       <div class="header-brand">
         <div class="brand-badge">UAM • FIA</div>
         <h1>Calculadora de Álgebra Lineal</h1>
-        <p class="subtitle">Vectores en Rⁿ, Combinación Lineal, Matrices y Ecuaciones Ax = b</p>
+        <p class="subtitle" id="header-subtitle">Vectores en Rⁿ, Combinación Lineal, Matrices y Ecuaciones Ax = b</p>
       </div>
       <div class="header-actions">
         <button id="btn-theme-toggle" class="btn-theme" title="Alternar entre modo claro y modo oscuro">
@@ -71,15 +76,21 @@
               </div>
             </div>
 
-            <!-- Entradas de Vectores Dinámicas -->
+            <!-- Entradas de Vectores Dinámicas y Responsivas -->
             <div class="vector-input-group">
               <div class="vec-block">
-                <span class="vec-label">Vector u:</span>
-                <div id="vec-u-inputs" class="cells-row"></div>
+                <div class="vec-label-row">
+                  <span class="vec-label">Vector u:</span>
+                  <span class="vec-hint">Componentes u₁ a uₙ</span>
+                </div>
+                <div id="vec-u-inputs" class="cells-row cells-wrap"></div>
               </div>
               <div class="vec-block">
-                <span class="vec-label">Vector v:</span>
-                <div id="vec-v-inputs" class="cells-row"></div>
+                <div class="vec-label-row">
+                  <span class="vec-label">Vector v:</span>
+                  <span class="vec-hint">Componentes v₁ a vₙ</span>
+                </div>
+                <div id="vec-v-inputs" class="cells-row cells-wrap"></div>
               </div>
               <div class="vec-block">
                 <span class="vec-label">Escalar c:</span>
@@ -107,7 +118,8 @@
             <div class="card-footer-actions">
               <div class="sample-actions">
                 <button type="button" class="btn-text" onclick="cargarEjemploVector(1)">Ejemplo 1 (R³)</button>
-                <button type="button" class="btn-text" onclick="cargarEjemploVector(2)">Ejemplo 2 (R⁴ con Fracciones)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploVector(2)">Ejemplo 2 (R⁴ Fracciones)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploVector(20)">Prueba R²⁰</button>
               </div>
               <button type="button" class="btn-clear" onclick="limpiarModuloVectores()" title="Limpiar todas las casillas">
                 <span>🗑️</span> Limpiar
@@ -115,14 +127,14 @@
             </div>
           </div>
 
-          <!-- Tarjeta de Resultados -->
+          <!-- Tarjeta de Resultados con LaTeX -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Procedimiento y Resultado</h3>
+              <h3>Procedimiento y Resultado en LaTeX</h3>
               <span id="vec-badge-status" class="badge">Esperando cálculo</span>
             </div>
             <div id="vec-result-content" class="result-box">
-              <p class="placeholder-text">Seleccione una operación vectorial para ver el resultado y desglose algebraico componente a componente.</p>
+              <p class="placeholder-text">Seleccione una operación vectorial para ver la ecuación formal en LaTeX y su desglose algebraico.</p>
             </div>
           </div>
         </div>
@@ -169,7 +181,7 @@
             <!-- Vector Objetivo b -->
             <div class="target-vector-container">
               <div class="section-subtitle">Vector Objetivo b a Evaluar:</div>
-              <div id="comb-target-inputs" class="cells-row"></div>
+              <div id="comb-target-inputs" class="cells-row cells-wrap"></div>
             </div>
 
             <button type="button" class="btn-primary btn-large" onclick="evaluarCombinacionLinealUI()">
@@ -192,7 +204,7 @@
           <!-- Tarjeta de Resultados de Combinación Lineal -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Dictamen Teórico y Escalares</h3>
+              <h3>Dictamen Teórico y Ecuación en LaTeX</h3>
               <span id="comb-badge-status" class="badge">Pendiente</span>
             </div>
             <div id="comb-result-content" class="result-box">
@@ -257,7 +269,7 @@
                     <span>Cols (p):</span>
                     <div class="mini-stepper">
                       <button type="button" onclick="cambiarDimMatB(0, -1)">−</button>
-                      <input type="number" id="mat-b-p" min="1" max="8" value="2" onchange="renderizarMatrizB()">
+                      <input type="number" id="mat-b-r_col" min="1" max="8" value="2" onchange="renderizarMatrizB()">
                       <button type="button" onclick="cambiarDimMatB(0, 1)">+</button>
                     </div>
                   </div>
@@ -305,14 +317,14 @@
             </div>
           </div>
 
-          <!-- Resultados Matriciales -->
+          <!-- Resultados Matriciales con LaTeX -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Matriz Resultante y Sumatorias</h3>
+              <h3>Matriz Resultante y Ecuación en LaTeX</h3>
               <span id="mat-badge-status" class="badge">Esperando operación</span>
             </div>
             <div id="mat-result-content" class="result-box">
-              <p class="placeholder-text">Seleccione una operación matricial para calcularla con validación estricta de dimensiones.</p>
+              <p class="placeholder-text">Seleccione una operación matricial para calcularla con visualización formal en LaTeX.</p>
             </div>
           </div>
         </div>
@@ -387,11 +399,11 @@
           <!-- Resultado y Pasos de Eliminación de Renglones -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Solución y Clasificación de Rouché-Capelli</h3>
+              <h3>Solución y Clasificación en LaTeX</h3>
               <span id="eq-badge-status" class="badge">Pendiente</span>
             </div>
             <div id="eq-result-content" class="result-box">
-              <p class="placeholder-text">Ingrese los coeficientes del sistema y presione "Resolver Ecuación Matricial" para ver la solución exacta y el procedimiento paso a paso.</p>
+              <p class="placeholder-text">Ingrese los coeficientes del sistema y presione "Resolver Ecuación Matricial" para ver la solución exacta en LaTeX y el procedimiento paso a paso.</p>
             </div>
           </div>
         </div>
