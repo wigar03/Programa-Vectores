@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Álgebra Lineal - Vectores, Matrices y Ecuaciones</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- KaTeX for beautiful math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header Principal -->
+    <header class="main-header">
+      <div class="header-brand">
+        <div class="brand-badge">UAM • FIA</div>
+        <h1>Calculadora de Álgebra Lineal</h1>
+        <p class="subtitle">Vectores en <span class="math-inline">R^n</span>, Combinación Lineal, Matrices y Ecuaciones <span class="math-inline">Ax = b</span></p>
+      </div>
+      <div class="header-actions">
+        <button id="btn-launch-previous" class="btn-action-outline" title="Llamar al programa desarrollado en la Semana #3">
+          <span class="icon">🚀</span> Abrir Programa Anterior (Semana #3)
+        </button>
+      </div>
+    </header>
+
+    <!-- Barra de Navegación por Módulos -->
+    <nav class="module-nav">
+      <button class="nav-tab active" data-tab="tab-vectores">
+        <span class="tab-icon">📐</span>
+        <span class="tab-label">Operaciones con Vectores</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-combinacion">
+        <span class="tab-icon">🎯</span>
+        <span class="tab-label">Combinación Lineal</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-matrices">
+        <span class="tab-icon">🔢</span>
+        <span class="tab-label">Operaciones con Matrices</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-ecuaciones">
+        <span class="tab-icon">⚖️</span>
+        <span class="tab-label">Ecuaciones Matriciales <span class="math-label">Ax = b</span></span>
+      </button>
+    </nav>
+
+    <!-- Contenedor Principal de Módulos -->
+    <main class="content-area">
+
+      <!-- =================================================================== -->
+      <!-- MÓDULO 1: OPERACIONES CON VECTORES EN R^n                          -->
+      <!-- =================================================================== -->
+      <section id="tab-vectores" class="tab-pane active">
+        <div class="pane-grid">
+          <!-- Tarjeta de Entrada de Parámetros -->
+          <div class="card card-input">
+            <div class="card-header">
+              <h3>Configuración de Vectores</h3>
+              <span class="badge badge-dim">Dimensión arbitraria <span class="math-inline">n</span></span>
+            </div>
+            <div class="form-row">
+              <label for="vec-dim">Dimensión del Espacio (<span class="math-inline">n</span>):</label>
+              <div class="dim-selector">
+                <button type="button" class="btn-step" onclick="cambiarDimVector(-1)">-</button>
+                <input type="number" id="vec-dim" min="1" max="20" value="3" onchange="actualizarEntradasVectores()">
+                <button type="button" class="btn-step" onclick="cambiarDimVector(1)">+</button>
+              </div>
+            </div>
+
+            <!-- Entradas de Vectores Dinámicas -->
+            <div class="vector-input-group">
+              <div class="vec-block">
+                <span class="vec-label">Vector <span class="math-inline">\vec{u}</span>:</span>
+                <div id="vec-u-inputs" class="cells-row"></div>
+              </div>
+              <div class="vec-block">
+                <span class="vec-label">Vector <span class="math-inline">\vec{v}</span>:</span>
+                <div id="vec-v-inputs" class="cells-row"></div>
+              </div>
+              <div class="vec-block">
+                <span class="vec-label">Escalar <span class="math-inline">c</span>:</span>
+                <input type="text" id="vec-scalar-c" class="cell-input scalar-input" value="3" placeholder="Ej: -2, 1/2">
+              </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="action-grid">
+              <button type="button" class="btn-primary" onclick="calcularOperacionVector('suma')">
+                <span>➕</span> Suma (<span class="math-inline">\vec{u} + \vec{v}</span>)
+              </button>
+              <button type="button" class="btn-primary" onclick="calcularOperacionVector('resta')">
+                <span>➖</span> Resta (<span class="math-inline">\vec{u} - \vec{v}</span>)
+              </button>
+              <button type="button" class="btn-secondary" onclick="calcularOperacionVector('escalar_u')">
+                <span>✖️</span> Escalar · <span class="math-inline">\vec{u}</span> (<span class="math-inline">c \cdot \vec{u}</span>)
+              </button>
+              <button type="button" class="btn-secondary" onclick="calcularOperacionVector('producto_punto')">
+                <span>🔘</span> Producto Punto (<span class="math-inline">\vec{u} \cdot \vec{v}</span>)
+              </button>
+            </div>
+            <div class="sample-actions">
+              <button type="button" class="btn-text" onclick="cargarEjemploVector(1)">Ejemplo 1 (Enteros en R³)</button>
+              <button type="button" class="btn-text" onclick="cargarEjemploVector(2)">Ejemplo 2 (Fracciones en R⁴)</button>
+            </div>
+          </div>
+
+          <!-- Tarjeta de Resultados -->
+          <div class="card card-result">
+            <div class="card-header">
+              <h3>Procedimiento y Resultado</h3>
+              <span id="vec-badge-status" class="badge">Esperando cálculo</span>
+            </div>
+            <div id="vec-result-content" class="result-box">
+              <p class="placeholder-text">Seleccione una operación vectorial para ver el resultado y desglose algebraico componente a componente.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- MÓDULO 2: EVALUACIÓN DE COMBINACIÓN LINEAL                         -->
+      <!-- =================================================================== -->
+      <section id="tab-combinacion" class="tab-pane">
+        <div class="pane-grid">
+          <!-- Tarjeta de Configuración de Conjunto y Vector Objetivo -->
+          <div class="card card-input">
+            <div class="card-header">
+              <h3>Conjunto de Vectores <span class="math-inline">\{v_1, \dots, v_k\}</span></h3>
+              <span class="badge badge-dim">Espacio <span class="math-inline">R^n</span></span>
+            </div>
+            
+            <div class="form-row-multi">
+              <div class="form-item">
+                <label for="comb-dim-n">Dimensión (<span class="math-inline">n</span>):</label>
+                <div class="dim-selector">
+                  <button type="button" class="btn-step" onclick="cambiarDimCombN(-1)">-</button>
+                  <input type="number" id="comb-dim-n" min="1" max="15" value="3" onchange="actualizarEntradasCombinacion()">
+                  <button type="button" class="btn-step" onclick="cambiarDimCombN(1)">+</button>
+                </div>
+              </div>
+              <div class="form-item">
+                <label for="comb-num-k">Cantidad de Vectores (<span class="math-inline">k</span>):</label>
+                <div class="dim-selector">
+                  <button type="button" class="btn-step" onclick="cambiarDimCombK(-1)">-</button>
+                  <input type="number" id="comb-num-k" min="1" max="10" value="2" onchange="actualizarEntradasCombinacion()">
+                  <button type="button" class="btn-step" onclick="cambiarDimCombK(1)">+</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grilla Dinámica de Vectores del Conjunto -->
+            <div class="comb-vectors-container">
+              <h4>Vectores del Conjunto:</h4>
+              <div id="comb-vectors-list"></div>
+            </div>
+
+            <!-- Vector Objetivo b -->
+            <div class="target-vector-container">
+              <h4>Vector Objetivo <span class="math-inline">\vec{b}</span> a Evaluar:</h4>
+              <div id="comb-target-inputs" class="cells-row"></div>
+            </div>
+
+            <button type="button" class="btn-primary btn-large" onclick="evaluarCombinacionLinealUI()">
+              <span>🔍</span> Evaluar Combinación Lineal y Resolver Escalares
+            </button>
+
+            <div class="sample-actions">
+              <button type="button" class="btn-text" onclick="cargarEjemploCombinacion(1)">Caso 1: Combinación Única (SCD)</button>
+              <button type="button" class="btn-text" onclick="cargarEjemploCombinacion(2)">Caso 2: No es Combinación (SI)</button>
+              <button type="button" class="btn-text" onclick="cargarEjemploCombinacion(3)">Caso 3: Infinitas Soluciones (SCI)</button>
+            </div>
+          </div>
+
+          <!-- Tarjeta de Resultados de Combinación Lineal -->
+          <div class="card card-result">
+            <div class="card-header">
+              <h3>Dictamen Teórico y Escalares</h3>
+              <span id="comb-badge-status" class="badge">Pendiente</span>
+            </div>
+            <div id="comb-result-content" class="result-box">
+              <p class="placeholder-text">Configure los vectores y presione "Evaluar Combinación Lineal" para determinar si <span class="math-inline">\vec{b} \in \operatorname{gen}\{v_1, \dots, v_k\}</span>.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- MÓDULO 3: OPERACIONES MATRICIALES BÁSICAS                          -->
+      <!-- =================================================================== -->
+      <section id="tab-matrices" class="tab-pane">
+        <div class="pane-grid">
+          <!-- Entrada de Matrices A y B -->
+          <div class="card card-input">
+            <div class="card-header">
+              <h3>Matrices <span class="math-inline">A</span> y <span class="math-inline">B</span></h3>
+              <span class="badge badge-dim">Órdenes dinámicos</span>
+            </div>
+
+            <!-- Controles Matriz A -->
+            <div class="matrix-setup-section">
+              <div class="matrix-setup-header">
+                <h4>Matriz <span class="math-inline">A_{m \times n}</span></h4>
+                <div class="matrix-dims">
+                  <span>Filas:</span>
+                  <input type="number" id="mat-a-m" min="1" max="8" value="2" onchange="renderizarMatrizA()">
+                  <span>Cols:</span>
+                  <input type="number" id="mat-a-n" min="1" max="8" value="3" onchange="renderizarMatrizA()">
+                </div>
+              </div>
+              <div id="mat-a-grid" class="matrix-grid"></div>
+            </div>
+
+            <!-- Controles Matriz B -->
+            <div class="matrix-setup-section">
+              <div class="matrix-setup-header">
+                <h4>Matriz <span class="math-inline">B_{r \times p}</span></h4>
+                <div class="matrix-dims">
+                  <span>Filas:</span>
+                  <input type="number" id="mat-b-r" min="1" max="8" value="3" onchange="renderizarMatrizB()">
+                  <span>Cols:</span>
+                  <input type="number" id="mat-b-p" min="1" max="8" value="2" onchange="renderizarMatrizB()">
+                </div>
+              </div>
+              <div id="mat-b-grid" class="matrix-grid"></div>
+            </div>
+
+            <div class="form-row">
+              <label for="mat-scalar-k">Escalar <span class="math-inline">k</span> para <span class="math-inline">k \cdot A</span>:</label>
+              <input type="text" id="mat-scalar-k" class="cell-input scalar-input" value="2" placeholder="Ej: -3, 1/2">
+            </div>
+
+            <!-- Botones de Acciones Matriciales -->
+            <div class="action-grid">
+              <button type="button" class="btn-primary" onclick="operarMatrices('suma')">
+                <span>➕</span> Suma (<span class="math-inline">A + B</span>)
+              </button>
+              <button type="button" class="btn-primary" onclick="operarMatrices('resta')">
+                <span>➖</span> Resta (<span class="math-inline">A - B</span>)
+              </button>
+              <button type="button" class="btn-secondary" onclick="operarMatrices('escalar_a')">
+                <span>✖️</span> Escalar · <span class="math-inline">A</span> (<span class="math-inline">k \cdot A</span>)
+              </button>
+              <button type="button" class="btn-primary" onclick="operarMatrices('multiplicacion')">
+                <span>✨</span> Multiplicación (<span class="math-inline">A \cdot B</span>)
+              </button>
+              <button type="button" class="btn-secondary" onclick="operarMatrices('transpuesta_a')">
+                <span>🔄</span> Transpuesta (<span class="math-inline">A^T</span>)
+              </button>
+              <button type="button" class="btn-secondary" onclick="operarMatrices('transpuesta_b')">
+                <span>🔄</span> Transpuesta (<span class="math-inline">B^T</span>)
+              </button>
+            </div>
+
+            <div class="sample-actions">
+              <button type="button" class="btn-text" onclick="cargarEjemploMatrices(1)">Ejemplo 1: Multiplicación A(2x3) · B(3x2)</button>
+              <button type="button" class="btn-text" onclick="cargarEjemploMatrices(2)">Ejemplo 2: Suma Cuadrada A(3x3) + B(3x3)</button>
+            </div>
+          </div>
+
+          <!-- Resultados Matriciales -->
+          <div class="card card-result">
+            <div class="card-header">
+              <h3>Matriz Resultante y Sumatorias</h3>
+              <span id="mat-badge-status" class="badge">Esperando operación</span>
+            </div>
+            <div id="mat-result-content" class="result-box">
+              <p class="placeholder-text">Seleccione una operación matricial para calcularla con validación estricta de dimensiones.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- MÓDULO 4: ECUACIONES MATRICIALES Ax = b                            -->
+      <!-- =================================================================== -->
+      <section id="tab-ecuaciones" class="tab-pane">
+        <div class="pane-grid">
+          <!-- Entrada de A y b para Ax = b -->
+          <div class="card card-input">
+            <div class="card-header">
+              <h3>Sistema <span class="math-inline">A \cdot x = b</span></h3>
+              <span class="badge badge-dim">Resolución por Eliminación</span>
+            </div>
+
+            <div class="form-row-multi">
+              <div class="form-item">
+                <label for="eq-rows-m">Ecuaciones / Filas (<span class="math-inline">m</span>):</label>
+                <div class="dim-selector">
+                  <button type="button" class="btn-step" onclick="cambiarDimEqM(-1)">-</button>
+                  <input type="number" id="eq-rows-m" min="1" max="10" value="3" onchange="renderizarEcuacionMatricial()">
+                  <button type="button" class="btn-step" onclick="cambiarDimEqM(1)">+</button>
+                </div>
+              </div>
+              <div class="form-item">
+                <label for="eq-cols-n">Incógnitas / Columnas (<span class="math-inline">n</span>):</label>
+                <div class="dim-selector">
+                  <button type="button" class="btn-step" onclick="cambiarDimEqN(-1)">-</button>
+                  <input type="number" id="eq-cols-n" min="1" max="10" value="3" onchange="renderizarEcuacionMatricial()">
+                  <button type="button" class="btn-step" onclick="cambiarDimEqN(1)">+</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grilla Aumentada [A | b] -->
+            <div class="augmented-matrix-wrapper">
+              <h4>Matriz Aumentada <span class="math-inline">[A \mid b]</span>:</h4>
+              <div id="eq-augmented-grid" class="augmented-grid"></div>
+            </div>
+
+            <div class="solver-method-selector">
+              <label><input type="radio" name="eq-method" value="gauss_jordan" checked> Gauss-Jordan (Matriz Escalonada Reducida)</label>
+              <label><input type="radio" name="eq-method" value="gauss"> Eliminación Gaussiana + Sustitución Regresiva</label>
+            </div>
+
+            <button type="button" class="btn-primary btn-large" onclick="resolverEcuacionMatricialUI()">
+              <span>⚡</span> Resolver Ecuación Matricial <span class="math-inline">Ax = b</span>
+            </button>
+
+            <div class="sample-actions">
+              <button type="button" class="btn-text" onclick="cargarEjemploEcuacion(1)">Sistema 3x3 SCD (Solución Única)</button>
+              <button type="button" class="btn-text" onclick="cargarEjemploEcuacion(2)">Sistema Incompatible (Sin Solución)</button>
+              <button type="button" class="btn-text" onclick="cargarEjemploEcuacion(3)">Sistema Indeterminado (Infinitas Soluciones)</button>
+            </div>
+          </div>
+
+          <!-- Resultado y Pasos de Eliminación de Renglones -->
+          <div class="card card-result">
+            <div class="card-header">
+              <h3>Solución y Clasificación de Rouché-Capelli</h3>
+              <span id="eq-badge-status" class="badge">Pendiente</span>
+            </div>
+            <div id="eq-result-content" class="result-box">
+              <p class="placeholder-text">Ingrese los coeficientes del sistema y presione "Resolver Ecuación Matricial" para ver la solución exacta y el procedimiento por renglones.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal para Notificaciones y Alertas -->
+    <div id="notification-toast" class="toast-container hidden">
+      <div id="toast-message" class="toast-content"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
