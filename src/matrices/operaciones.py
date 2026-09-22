@@ -230,7 +230,7 @@ def multiplicar_matrices(A_in: Any, B_in: Any) -> Tuple[List[List[Fraction]], Li
                 producto_parcial = A[i][k] * B[k][j]
                 suma_terminos += producto_parcial
                 terminos_explicacion.append(
-                    f"({format_number(A[i][k])})·({format_number(B[k][j])})"
+                    f"({format_number(A[i][k])}) \\cdot ({format_number(B[k][j])})"
                 )
                 
             fila_c.append(suma_terminos)

@@ -104,6 +104,50 @@ function renderLatexElement(element, latexCode, displayMode = true) {
   element.innerText = latexCode;
 }
 
+/**
+ * Renderiza texto mixto que contiene fórmulas matemáticas en LaTeX delimitadas por $...$ o $$...$$.
+ * Soporta renderMathInElement (KaTeX contrib) y dispone de un fallback regex nativo
+ * con katex.renderToString() que garantiza visualización matemática universal.
+ */
+function renderMixedLatex(element, text) {
+  if (!element) return;
+  if (!text) {
+    element.innerHTML = "";
+    return;
+  }
+
+  // Tokenización matemática directa con katex.renderToString
+  if (window.katex && window.katex.renderToString) {
+    try {
+      const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g);
+      let html = "";
+      for (const part of parts) {
+        if (part.startsWith("$$") && part.endsWith("$$") && part.length >= 4) {
+          const math = part.slice(2, -2).trim();
+          html += katex.renderToString(math, { displayMode: true, throwOnError: false });
+        } else if (part.startsWith("$") && part.endsWith("$") && part.length >= 2) {
+          const math = part.slice(1, -1).trim();
+          html += katex.renderToString(math, { displayMode: false, throwOnError: false });
+        } else {
+          const safe = part
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\n/g, "<br>");
+          html += safe;
+        }
+      }
+      element.innerHTML = html;
+      return;
+    } catch (e) {
+      console.warn("KaTeX mixed render warning:", e);
+    }
+  }
+
+  // Fallback si KaTeX no está disponible
+  element.innerText = text;
+}
+
 /* ==========================================================================
    2. Control de Tema (Modo Claro por Defecto con Toggle a Modo Oscuro)
    ========================================================================== */
@@ -350,12 +394,17 @@ function renderizarResultadoVectorUI(calc) {
     <div class="latex-equation-card">
       <div class="latex-header">${data.titulo_operacion}</div>
       <div id="vec-latex-target" class="latex-display-box"></div>
-      <div class="result-explanation">${data.explicacion_teorica}</div>
+      <div class="result-explanation" id="vec-explanation" style="white-space: pre-line; margin-top: 0.5rem;"></div>
     </div>
   `;
 
   const targetEl = document.getElementById("vec-latex-target");
   renderLatexElement(targetEl, latexStr);
+
+  const expEl = document.getElementById("vec-explanation");
+  if (expEl && data.explicacion_teorica) {
+    renderMixedLatex(expEl, data.explicacion_teorica);
+  }
 
   if (data.desglose_componentes && data.desglose_componentes.length > 0) {
     const stepsWrapper = document.createElement("div");
@@ -364,7 +413,10 @@ function renderizarResultadoVectorUI(calc) {
     data.desglose_componentes.forEach(paso => {
       const item = document.createElement("div");
       item.className = "step-item";
-      item.innerHTML = `<div class="step-item-desc">${paso}</div>`;
+      const desc = document.createElement("div");
+      desc.className = "step-item-desc";
+      renderMixedLatex(desc, paso);
+      item.appendChild(desc);
       stepsWrapper.appendChild(item);
     });
     resultBox.appendChild(stepsWrapper);
@@ -643,13 +695,19 @@ function renderizarResultadoCombinacionUI(calc) {
       </div>
       ${scalarsHtml}
       <div id="comb-latex-target" class="latex-display-box"></div>
-      <div class="result-explanation" style="white-space: pre-line; margin-top: 0.5rem;">${data.justificacion_teorica}</div>
+      <div class="result-explanation" id="comb-explanation" style="white-space: pre-line; margin-top: 0.5rem;"></div>
     </div>
   `;
 
   // Renderizar la ecuación principal
   const targetEl = document.getElementById("comb-latex-target");
   renderLatexElement(targetEl, latexComb);
+
+  // Renderizar la justificación teórica con soporte LaTeX
+  const expEl = document.getElementById("comb-explanation");
+  if (expEl && data.justificacion_teorica) {
+    renderMixedLatex(expEl, data.justificacion_teorica);
+  }
 
   // Renderizar los escalares
   if (data.es_combinacion && data.escalares_vector) {
@@ -664,7 +722,12 @@ function renderizarResultadoCombinacionUI(calc) {
   if (data.comprobacion && data.comprobacion.length > 0) {
     const verifEl = document.createElement("div");
     verifEl.className = "verification-box";
-    verifEl.innerHTML = `<h4>Comprobación Componente por Componente:</h4>${data.comprobacion.map(c => `<div>${c}</div>`).join("")}`;
+    verifEl.innerHTML = `<h4>Comprobación Componente por Componente:</h4>`;
+    data.comprobacion.forEach(c => {
+      const row = document.createElement("div");
+      renderMixedLatex(row, c);
+      verifEl.appendChild(row);
+    });
     resultBox.appendChild(verifEl);
   }
 
@@ -674,12 +737,17 @@ function renderizarResultadoCombinacionUI(calc) {
     stepsWrapper.className = "steps-container";
     stepsWrapper.innerHTML = `<h4>Pasos de Reducción por Filas (Gauss-Jordan):</h4>`;
     data.pasos.forEach(p => {
-      stepsWrapper.innerHTML += `
-        <div class="step-item">
-          <div class="step-item-title">Paso ${p.step_number}: ${p.title}</div>
-          <div class="step-item-desc">${p.description}</div>
-        </div>
-      `;
+      const stepItem = document.createElement("div");
+      stepItem.className = "step-item";
+      const t = document.createElement("div");
+      t.className = "step-item-title";
+      renderMixedLatex(t, `Paso ${p.step_number}: ${p.title}`);
+      const d = document.createElement("div");
+      d.className = "step-item-desc";
+      renderMixedLatex(d, p.description);
+      stepItem.appendChild(t);
+      stepItem.appendChild(d);
+      stepsWrapper.appendChild(stepItem);
     });
     resultBox.appendChild(stepsWrapper);
   }
@@ -843,20 +911,21 @@ async function operarMatrices(operacion) {
     badge.className = "badge badge-success";
     badge.innerText = "Completado";
 
-    // Formulación LaTeX de matrices
+    // Formulación LaTeX de matrices con la matriz resultante
     let latexMat = "";
+    const C = data.matriz_resultado;
     if (operacion === "suma") {
-      latexMat = `A + B = ${matrixToLatex(A)} + ${matrixToLatex(B)}`;
+      latexMat = `A + B = ${matrixToLatex(A)} + ${matrixToLatex(B)} = ${matrixToLatex(C)}`;
     } else if (operacion === "resta") {
-      latexMat = `A - B = ${matrixToLatex(A)} - ${matrixToLatex(B)}`;
+      latexMat = `A - B = ${matrixToLatex(A)} - ${matrixToLatex(B)} = ${matrixToLatex(C)}`;
     } else if (operacion === "multiplicacion") {
-      latexMat = `A \\cdot B = ${matrixToLatex(A)} \\cdot ${matrixToLatex(B)}`;
+      latexMat = `A \\cdot B = ${matrixToLatex(A)} \\cdot ${matrixToLatex(B)} = ${matrixToLatex(C)}`;
     } else if (operacion === "escalar_a") {
-      latexMat = `${formatLatexFrac(k)} \\cdot A = ${formatLatexFrac(k)} ${matrixToLatex(A)}`;
+      latexMat = `${formatLatexFrac(k)} \\cdot A = ${formatLatexFrac(k)} ${matrixToLatex(A)} = ${matrixToLatex(C)}`;
     } else if (operacion === "transpuesta_a") {
-      latexMat = `A^T = ${matrixToLatex(A)}^T`;
+      latexMat = `A^T = ${matrixToLatex(A)}^T = ${matrixToLatex(C)}`;
     } else if (operacion === "transpuesta_b") {
-      latexMat = `B^T = ${matrixToLatex(B)}^T`;
+      latexMat = `B^T = ${matrixToLatex(B)}^T = ${matrixToLatex(C)}`;
     }
 
     resultBox.innerHTML = `
@@ -865,19 +934,32 @@ async function operarMatrices(operacion) {
         <div id="mat-latex-target" class="latex-display-box"></div>
         <div class="latex-header" style="margin-top: 0.85rem;">Matriz Resultante:</div>
         <pre class="result-formula" style="font-size: 0.95rem; color: var(--text-main); font-family: 'JetBrains Mono', monospace; overflow-x: auto;">${data.matriz_formateada}</pre>
-        <div class="result-explanation">${data.explicacion_teorica}</div>
+        <div class="result-explanation" id="mat-explanation" style="white-space: pre-line; margin-top: 0.5rem;"></div>
       </div>
     `;
 
     const targetEl = document.getElementById("mat-latex-target");
     renderLatexElement(targetEl, latexMat);
 
+    const expEl = document.getElementById("mat-explanation");
+    if (expEl && data.explicacion_teorica) {
+      renderMixedLatex(expEl, data.explicacion_teorica);
+    }
+
     if (data.pasos_multiplicacion && data.pasos_multiplicacion.length > 0) {
       const stepsWrapper = document.createElement("div");
       stepsWrapper.className = "steps-container";
-      stepsWrapper.innerHTML = `<h4>Cálculo de cada entrada c_ij (Producto Renglón · Columna):</h4>`;
+      const h4 = document.createElement("h4");
+      renderMixedLatex(h4, "Cálculo de cada entrada $c_{ij}$ (Producto Renglón · Columna):");
+      stepsWrapper.appendChild(h4);
       data.pasos_multiplicacion.forEach(paso => {
-        stepsWrapper.innerHTML += `<div class="step-item"><div class="step-item-desc">${paso}</div></div>`;
+        const item = document.createElement("div");
+        item.className = "step-item";
+        const desc = document.createElement("div");
+        desc.className = "step-item-desc";
+        renderMixedLatex(desc, `$${paso}$`);
+        item.appendChild(desc);
+        stepsWrapper.appendChild(item);
       });
       resultBox.appendChild(stepsWrapper);
     }
@@ -1072,17 +1154,29 @@ async function resolverEcuacionMatricialUI() {
         <div id="eq-latex-system" class="latex-display-box"></div>
         <div class="latex-header" style="margin-top: 0.85rem;">Vector Solución:</div>
         <div id="eq-latex-sol" class="latex-display-box"></div>
-        <div class="result-explanation" style="white-space: pre-line; margin-top: 0.5rem;">${data.descripcion_sistema}</div>
+        <div class="result-explanation" id="eq-explanation" style="white-space: pre-line; margin-top: 0.5rem;"></div>
       </div>
     `;
 
     renderLatexElement(document.getElementById("eq-latex-system"), latexSystem);
     renderLatexElement(document.getElementById("eq-latex-sol"), latexSol);
 
+    const expEl = document.getElementById("eq-explanation");
+    if (expEl && data.descripcion_sistema) {
+      renderMixedLatex(expEl, data.descripcion_sistema);
+    }
+
     if (data.verificacion && data.verificacion.length > 0) {
       const verifEl = document.createElement("div");
       verifEl.className = "verification-box";
-      verifEl.innerHTML = `<h4>Comprobación de Residuo Ax = b:</h4>${data.verificacion.map(v => `<div>${v}</div>`).join("")}`;
+      const h4 = document.createElement("h4");
+      renderMixedLatex(h4, "Comprobación de Residuo $A\\vec{x} = \\vec{b}$:");
+      verifEl.appendChild(h4);
+      data.verificacion.forEach(v => {
+        const row = document.createElement("div");
+        renderMixedLatex(row, v);
+        verifEl.appendChild(row);
+      });
       resultBox.appendChild(verifEl);
     }
 
@@ -1091,12 +1185,17 @@ async function resolverEcuacionMatricialUI() {
       stepsWrapper.className = "steps-container";
       stepsWrapper.innerHTML = `<h4>Pasos de Eliminación por Renglones:</h4>`;
       data.pasos.forEach(p => {
-        stepsWrapper.innerHTML += `
-          <div class="step-item">
-            <div class="step-item-title">Paso ${p.step_number}: ${p.title}</div>
-            <div class="step-item-desc">${p.description}</div>
-          </div>
-        `;
+        const stepItem = document.createElement("div");
+        stepItem.className = "step-item";
+        const t = document.createElement("div");
+        t.className = "step-item-title";
+        renderMixedLatex(t, `Paso ${p.step_number}: ${p.title}`);
+        const d = document.createElement("div");
+        d.className = "step-item-desc";
+        renderMixedLatex(d, p.description);
+        stepItem.appendChild(t);
+        stepItem.appendChild(d);
+        stepsWrapper.appendChild(stepItem);
       });
       resultBox.appendChild(stepsWrapper);
     }

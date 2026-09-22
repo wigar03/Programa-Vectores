@@ -119,8 +119,8 @@ def solve_gaussian_elimination(
     result.steps.append(
         Step(
             step_number=step_count,
-            title="Matriz Aumentada Inicial [A | b]",
-            description="Se plantea el sistema en su forma matricial aumentada [A | b].",
+            title=r"Matriz Aumentada Inicial $[A \mid \vec{b}]$",
+            description=r"Se plantea el sistema en su forma matricial aumentada $[A \mid \vec{b}]$.",
             matrix_state=mat,
             operation_code="Inicio",
         )
@@ -153,10 +153,10 @@ def solve_gaussian_elimination(
             result.steps.append(
                 Step(
                     step_number=step_count,
-                    title=f"Pivoteo: Intercambio Fila {pivot_row + 1} ↔ Fila {best_row + 1}",
+                    title=f"Pivoteo: Intercambio $F_{{{pivot_row + 1}}} \\leftrightarrow F_{{{best_row + 1}}}$",
                     description=(
                         f"Se intercambia la fila {pivot_row + 1} con la fila {best_row + 1} "
-                        f"para colocar el pivote de mayor magnitud ({format_number(mat[pivot_row][col])}) en la diagonal."
+                        f"para colocar el pivote de mayor magnitud (${format_number(mat[pivot_row][col])}$) en la diagonal."
                     ),
                     matrix_state=mat,
                     operation_code=f"F_{pivot_row+1} <-> F_{best_row+1}",
@@ -180,8 +180,8 @@ def solve_gaussian_elimination(
             result.steps.append(
                 Step(
                     step_number=step_count,
-                    title=f"Normalización del Pivote: Fila {pivot_row + 1} ← (1 / {format_number(current_pivot)}) · Fila {pivot_row + 1}",
-                    description=f"Se divide la fila {pivot_row + 1} entre el pivote {format_number(current_pivot)} para hacerlo unitario.",
+                    title=f"Normalización: $F_{{{pivot_row + 1}}} \\leftarrow \\left(\\frac{{1}}{{{format_number(current_pivot)}}}\\right) \\cdot F_{{{pivot_row + 1}}}$",
+                    description=f"Se divide la fila {pivot_row + 1} entre el pivote ${format_number(current_pivot)}$ para hacerlo unitario.",
                     matrix_state=mat,
                     operation_code=f"F_{pivot_row+1} <- ({format_number(inv_pivot)}) · F_{pivot_row+1}",
                     highlight_rows=[pivot_row],
@@ -214,8 +214,8 @@ def solve_gaussian_elimination(
                 result.steps.append(
                     Step(
                         step_number=step_count,
-                        title=f"Eliminación: Fila {r + 1} ← Fila {r + 1} {op_sign} {factor_disp} · Fila {pivot_row + 1}",
-                        description=f"Se hace cero el elemento de la fila {r + 1}, columna {col + 1} usando la fila pivote.",
+                        title=f"Eliminación: $F_{{{r + 1}}} \\leftarrow F_{{{r + 1}}} {op_sign} {factor_disp} \\cdot F_{{{pivot_row + 1}}}$",
+                        description=f"Se anula el elemento en fila {r + 1}, columna {col + 1} mediante la fila pivote $F_{{{pivot_row + 1}}}$.",
                         matrix_state=mat,
                         operation_code=f"F_{r+1} <- F_{r+1} {op_sign} ({factor_disp})·F_{pivot_row+1}",
                         highlight_rows=[r, pivot_row],
@@ -257,8 +257,8 @@ def solve_gaussian_elimination(
         b_val = format_number(mat[inconsistent_row][num_cols - 1])
         result.system_type_desc = (
             f"SISTEMA INCOMPATIBLE (Sin Solución).\n"
-            f"Rango(A) = {rank_A} ≠ Rango(A|B) = {rank_Aug}.\n"
-            f"En la fila {inconsistent_row + 1} se tiene la contradicción: 0 = {b_val} (Imposible)."
+            f"$\\operatorname{{rg}}(A) = {rank_A} \\neq \\operatorname{{rg}}(A|b) = {rank_Aug}$.\n"
+            f"En la fila {inconsistent_row + 1} se tiene la contradicción: $0 = {b_val}$ (Imposible)."
         )
         for var in variable_names:
             result.solution[var] = "Sin solución"
@@ -270,7 +270,7 @@ def solve_gaussian_elimination(
         num_free_vars = num_vars - rank_A
         result.system_type_desc = (
             f"SISTEMA COMPATIBLE INDETERMINADO (Infinitas Soluciones).\n"
-            f"Rango(A) = Rango(A|B) = {rank_A} < Número de incógnitas ({num_vars}).\n"
+            f"$\\operatorname{{rg}}(A) = \\operatorname{{rg}}(A|b) = {rank_A} < n = {num_vars}$ (número de incógnitas).\n"
             f"El sistema posee {num_free_vars} grado(s) de libertad (variable(s) libre(s))."
         )
         
@@ -324,7 +324,7 @@ def solve_gaussian_elimination(
                         
                 result.solution[variable_names[p_col]] = expr_str or "0"
                 result.backward_substitution_steps.append(
-                    f"Fila {r + 1}: {variable_names[p_col]} = {expr_str}"
+                    f"Fila {r + 1}: ${variable_names[p_col]} = {expr_str}$"
                 )
                 
         result.solution_vector = [result.solution[var] for var in variable_names]
@@ -334,7 +334,7 @@ def solve_gaussian_elimination(
         result.system_type = "SCD"
         result.system_type_desc = (
             f"SISTEMA COMPATIBLE DETERMINADO (Solución Única).\n"
-            f"Rango(A) = Rango(A|B) = {rank_A} = Número de incógnitas ({num_vars})."
+            f"$\\operatorname{{rg}}(A) = \\operatorname{{rg}}(A|b) = {rank_A} = n = {num_vars}$ (número de incógnitas)."
         )
         
         sol_dict: Dict[int, Fraction] = {}
@@ -343,7 +343,7 @@ def solve_gaussian_elimination(
             sol_dict[r] = val
             result.solution[variable_names[r]] = val
             result.backward_substitution_steps.append(
-                f"Fila {r + 1} de la matriz reducida: {variable_names[r]} = {format_number(val)}"
+                f"Fila {r + 1} de la matriz reducida: ${variable_names[r]} = {format_number(val)}$"
             )
             
         result.solution_vector = [result.solution[var] for var in variable_names]
@@ -356,14 +356,14 @@ def solve_gaussian_elimination(
                 coeff = result.initial_matrix[r][c]
                 var_val = sol_dict[c]
                 lhs_eval += coeff * var_val
-                eq_terms.append(f"({format_number(coeff)})·({format_number(var_val)})")
+                eq_terms.append(f"({format_number(coeff)}) \\cdot ({format_number(var_val)})")
                 
             orig_b = result.initial_matrix[r][num_cols - 1]
             check_str = " + ".join(eq_terms) + f" = {format_number(lhs_eval)}"
             is_valid = (lhs_eval == orig_b)
             status_sym = "✓ Correcto" if is_valid else "✗ Error"
             result.verification_steps.append(
-                f"Ecuación {r + 1}: {check_str} (Esperado: {format_number(orig_b)}) → {status_sym}"
+                f"Ecuación {r + 1}: ${check_str}$ (Esperado: ${format_number(orig_b)}$) $\\rightarrow$ {status_sym}"
             )
             
     return result

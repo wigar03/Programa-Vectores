@@ -167,24 +167,24 @@ def resolver_ecuacion_matricial(
                 c_val = res.vector_solucion[j]
                 if isinstance(c_val, Fraction):
                     eval_lhs += A[i][j] * c_val
-                    detalles_prod.append(f"({format_number(A[i][j])})·({format_number(c_val)})")
+                    detalles_prod.append(f"({format_number(A[i][j])}) \\cdot ({format_number(c_val)})")
             
             diferencia = eval_lhs - b[i]
             valido = (diferencia == 0)
             simbolo = "✓ Satisface" if valido else "✗ Discrepancia"
             suma_str = " + ".join(detalles_prod)
             res.verificacion_residual.append(
-                f"Fila {i + 1}: {suma_str} = {format_number(eval_lhs)} (Esperado: {format_number(b[i])}) → {simbolo}"
+                f"Fila {i + 1}: ${suma_str} = {format_number(eval_lhs)}$ (Esperado: ${format_number(b[i])}$) $\\rightarrow$ {simbolo}"
             )
             
     elif res.tipo_sistema == "SCI":
         res.verificacion_residual = [
             "El sistema admite infinitas soluciones parametrizadas. "
-            "Cualquier asignación concreta a los parámetros libres reproduce exactamente el vector b."
+            "Cualquier asignación concreta a los parámetros libres satisface $A\\vec{x} = \\vec{b}$."
         ]
     else:
         res.verificacion_residual = [
-            "Sistema Incompatible: No existe ningún vector x en R^n tal que A·x = b."
+            "Sistema Incompatible: No existe ningún vector $\\vec{x} \\in \\mathbb{R}^n$ tal que $A\\vec{x} = \\vec{b}$."
         ]
         
     return res

@@ -20,7 +20,7 @@ import webbrowser
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
-from src.core.arithmetic import format_number, formatear_vector, formatear_matriz
+from src.core.arithmetic import parse_number, format_number, formatear_vector, formatear_matriz
 from src.vectores.operaciones import (
     suma_vectores,
     resta_vectores,
@@ -96,39 +96,39 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
 
     def _handle_vectores_operar(self, body):
         op = body.get("operacion", "")
-        u = body.get("u", [])
-        v = body.get("v", [])
-        c = body.get("c", "1")
+        u = [parse_number(x) for x in body.get("u", [])]
+        v = [parse_number(x) for x in body.get("v", [])]
+        c = parse_number(body.get("c", "1"))
 
         desglose = []
         if op == "suma":
             res = suma_vectores(u, v)
             for i in range(len(res)):
-                desglose.append(f"Componente {i+1}: ({u[i]}) + ({v[i]}) = {format_number(res[i])}")
+                desglose.append(f"Componente {i+1}: $({format_number(u[i])}) + ({format_number(v[i])}) = {format_number(res[i])}$")
             data = {
                 "titulo_operacion": "Suma Vectorial u + v",
                 "resultado_str": formatear_vector(res),
-                "explicacion_teorica": "La suma en R^n se define sumando las componentes homólogas: (u + v)_i = u_i + v_i.",
+                "explicacion_teorica": "La suma en $\\mathbb{R}^n$ se calcula componente a componente: $(\\vec{u} + \\vec{v})_i = u_i + v_i$.",
                 "desglose_componentes": desglose,
             }
         elif op == "resta":
             res = resta_vectores(u, v)
             for i in range(len(res)):
-                desglose.append(f"Componente {i+1}: ({u[i]}) - ({v[i]}) = {format_number(res[i])}")
+                desglose.append(f"Componente {i+1}: $({format_number(u[i])}) - ({format_number(v[i])}) = {format_number(res[i])}$")
             data = {
                 "titulo_operacion": "Resta Vectorial u - v",
                 "resultado_str": formatear_vector(res),
-                "explicacion_teorica": "La resta en R^n equivale a sumar el inverso aditivo de v: (u - v)_i = u_i - v_i.",
+                "explicacion_teorica": "La resta en $\\mathbb{R}^n$ equivale a sumar el inverso aditivo de $\\vec{v}$: $(\\vec{u} - \\vec{v})_i = u_i - v_i$.",
                 "desglose_componentes": desglose,
             }
         elif op == "escalar_u":
             res = multiplicar_escalar_vector(c, u)
             for i in range(len(res)):
-                desglose.append(f"Componente {i+1}: ({c}) · ({u[i]}) = {format_number(res[i])}")
+                desglose.append(f"Componente {i+1}: $({format_number(c)}) \\cdot ({format_number(u[i])}) = {format_number(res[i])}$")
             data = {
                 "titulo_operacion": f"Multiplicación por Escalar {c} · u",
                 "resultado_str": formatear_vector(res),
-                "explicacion_teorica": "El producto por escalar distribuye el factor en cada componente: (c · u)_i = c · u_i.",
+                "explicacion_teorica": "El producto por escalar distribuye el factor en cada componente: $(c \\cdot \\vec{u})_i = c \\cdot u_i$.",
                 "desglose_componentes": desglose,
             }
         elif op == "producto_punto":
@@ -136,13 +136,14 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             norma_u_sq = norma_cuadrada(u)
             norma_v_sq = norma_cuadrada(v)
             for i in range(len(u)):
-                desglose.append(f"Término {i+1}: ({u[i]}) · ({v[i]})")
+                p_parcial = u[i] * v[i]
+                desglose.append(f"Término {i+1}: $u_{{{i+1}}} \\cdot v_{{{i+1}}} = ({format_number(u[i])}) \\cdot ({format_number(v[i])}) = {format_number(p_parcial)}$")
             data = {
                 "titulo_operacion": "Producto Punto u · v",
                 "resultado_str": format_number(p_punto),
                 "explicacion_teorica": (
-                    f"El producto escalar euclídeo es la sumatoria de productos: <u, v> = sum(u_i · v_i) = {format_number(p_punto)}.\n"
-                    f"Norma ||u||^2 = {format_number(norma_u_sq)}, Norma ||v||^2 = {format_number(norma_v_sq)}."
+                    f"El producto escalar euclídeo es la sumatoria de productos: $\\vec{{u}} \\cdot \\vec{{v}} = \\sum_{{i=1}}^{{n}} u_i v_i = {format_number(p_punto)}$.\n"
+                    f"Norma al cuadrado de $\\vec{{u}}$: $\\|\\vec{{u}}\\|^2 = {format_number(norma_u_sq)}$, Norma al cuadrado de $\\vec{{v}}$: $\\|\\vec{{v}}\\|^2 = {format_number(norma_v_sq)}$."
                 ),
                 "desglose_componentes": desglose,
             }
@@ -188,31 +189,35 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             res = suma_matrices(A, B)
             data = {
                 "titulo_operacion": "Suma Matricial A + B",
+                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in res],
                 "matriz_formateada": formatear_matriz(res),
-                "explicacion_teorica": "Suma elemento a elemento (A + B)_ij = a_ij + b_ij para matrices del mismo orden m x n.",
+                "explicacion_teorica": "Suma elemento a elemento $(A + B)_{ij} = a_{ij} + b_{ij}$ para matrices del mismo orden $m \\times n$.",
             }
         elif op == "resta":
             res = resta_matrices(A, B)
             data = {
                 "titulo_operacion": "Resta Matricial A - B",
+                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in res],
                 "matriz_formateada": formatear_matriz(res),
-                "explicacion_teorica": "Resta elemento a elemento (A - B)_ij = a_ij - b_ij para matrices del mismo orden m x n.",
+                "explicacion_teorica": "Resta elemento a elemento $(A - B)_{ij} = a_{ij} - b_{ij}$ para matrices del mismo orden $m \\times n$.",
             }
         elif op == "escalar_a":
             res = multiplicar_escalar_matriz(k, A)
             data = {
                 "titulo_operacion": f"Multiplicación por Escalar {k} · A",
+                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in res],
                 "matriz_formateada": formatear_matriz(res),
-                "explicacion_teorica": "Multiplica cada elemento a_ij por el factor escalar k.",
+                "explicacion_teorica": "Multiplica cada elemento $a_{ij}$ por el factor escalar $k$: $(k \\cdot A)_{ij} = k \\cdot a_{ij}$.",
             }
         elif op == "multiplicacion":
             res, pasos_mult = multiplicar_matrices(A, B)
             data = {
                 "titulo_operacion": "Multiplicación de Matrices A · B",
+                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in res],
                 "matriz_formateada": formatear_matriz(res),
                 "explicacion_teorica": (
-                    "Producto renglón por columna c_ij = sum_k (a_ik · b_kj). "
-                    "El número de columnas de A coincide con el número de filas de B."
+                    "Producto renglón por columna $c_{ij} = \\sum_{k=1}^n (a_{ik} \\cdot b_{kj})$. "
+                    "El número de columnas de $A$ coincide con el número de filas de $B$."
                 ),
                 "pasos_multiplicacion": pasos_mult,
             }
@@ -220,15 +225,17 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             res = transpuesta_matriz(A)
             data = {
                 "titulo_operacion": "Transpuesta de la Matriz A^T",
+                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in res],
                 "matriz_formateada": formatear_matriz(res),
-                "explicacion_teorica": "Las filas de A se convierten en las columnas de A^T: (A^T)_ji = a_ij.",
+                "explicacion_teorica": "Las filas de $A$ se convierten en las columnas de $A^T$: $(A^T)_{ji} = a_{ij}$.",
             }
         elif op == "transpuesta_b":
             res = transpuesta_matriz(B)
             data = {
                 "titulo_operacion": "Transpuesta de la Matriz B^T",
+                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in res],
                 "matriz_formateada": formatear_matriz(res),
-                "explicacion_teorica": "Las filas de B se convierten en las columnas de B^T: (B^T)_ji = b_ij.",
+                "explicacion_teorica": "Las filas de $B$ se convierten en las columnas de $B^T$: $(B^T)_{ji} = b_{ij}$.",
             }
         else:
             raise ValueError(f"Operación matricial desconocida: '{op}'")

@@ -159,11 +159,10 @@ def evaluar_combinacion_lineal(
         resultado.es_combinacion = False
         resultado.tipo_solucion = "NO_COMBINACION"
         resultado.justificacion_teorica = (
-            f"El vector b NO es combinación lineal del conjunto de vectores.\n"
-            f"Justificación: Al reducir la matriz aumentada [V | b], se determina que "
-            f"Rango(V) = {gauss_res.rank_A} < Rango(V|b) = {gauss_res.rank_Aug}.\n"
-            f"El sistema lineal V·c = b es INCOMPATIBLE (carece de solución). "
-            f"Por ende, el vector b no pertenece al subespacio generado gen{{v_1, ..., v_{k}}}."
+            rf"El vector $\vec{{b}}$ NO es combinación lineal del conjunto de vectores." "\n"
+            rf"Justificación: $\operatorname{{rg}}(V) = {gauss_res.rank_A} < \operatorname{{rg}}(V|b) = {gauss_res.rank_Aug}$." "\n"
+            rf"El sistema lineal $V \cdot \vec{{c}} = \vec{{b}}$ es INCOMPATIBLE (carece de solución). "
+            rf"Por ende, el vector $\vec{{b}} \notin \operatorname{{gen}}\{{\vec{{v}}_1, \dots, \vec{{v}}_{{{k}}}\}}$."
         )
         resultado.expresion_algebraica = (
             f"b = {formatear_vector(b)} ∉ gen{{ v_1, ..., v_{k} }}"
@@ -173,10 +172,10 @@ def evaluar_combinacion_lineal(
         resultado.es_combinacion = True
         resultado.tipo_solucion = "INFINITAS"
         resultado.justificacion_teorica = (
-            f"El vector b SÍ es combinación lineal del conjunto de vectores (con INFINITAS soluciones).\n"
-            f"Justificación: Rango(V) = Rango(V|b) = {gauss_res.rank_A} < Número de vectores ({k}).\n"
-            f"El conjunto {{v_1, ..., v_{k}}} es Linealmente Dependiente (LD), por lo que existen "
-            f"infinitas combinaciones de escalares que reproducen exactamente el vector b."
+            rf"El vector $\vec{{b}}$ SÍ es combinación lineal del conjunto de vectores (con INFINITAS soluciones)." "\n"
+            rf"Justificación: $\operatorname{{rg}}(V) = \operatorname{{rg}}(V|b) = {gauss_res.rank_A} < k = {k}$ (número de vectores)." "\n"
+            rf"El conjunto $\{{\vec{{v}}_1, \dots, \vec{{v}}_{{{k}}}\}}$ es Linealmente Dependiente (LD), por lo que existen "
+            rf"infinitas combinaciones de escalares que reproducen exactamente el vector $\vec{{b}}$."
         )
         
         # Construir una solución particular asignando 0 a los parámetros libres
@@ -210,9 +209,9 @@ def evaluar_combinacion_lineal(
         resultado.es_combinacion = True
         resultado.tipo_solucion = "UNICA"
         resultado.justificacion_teorica = (
-            f"El vector b SÍ es combinación lineal del conjunto de vectores de forma ÚNICA.\n"
-            f"Justificación: Rango(V) = Rango(V|b) = {gauss_res.rank_A} = Número de vectores ({k}).\n"
-            f"Existe una única n-tupla de escalares (c_1, ..., c_{k}) que satisface c_1·v_1 + ... + c_{k}·v_{k} = b."
+            rf"El vector $\vec{{b}}$ SÍ es combinación lineal del conjunto de vectores de forma ÚNICA." "\n"
+            rf"Justificación: $\operatorname{{rg}}(V) = \operatorname{{rg}}(V|b) = {gauss_res.rank_A} = k = {k}$ (número de vectores)." "\n"
+            rf"Existe una única combinación de escalares $(c_1, \dots, c_{{{k}}})$ tal que $c_1\vec{{v}}_1 + \dots + c_{{{k}}}\vec{{v}}_{{{k}}} = \vec{{b}}$."
         )
         
         c_valores = [gauss_res.solution_vector[j] for j in range(k)]  # Todos son Fraction
@@ -244,7 +243,7 @@ def _comprobar_solucion(resultado: ResultadoCombinacionLineal, c_vals: List[Frac
             v_ji = resultado.vectores_conjunto[j][i]
             producto = c_j * v_ji
             suma_i += producto
-            terminos_str.append(f"({format_number(c_j)})·({format_number(v_ji)})")
+            terminos_str.append(f"({format_number(c_j)}) \\cdot ({format_number(v_ji)})")
             
         b_i = resultado.vector_objetivo[i]
         es_valido = (suma_i == b_i)
@@ -252,5 +251,5 @@ def _comprobar_solucion(resultado: ResultadoCombinacionLineal, c_vals: List[Frac
         
         desglose = " + ".join(terminos_str)
         resultado.comprobacion_sustitucion.append(
-            f"Componente {i + 1}: {desglose} = {format_number(suma_i)} [Esperado: {format_number(b_i)}] → {simbolo}"
+            f"Componente {i + 1}: ${desglose} = {format_number(suma_i)}$ [Esperado: ${format_number(b_i)}$] $\\rightarrow$ {simbolo}"
         )
