@@ -4,28 +4,46 @@ UAM - Álgebra Lineal (MTM0120)
 """
 
 import json
+import socket
+import threading
 import urllib.request
 import unittest
+from http.server import HTTPServer
 
-
-BASE_URL = "http://localhost:8080"
-
-
-def post_json(path, payload):
-    url = f"{BASE_URL}{path}"
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=data,
-        headers={"Content-Type": "application/json"}
-    )
-    with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+from src.ui.web_server import AlgebraLinearHandler
 
 
 class TestApiLatexFormatting(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Encontrar puerto libre de manera segura
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("127.0.0.1", 0))
+            cls.port = s.getsockname()[1]
+
+        cls.server = HTTPServer(("127.0.0.1", cls.port), AlgebraLinearHandler)
+        cls.server_thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.server_thread.start()
+        cls.base_url = f"http://127.0.0.1:{cls.port}"
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+
+    def post_json(self, path, payload):
+        url = f"{self.base_url}{path}"
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
     def test_vector_suma(self):
-        res = post_json("/api/vectores/operar", {
+        res = self.post_json("/api/vectores/operar", {
             "operacion": "suma",
             "u": ["1/2", "3"],
             "v": ["-1/4", "5"]
@@ -37,7 +55,7 @@ class TestApiLatexFormatting(unittest.TestCase):
             self.assertIn("$", paso)
 
     def test_vector_resta(self):
-        res = post_json("/api/vectores/operar", {
+        res = self.post_json("/api/vectores/operar", {
             "operacion": "resta",
             "u": ["4", "-2"],
             "v": ["1", "3"]
@@ -47,7 +65,7 @@ class TestApiLatexFormatting(unittest.TestCase):
             self.assertIn("$", paso)
 
     def test_vector_escalar(self):
-        res = post_json("/api/vectores/operar", {
+        res = self.post_json("/api/vectores/operar", {
             "operacion": "escalar_u",
             "u": ["2", "4", "-1"],
             "c": "3/2"
@@ -57,7 +75,7 @@ class TestApiLatexFormatting(unittest.TestCase):
             self.assertIn("$", paso)
 
     def test_vector_producto_punto(self):
-        res = post_json("/api/vectores/operar", {
+        res = self.post_json("/api/vectores/operar", {
             "operacion": "producto_punto",
             "u": ["1", "2", "3"],
             "v": ["4", "5", "6"]
@@ -74,7 +92,7 @@ class TestApiLatexFormatting(unittest.TestCase):
             self.assertIn("\\cdot", paso)
 
     def test_combinacion_lineal_scd(self):
-        res = post_json("/api/vectores/combinacion", {
+        res = self.post_json("/api/vectores/combinacion", {
             "vectores": [["1", "2"], ["3", "4"]],
             "b": ["5", "6"]
         })
@@ -89,7 +107,7 @@ class TestApiLatexFormatting(unittest.TestCase):
             self.assertIn("$", paso["title"])
 
     def test_combinacion_lineal_si(self):
-        res = post_json("/api/vectores/combinacion", {
+        res = self.post_json("/api/vectores/combinacion", {
             "vectores": [["1", "0", "0"], ["0", "1", "0"]],
             "b": ["2", "3", "7"]
         })
@@ -98,7 +116,7 @@ class TestApiLatexFormatting(unittest.TestCase):
         self.assertIn("\\notin \\operatorname{gen}", res["justificacion_teorica"])
 
     def test_matrices_multiplicacion(self):
-        res = post_json("/api/matrices/operar", {
+        res = self.post_json("/api/matrices/operar", {
             "operacion": "multiplicacion",
             "A": [["1", "2"], ["3", "4"]],
             "B": [["5", "6"], ["7", "8"]]
@@ -109,8 +127,56 @@ class TestApiLatexFormatting(unittest.TestCase):
             self.assertIn("c_{", paso)
             self.assertIn("\\cdot", paso)
 
+    def test_matrices_transpuesta_analisis(self):
+        res = self.post_json("/api/matrices/operar", {
+            "operacion": "transpuesta_a",
+            "A": [["1", "2"], ["2", "1"]]
+        })
+        self.assertEqual(res["dimensiones_original"], "2 \\times 2")
+        self.assertEqual(res["dimensiones_transpuesta"], "2 \\times 2")
+        self.assertTrue(res["es_cuadrada"])
+        self.assertTrue(res["es_simetrica"])
+        self.assertEqual(res["traza"], "2")
+        self.assertTrue(len(res["propiedades"]) > 0)
+        self.assertTrue(len(res["pasos_mapeo"]) > 0)
+
+    def test_matrices_inversa_2x2_api(self):
+        res = self.post_json("/api/matrices/inversa", {
+            "A": [["2", "5"], ["-3", "-7"]],
+            "metodo": "gauss_jordan"
+        })
+        self.assertTrue(res["es_invertible"])
+        self.assertEqual(res["orden_n"], 2)
+        self.assertEqual(res["determinante_2x2"], "1")
+        self.assertEqual(res["matriz_inversa"], [["-7", "-5"], ["3", "2"]])
+        self.assertTrue(res["residuo_cero"])
+        self.assertTrue(len(res["verificacion_A_por_Ainv"]) > 0)
+        self.assertTrue(len(res["verificacion_Ainv_por_A"]) > 0)
+
+    def test_matrices_inversa_3x3_gauss_api(self):
+        res = self.post_json("/api/matrices/inversa", {
+            "A": [["0", "1", "2"], ["1", "0", "3"], ["4", "-3", "8"]],
+            "metodo": "gauss"
+        })
+        self.assertTrue(res["es_invertible"])
+        self.assertEqual(res["orden_n"], 3)
+        self.assertEqual(res["matriz_inversa"], [
+            ["-9/2", "7", "-3/2"],
+            ["-2", "4", "-1"],
+            ["3/2", "-2", "1/2"]
+        ])
+
+    def test_matrices_inversa_singular_api(self):
+        res = self.post_json("/api/matrices/inversa", {
+            "A": [["2", "3", "4"], ["2", "3", "4"], ["2", "3", "4"]],
+            "metodo": "gauss_jordan"
+        })
+        self.assertFalse(res["es_invertible"])
+        self.assertIsNone(res["matriz_inversa"])
+        self.assertIn("singular", res["mensaje_diagnostico"].lower())
+
     def test_ecuacion_matricial_scd(self):
-        res = post_json("/api/ecuaciones/resolver", {
+        res = self.post_json("/api/ecuaciones/resolver", {
             "A": [["2", "1"], ["1", "-1"]],
             "b": ["8", "1"]
         })

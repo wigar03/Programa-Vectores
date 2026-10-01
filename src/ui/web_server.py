@@ -277,7 +277,7 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 "title": p.title,
                 "description": p.description,
                 "operation_code": p.operation_code,
-                "matrix": [[serialize_fraction_or_str(x) for x in r] for r in p.matrix] if p.matrix else [],
+                "matrix": [[serialize_fraction_or_str(x) for x in r] for r in p.matrix_state] if hasattr(p, "matrix_state") and p.matrix_state else [],
             })
 
         data = {
