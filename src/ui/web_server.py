@@ -35,7 +35,9 @@ from src.matrices.operaciones import (
     multiplicar_escalar_matriz,
     multiplicar_matrices,
     transpuesta_matriz,
+    analizar_transpuesta_matriz,
 )
+from src.matrices.inversa import calcular_inversa_matriz
 from src.ecuaciones.ecuacion_matricial import resolver_ecuacion_matricial
 
 
@@ -87,6 +89,8 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 self._handle_vectores_combinacion(body)
             elif parsed.path == "/api/matrices/operar":
                 self._handle_matrices_operar(body)
+            elif parsed.path == "/api/matrices/inversa":
+                self._handle_matrices_inversa(body)
             elif parsed.path == "/api/ecuaciones/resolver":
                 self._handle_ecuaciones_resolver(body)
             else:
@@ -222,24 +226,76 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 "pasos_multiplicacion": pasos_mult,
             }
         elif op == "transpuesta_a":
-            res = transpuesta_matriz(A)
+            analisis = analizar_transpuesta_matriz(A)
             data = {
                 "titulo_operacion": "Transpuesta de la Matriz A^T",
-                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in res],
-                "matriz_formateada": formatear_matriz(res),
+                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in analisis.matriz_transpuesta],
+                "matriz_formateada": formatear_matriz(analisis.matriz_transpuesta),
                 "explicacion_teorica": "Las filas de $A$ se convierten en las columnas de $A^T$: $(A^T)_{ji} = a_{ij}$.",
+                "dimensiones_original": f"{analisis.dimensiones_original[0]} \\times {analisis.dimensiones_original[1]}",
+                "dimensiones_transpuesta": f"{analisis.dimensiones_transpuesta[0]} \\times {analisis.dimensiones_transpuesta[1]}",
+                "es_cuadrada": analisis.es_cuadrada,
+                "es_simetrica": analisis.es_simetrica,
+                "es_antisimetrica": analisis.es_antisimetrica,
+                "traza": serialize_fraction_or_str(analisis.traza) if analisis.traza is not None else None,
+                "pasos_mapeo": analisis.pasos_mapeo,
+                "propiedades": analisis.propiedades,
             }
         elif op == "transpuesta_b":
-            res = transpuesta_matriz(B)
+            analisis = analizar_transpuesta_matriz(B)
             data = {
                 "titulo_operacion": "Transpuesta de la Matriz B^T",
-                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in res],
-                "matriz_formateada": formatear_matriz(res),
+                "matriz_resultado": [[serialize_fraction_or_str(x) for x in row] for row in analisis.matriz_transpuesta],
+                "matriz_formateada": formatear_matriz(analisis.matriz_transpuesta),
                 "explicacion_teorica": "Las filas de $B$ se convierten en las columnas de $B^T$: $(B^T)_{ji} = b_{ij}$.",
+                "dimensiones_original": f"{analisis.dimensiones_original[0]} \\times {analisis.dimensiones_original[1]}",
+                "dimensiones_transpuesta": f"{analisis.dimensiones_transpuesta[0]} \\times {analisis.dimensiones_transpuesta[1]}",
+                "es_cuadrada": analisis.es_cuadrada,
+                "es_simetrica": analisis.es_simetrica,
+                "es_antisimetrica": analisis.es_antisimetrica,
+                "traza": serialize_fraction_or_str(analisis.traza) if analisis.traza is not None else None,
+                "pasos_mapeo": analisis.pasos_mapeo,
+                "propiedades": analisis.propiedades,
             }
         else:
             raise ValueError(f"Operación matricial desconocida: '{op}'")
 
+        self._send_json(data)
+
+    def _handle_matrices_inversa(self, body):
+        A = body.get("A", [])
+        metodo = body.get("metodo", "gauss_jordan")
+        if metodo not in ("gauss_jordan", "gauss"):
+            metodo = "gauss_jordan"
+
+        res = calcular_inversa_matriz(A, metodo=metodo)
+
+        pasos_serializables = []
+        for p in res.pasos_reduccion:
+            pasos_serializables.append({
+                "step_number": p.step_number,
+                "title": p.title,
+                "description": p.description,
+                "operation_code": p.operation_code,
+                "matrix": [[serialize_fraction_or_str(x) for x in r] for r in p.matrix] if p.matrix else [],
+            })
+
+        data = {
+            "orden_n": res.orden_n,
+            "es_invertible": res.es_invertible,
+            "metodo_utilizado": res.metodo_utilizado,
+            "matriz_inversa": [[serialize_fraction_or_str(x) for x in row] for row in res.matriz_inversa] if res.matriz_inversa else None,
+            "matriz_formateada": formatear_matriz(res.matriz_inversa) if res.matriz_inversa else "",
+            "determinante_2x2": serialize_fraction_or_str(res.determinante_2x2) if res.determinante_2x2 is not None else None,
+            "formula_2x2_detalle": res.formula_2x2_detalle,
+            "matriz_aumentada_inicial": [[serialize_fraction_or_str(x) for x in row] for row in res.matriz_aumentada_inicial],
+            "matriz_aumentada_final": [[serialize_fraction_or_str(x) for x in row] for row in res.matriz_aumentada_final],
+            "pasos": pasos_serializables,
+            "verificacion_A_por_Ainv": res.verificacion_A_por_Ainv,
+            "verificacion_Ainv_por_A": res.verificacion_Ainv_por_A,
+            "residuo_cero": res.residuo_cero,
+            "mensaje_diagnostico": res.mensaje_diagnostico,
+        }
         self._send_json(data)
 
     def _handle_ecuaciones_resolver(self, body):
