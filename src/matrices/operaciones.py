@@ -268,6 +268,109 @@ def transpuesta_matriz(A_in: Any) -> List[List[Fraction]]:
     return A_T
 
 
+class ResultadoTranspuesta:
+    """
+    Estructura que encapsula el cálculo analítico y propiedades de la transpuesta A^T.
+    """
+    def __init__(self):
+        self.matriz_original: List[List[Fraction]] = []
+        self.dimensiones_original: Tuple[int, int] = (0, 0)
+        self.matriz_transpuesta: List[List[Fraction]] = []
+        self.dimensiones_transpuesta: Tuple[int, int] = (0, 0)
+        self.es_cuadrada: bool = False
+        self.es_simetrica: bool = False
+        self.es_antisimetrica: bool = False
+        self.traza: Optional[Fraction] = None
+        self.pasos_mapeo: List[str] = []
+        self.propiedades: List[str] = []
+
+
+def analizar_transpuesta_matriz(A_in: Any) -> ResultadoTranspuesta:
+    """
+    Calcula la transpuesta A^T y analiza detalladamente sus propiedades algebraicas:
+    - Cambio dimensional de (m x n) a (n x m)
+    - Mapeo de renglones a columnas: (A^T)_ji = a_ij
+    - Determinación de simetría (A = A^T) o antisimetría (A = -A^T)
+    - Cálculo de traza Tr(A) = Tr(A^T) si es cuadrada
+    - Propiedades teóricas de la Unidad 2.2: ((A^T)^-1 = (A^-1)^T)
+    """
+    A = validar_matriz_numerica(A_in)
+    m, n = obtener_dimensiones_matriz(A)
+    A_T = transpuesta_matriz(A)
+    
+    res = ResultadoTranspuesta()
+    res.matriz_original = A
+    res.dimensiones_original = (m, n)
+    res.matriz_transpuesta = A_T
+    res.dimensiones_transpuesta = (n, m)
+    res.es_cuadrada = (m == n)
+    
+    # Detalle de mapeo de renglones a columnas
+    for i in range(m):
+        elementos_fila = [format_number(A[i][j]) for j in range(n)]
+        fila_str = "[" + ", ".join(elementos_fila) + "]"
+        res.pasos_mapeo.append(
+            f"Fila {i + 1} de A: {fila_str} \\rightarrow Columna {i + 1} de A^T"
+        )
+        
+    # Análisis de propiedades
+    res.propiedades.append(
+        f"Transposición dimensional: \\dim(A) = {m} \\times {n} \\implies \\dim(A^T) = {n} \\times {m}"
+    )
+    res.propiedades.append(
+        "Principio de involución: (A^T)^T = A"
+    )
+    
+    if res.es_cuadrada:
+        # Verificación de simetría
+        es_sim = True
+        es_antisim = True
+        traza = Fraction(0, 1)
+        for i in range(m):
+            traza += A[i][i]
+            for j in range(n):
+                if A[i][j] != A[j][i]:
+                    es_sim = False
+                if A[i][j] != -A[j][i]:
+                    es_antisim = False
+                    
+        res.es_simetrica = es_sim
+        res.es_antisimetrica = es_antisim
+        res.traza = traza
+        
+        res.propiedades.append(
+            f"Invarianza de la traza: \\mathrm{{tr}}(A^T) = \\mathrm{{tr}}(A) = {format_number(traza)}"
+        )
+        
+        if es_sim:
+            res.propiedades.append(
+                "Matriz simétrica: A^T = A (los elementos reflejados respecto a la diagonal principal coinciden: a_{ij} = a_{ji})"
+            )
+        else:
+            res.propiedades.append(
+                "Matriz no simétrica: A^T \\neq A"
+            )
+            
+        if es_antisim:
+            res.propiedades.append(
+                "Matriz antisimétrica (hemisimétrica): A^T = -A con diagonal nula"
+            )
+            
+        res.propiedades.append(
+            "Teorema 2.2 (Invertibilidad de la transpuesta): Si A es invertible, (A^T)^{-1} = (A^{-1})^T"
+        )
+    else:
+        res.propiedades.append(
+            f"Matriz rectangular ({m} \\neq {n}): no aplican conceptos de simetría ni traza"
+        )
+        
+    res.propiedades.append(
+        "Propiedad multiplicativa: (A \\cdot B)^T = B^T \\cdot A^T"
+    )
+    
+    return res
+
+
 def crear_matriz_identidad(n: int) -> List[List[Fraction]]:
     """
     Construye la matriz identidad I_n de orden n x n.

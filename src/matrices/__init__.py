@@ -8,6 +8,8 @@ from src.matrices.operaciones import (
     multiplicar_escalar_matriz,
     multiplicar_matrices,
     transpuesta_matriz,
+    analizar_transpuesta_matriz,
+    ResultadoTranspuesta,
     crear_matriz_identidad,
     obtener_dimensiones_matriz,
 )
@@ -22,6 +24,8 @@ __all__ = [
     "multiplicar_escalar_matriz",
     "multiplicar_matrices",
     "transpuesta_matriz",
+    "analizar_transpuesta_matriz",
+    "ResultadoTranspuesta",
     "crear_matriz_identidad",
     "obtener_dimensiones_matriz",
     "calcular_inversa_matriz",
