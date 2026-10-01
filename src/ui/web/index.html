@@ -29,7 +29,7 @@
           <span>UAM • FIA</span>
         </div>
         <h1>Calculadora de Álgebra Lineal</h1>
-        <p class="subtitle" id="header-subtitle">Vectores en ℝⁿ, Combinación Lineal, Matrices y Ecuaciones A·x = b</p>
+        <p class="subtitle" id="header-subtitle">Vectores en ℝⁿ, Combinación Lineal, Matrices, Inversa A⁻¹ y Ecuaciones A·x = b</p>
       </div>
       <div class="header-actions">
         <button id="btn-theme-toggle" class="btn-theme" title="Alternar entre modo claro y modo oscuro">
@@ -52,6 +52,10 @@
       <button class="nav-tab" data-tab="tab-matrices">
         <i data-lucide="grid-3x3" class="tab-icon"></i>
         <span class="tab-label">Operaciones con Matrices</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-inversa">
+        <i data-lucide="rotate-ccw" class="tab-icon"></i>
+        <span class="tab-label">Inversa de una Matriz A⁻¹</span>
       </button>
       <button class="nav-tab" data-tab="tab-ecuaciones">
         <i data-lucide="equal" class="tab-icon"></i>
@@ -364,7 +368,83 @@
       </section>
 
       <!-- =================================================================== -->
-      <!-- MÓDULO 4: ECUACIONES MATRICIALES Ax = b                            -->
+      <!-- MÓDULO 4: INVERSA DE UNA MATRIZ A⁻¹ (UNIDAD 2.2 UAM)               -->
+      <!-- =================================================================== -->
+      <section id="tab-inversa" class="tab-pane">
+        <div class="pane-grid">
+          <!-- Entrada de Matriz Cuadrada A -->
+          <div class="card card-input">
+            <div class="card-header">
+              <h3>Matriz Cuadrada A (n × n)</h3>
+              <span class="badge badge-dim">Unidad 2.2 UAM</span>
+            </div>
+
+            <div class="selector-row">
+              <label for="inv-dim-n" class="field-label">Orden de la Matriz (n):</label>
+              <div class="stepper-box">
+                <button type="button" class="btn-step" onclick="cambiarDimInversa(-1)" title="Disminuir orden">
+                  <i data-lucide="minus"></i>
+                </button>
+                <input type="number" id="inv-dim-n" min="2" max="6" value="2" onchange="renderizarMatrizInversaInput()">
+                <button type="button" class="btn-step" onclick="cambiarDimInversa(1)" title="Aumentar orden">
+                  <i data-lucide="plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Grilla de Matriz Cuadrada A -->
+            <div class="matrix-setup-section">
+              <div class="section-subtitle">Elementos de la Matriz A:</div>
+              <div id="inv-matrix-grid" class="matrix-grid"></div>
+            </div>
+
+            <!-- Selector de Método: Gauss-Jordan vs Gauss -->
+            <div class="solver-method-selector">
+              <label class="radio-label">
+                <input type="radio" name="inv-method" value="gauss_jordan" checked>
+                <span>Método Gauss-Jordan: [A │ Iₙ] ~ [Iₙ │ A⁻¹] (Reducción Simultánea)</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="inv-method" value="gauss">
+                <span>Método de Gauss: Reducción Triangular Superior + Fase Regresiva</span>
+              </label>
+            </div>
+
+            <button type="button" class="btn-primary btn-large" onclick="calcularInversaUI()">
+              <i data-lucide="play" class="btn-icon"></i>
+              <span>Calcular Inversa A⁻¹ y Comprobar</span>
+            </button>
+
+            <!-- Barra de Herramientas y Ejemplos de las Diapositivas -->
+            <div class="card-footer-actions">
+              <div class="sample-actions">
+                <button type="button" class="btn-text" onclick="cargarEjemploInversa(1)">Ejemplo 1 (2x2, pág 3-4)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploInversa(2)">Ejemplo 2 (3x3, pág 10)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploInversa(3)">Ejemplo 3 (3x3, pág 12)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploInversa(4)">Singular (3x3, pág 15)</button>
+              </div>
+              <button type="button" class="btn-clear" onclick="limpiarModuloInversa()" title="Limpiar todas las casillas">
+                <i data-lucide="trash-2" class="btn-icon"></i>
+                <span>Limpiar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Resultado, Reducción de Renglones y Verificación Dual A·A⁻¹ = I -->
+          <div class="card card-result">
+            <div class="card-header">
+              <h3>Matriz Inversa A⁻¹ y Verificación</h3>
+              <span id="inv-badge-status" class="badge">Pendiente</span>
+            </div>
+            <div id="inv-result-content" class="result-box">
+              <p class="placeholder-text">Ingrese una matriz cuadrada y presione "Calcular Inversa A⁻¹" para obtener la matriz inversa exacta, el desarrollo por operaciones elementales de fila y la verificación dual A·A⁻¹ = Iₙ.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- MÓDULO 5: ECUACIONES MATRICIALES Ax = b                            -->
       <!-- =================================================================== -->
       <section id="tab-ecuaciones" class="tab-pane">
         <div class="pane-grid">

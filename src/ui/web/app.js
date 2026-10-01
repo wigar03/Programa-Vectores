@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarModuloVectores();
   inicializarModuloCombinacion();
   inicializarModuloMatrices();
+  inicializarModuloInversa();
   inicializarModuloEcuaciones();
   refrescarIconosLucide();
 });
@@ -97,6 +98,17 @@ function matrixToLatex(mat) {
   if (!mat || mat.length === 0) return "\\begin{pmatrix} 0 \\end{pmatrix}";
   const rows = mat.map(row => row.map(formatLatexFrac).join(" & "));
   return "\\begin{pmatrix} " + rows.join(" \\\\ ") + " \\end{pmatrix}";
+}
+
+function augmentedMatrixToLatex(mat, splitCol) {
+  if (!mat || mat.length === 0) return "\\begin{pmatrix} 0 \\end{pmatrix}";
+  const nCols = mat[0].length;
+  const split = splitCol !== undefined ? splitCol : Math.floor(nCols / 2);
+  const leftSpec = "c".repeat(split);
+  const rightSpec = "c".repeat(nCols - split);
+  const alignSpec = `${leftSpec}|${rightSpec}`;
+  const rows = mat.map(row => row.map(formatLatexFrac).join(" & "));
+  return `\\left[\\begin{array}{${alignSpec}} ${rows.join(" \\\\ ")} \\end{array}\\right]`;
 }
 
 function renderLatexElement(element, latexCode, displayMode = true) {
@@ -980,6 +992,44 @@ async function operarMatrices(operacion) {
       });
       resultBox.appendChild(stepsWrapper);
     }
+
+    if (data.propiedades && data.propiedades.length > 0) {
+      const propsWrapper = document.createElement("div");
+      propsWrapper.className = "steps-container";
+      propsWrapper.style.marginTop = "0.75rem";
+      const h4 = document.createElement("h4");
+      renderMixedLatex(h4, "Propiedades Algebraicas de la Transpuesta:");
+      propsWrapper.appendChild(h4);
+      data.propiedades.forEach(prop => {
+        const item = document.createElement("div");
+        item.className = "step-item";
+        const desc = document.createElement("div");
+        desc.className = "step-item-desc";
+        renderMixedLatex(desc, `$\\bullet\\quad$ ${prop}`);
+        item.appendChild(desc);
+        propsWrapper.appendChild(item);
+      });
+      resultBox.appendChild(propsWrapper);
+    }
+
+    if (data.pasos_mapeo && data.pasos_mapeo.length > 0) {
+      const mapWrapper = document.createElement("div");
+      mapWrapper.className = "steps-container";
+      mapWrapper.style.marginTop = "0.75rem";
+      const h4 = document.createElement("h4");
+      renderMixedLatex(h4, "Mapeo Fila $\\rightarrow$ Columna $(A^T)_{ji} = a_{ij}$:");
+      mapWrapper.appendChild(h4);
+      data.pasos_mapeo.forEach(mPaso => {
+        const item = document.createElement("div");
+        item.className = "step-item";
+        const desc = document.createElement("div");
+        desc.className = "step-item-desc";
+        renderMixedLatex(desc, `$${mPaso}$`);
+        item.appendChild(desc);
+        mapWrapper.appendChild(item);
+      });
+      resultBox.appendChild(mapWrapper);
+    }
     refrescarIconosLucide();
   } catch (err) {
     badge.className = "badge badge-error";
@@ -994,7 +1044,317 @@ async function operarMatrices(operacion) {
 }
 
 /* ==========================================================================
-   7. Módulo de Ecuaciones Matriciales Ax = b
+   7. Módulo de Inversa de una Matriz A⁻¹ (Unidad 2.2 UAM)
+   ========================================================================== */
+let invN = 2;
+
+function inicializarModuloInversa() {
+  renderizarMatrizInversaInput();
+  cargarEjemploInversa(1);
+}
+
+function cambiarDimInversa(delta) {
+  const el = document.getElementById("inv-dim-n");
+  let val = Math.max(2, Math.min(6, (parseInt(el.value, 10) || 2) + delta));
+  el.value = val;
+  invN = val;
+  renderizarMatrizInversaInput();
+}
+
+function renderizarMatrizInversaInput() {
+  const el = document.getElementById("inv-dim-n");
+  invN = parseInt(el.value, 10) || 2;
+  const grid = document.getElementById("inv-matrix-grid");
+  if (!grid) return;
+  grid.style.gridTemplateColumns = `repeat(${invN}, auto)`;
+  grid.innerHTML = "";
+
+  for (let i = 0; i < invN; i++) {
+    for (let j = 0; j < invN; j++) {
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.className = "cell-input";
+      inp.id = `inv-a-${i}-${j}`;
+      inp.value = i === j ? "1" : "0";
+      grid.appendChild(inp);
+    }
+  }
+}
+
+function obtenerMatrizInversaValores() {
+  const M = [];
+  for (let i = 0; i < invN; i++) {
+    const fila = [];
+    for (let j = 0; j < invN; j++) {
+      const el = document.getElementById(`inv-a-${i}-${j}`);
+      fila.push(el ? el.value.trim() || "0" : "0");
+    }
+    M.push(fila);
+  }
+  return M;
+}
+
+function limpiarModuloInversa() {
+  for (let i = 0; i < invN; i++) {
+    for (let j = 0; j < invN; j++) {
+      const el = document.getElementById(`inv-a-${i}-${j}`);
+      if (el) el.value = "0";
+    }
+  }
+  const badge = document.getElementById("inv-badge-status");
+  const resultBox = document.getElementById("inv-result-content");
+  if (badge) {
+    badge.className = "badge";
+    badge.innerText = "Casillas limpias";
+  }
+  if (resultBox) {
+    resultBox.innerHTML = '<p class="placeholder-text">Ingrese una matriz cuadrada y presione "Calcular Inversa A⁻¹".</p>';
+  }
+  mostrarToast("Matriz A limpiada.");
+}
+
+function cargarEjemploInversa(tipo) {
+  if (tipo === 1) {
+    // Ejemplo 1: 2x2 (Diapositivas 3 y 4 del PDF)
+    // A = [[2, 5], [-3, -7]]
+    document.getElementById("inv-dim-n").value = 2;
+    invN = 2;
+    renderizarMatrizInversaInput();
+    const vals = [["2", "5"], ["-3", "-7"]];
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 2; j++) {
+        const el = document.getElementById(`inv-a-${i}-${j}`);
+        if (el) el.value = vals[i][j];
+      }
+    }
+    mostrarToast("Ejemplo 1 (2x2, pág 3-4 del PDF) cargado.");
+  } else if (tipo === 2) {
+    // Ejemplo 2: 3x3 (Diapositiva 10 del PDF)
+    // A = [[0, 1, 2], [1, 0, 3], [4, -3, 8]]
+    document.getElementById("inv-dim-n").value = 3;
+    invN = 3;
+    renderizarMatrizInversaInput();
+    const vals = [
+      ["0", "1", "2"],
+      ["1", "0", "3"],
+      ["4", "-3", "8"]
+    ];
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        const el = document.getElementById(`inv-a-${i}-${j}`);
+        if (el) el.value = vals[i][j];
+      }
+    }
+    mostrarToast("Ejemplo 2 (3x3, pág 10 del PDF) cargado.");
+  } else if (tipo === 3) {
+    // Ejemplo 3: 3x3 (Diapositiva 12, Problemas de Práctica 2.2)
+    // A = [[1, -2, -1], [-1, 5, 6], [5, -4, 5]]
+    document.getElementById("inv-dim-n").value = 3;
+    invN = 3;
+    renderizarMatrizInversaInput();
+    const vals = [
+      ["1", "-2", "-1"],
+      ["-1", "5", "6"],
+      ["5", "-4", "5"]
+    ];
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        const el = document.getElementById(`inv-a-${i}-${j}`);
+        if (el) el.value = vals[i][j];
+      }
+    }
+    mostrarToast("Ejemplo 3 (3x3, pág 12 de Práctica) cargado.");
+  } else if (tipo === 4) {
+    // Ejemplo 4: Singular (Diapositiva 15 del PDF)
+    // A = [[2, 3, 4], [2, 3, 4], [2, 3, 4]]
+    document.getElementById("inv-dim-n").value = 3;
+    invN = 3;
+    renderizarMatrizInversaInput();
+    const vals = [
+      ["2", "3", "4"],
+      ["2", "3", "4"],
+      ["2", "3", "4"]
+    ];
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        const el = document.getElementById(`inv-a-${i}-${j}`);
+        if (el) el.value = vals[i][j];
+      }
+    }
+    mostrarToast("Ejemplo Singular (3x3, pág 15) cargado.");
+  }
+}
+
+async function calcularInversaUI() {
+  const badge = document.getElementById("inv-badge-status");
+  const resultBox = document.getElementById("inv-result-content");
+  badge.className = "badge badge-dim";
+  badge.innerText = "Calculando...";
+
+  const A = obtenerMatrizInversaValores();
+  const metodoInput = document.querySelector('input[name="inv-method"]:checked');
+  const metodo = metodoInput ? metodoInput.value : "gauss_jordan";
+
+  try {
+    const res = await fetch("/api/matrices/inversa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ A, metodo })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Error al calcular la matriz inversa");
+
+    if (data.es_invertible) {
+      badge.className = "badge badge-success";
+      badge.innerText = "Invertible (No Singular)";
+    } else {
+      badge.className = "badge badge-error";
+      badge.innerText = "Matriz Singular (No Invertible)";
+    }
+
+    let latexPrincipal = "";
+    if (data.es_invertible && data.matriz_inversa) {
+      latexPrincipal = `A^{-1} = ${matrixToLatex(data.matriz_inversa)}`;
+    } else {
+      latexPrincipal = `\\nexists \\; A^{-1} \\quad (\\det(A) = 0 \\text{ o } \\mathrm{rg}(A) < ${data.orden_n})`;
+    }
+
+    let htmlContenido = `
+      <div class="latex-equation-card">
+        <div class="latex-header">${data.es_invertible ? "Matriz Inversa Calculada A⁻¹:" : "Dictamen de Singularidad:"}</div>
+        <div id="inv-latex-target" class="latex-display-box"></div>
+    `;
+
+    // Si es matriz 2x2, mostrar el Teorema 2x2 (Diapositiva 4 del PDF)
+    if (data.orden_n === 2 && data.determinante_2x2 !== null) {
+      htmlContenido += `
+        <div class="verification-box" style="margin-top: 0.85rem; background: rgba(2, 132, 199, 0.05); border-color: rgba(2, 132, 199, 0.2);">
+          <h4 style="color: var(--accent-cyan);">Teorema de Inversión 2 × 2 (Diapositiva 4 del PDF):</h4>
+          <div id="inv-latex-teorema-2x2"></div>
+        </div>
+      `;
+    }
+
+    // Diagnóstico teórico / Algoritmo
+    if (data.mensaje_diagnostico) {
+      htmlContenido += `
+        <div class="result-explanation" id="inv-diagnostic" style="white-space: pre-line; margin-top: 0.75rem;"></div>
+      `;
+    }
+
+    htmlContenido += `</div>`; // fin latex-equation-card
+    resultBox.innerHTML = htmlContenido;
+
+    // Render KaTeX principal
+    renderLatexElement(document.getElementById("inv-latex-target"), latexPrincipal);
+
+    // Render Teorema 2x2 si aplica
+    if (data.orden_n === 2 && data.determinante_2x2 !== null) {
+      const el2x2 = document.getElementById("inv-latex-teorema-2x2");
+      if (el2x2) {
+        const detLatex = formatLatexFrac(data.determinante_2x2);
+        const a_val = formatLatexFrac(A[0][0]);
+        const b_val = formatLatexFrac(A[0][1]);
+        const c_val = formatLatexFrac(A[1][0]);
+        const d_val = formatLatexFrac(A[1][1]);
+        const neg_b = formatLatexFrac(b_val.startsWith("-") ? b_val.slice(1) : (b_val === "0" ? "0" : "-" + b_val));
+        const neg_c = formatLatexFrac(c_val.startsWith("-") ? c_val.slice(1) : (c_val === "0" ? "0" : "-" + c_val));
+        const form2x2 = `\\det(A) = ad - bc = (${a_val})(${d_val}) - (${b_val})(${c_val}) = ${detLatex} \\neq 0 \\implies A^{-1} = \\frac{1}{${detLatex}} \\begin{pmatrix} ${d_val} & ${neg_b} \\\\ ${neg_c} & ${a_val} \\end{pmatrix}`;
+        renderLatexElement(el2x2, form2x2);
+      }
+    }
+
+    // Render diagnóstico teórico
+    const diagEl = document.getElementById("inv-diagnostic");
+    if (diagEl && data.mensaje_diagnostico) {
+      renderMixedLatex(diagEl, data.mensaje_diagnostico);
+    }
+
+    // Verificación Dual A·A⁻¹ = I y A⁻¹·A = I (Diapositiva 9 del PDF)
+    if (data.es_invertible) {
+      const verifContainer = document.createElement("div");
+      verifContainer.className = "verification-box";
+      verifContainer.style.marginTop = "1rem";
+      verifContainer.innerHTML = `<h4>Verificación Algebraica Dual (Diapositiva 9 del PDF):</h4>`;
+      
+      const v1Title = document.createElement("div");
+      v1Title.style.fontWeight = "600";
+      v1Title.style.marginTop = "0.4rem";
+      renderMixedLatex(v1Title, "1. Comprobación directa: $A \\cdot A^{-1} = I_{" + data.orden_n + "}$");
+      verifContainer.appendChild(v1Title);
+
+      (data.verificacion_A_por_Ainv || []).forEach(v => {
+        const row = document.createElement("div");
+        renderMixedLatex(row, v);
+        verifContainer.appendChild(row);
+      });
+
+      const v2Title = document.createElement("div");
+      v2Title.style.fontWeight = "600";
+      v2Title.style.marginTop = "0.6rem";
+      renderMixedLatex(v2Title, "2. Comprobación conmutativa: $A^{-1} \\cdot A = I_{" + data.orden_n + "}$");
+      verifContainer.appendChild(v2Title);
+
+      (data.verificacion_Ainv_por_A || []).forEach(v => {
+        const row = document.createElement("div");
+        renderMixedLatex(row, v);
+        verifContainer.appendChild(row);
+      });
+
+      resultBox.appendChild(verifContainer);
+    }
+
+    // Pasos de Reducción por Renglones de la Matriz Aumentada [A | I_n]
+    if (data.pasos && data.pasos.length > 0) {
+      const stepsWrapper = document.createElement("div");
+      stepsWrapper.className = "steps-container";
+      stepsWrapper.style.marginTop = "1rem";
+      const h4 = document.createElement("h4");
+      renderMixedLatex(h4, `Pasos de Reducción por Renglones (${data.metodo_utilizado === "gauss" ? "Método de Gauss" : "Método Gauss-Jordan"}):`);
+      stepsWrapper.appendChild(h4);
+
+      data.pasos.forEach(p => {
+        const item = document.createElement("div");
+        item.className = "step-item";
+        const t = document.createElement("div");
+        t.className = "step-item-title";
+        renderMixedLatex(t, `Paso ${p.step_number}: ${p.title}`);
+        
+        const d = document.createElement("div");
+        d.className = "step-item-desc";
+        renderMixedLatex(d, p.description);
+        item.appendChild(t);
+        item.appendChild(d);
+
+        if (p.matrix && p.matrix.length > 0) {
+          const matBox = document.createElement("div");
+          matBox.className = "latex-display-box";
+          matBox.style.marginTop = "0.4rem";
+          const matLatex = augmentedMatrixToLatex(p.matrix, data.orden_n);
+          renderLatexElement(matBox, matLatex);
+          item.appendChild(matBox);
+        }
+
+        stepsWrapper.appendChild(item);
+      });
+      resultBox.appendChild(stepsWrapper);
+    }
+
+    refrescarIconosLucide();
+  } catch (err) {
+    badge.className = "badge badge-error";
+    badge.innerText = "Error";
+    resultBox.innerHTML = `
+      <div class="latex-equation-card" style="border-color: rgba(225,29,72,0.4);">
+        <div class="latex-header" style="color:var(--accent-rose);">Error en Cálculo:</div>
+        <p>${err.message}</p>
+      </div>
+    `;
+  }
+}
+
+/* ==========================================================================
+   8. Módulo de Ecuaciones Matriciales Ax = b
    ========================================================================== */
 let eqM = 3;
 let eqN = 3;
