@@ -28,8 +28,9 @@
 El presente proyecto integrador implementa un sistema computacional integral para la resolución y análisis algebraico de:
 1. **Operaciones vectoriales en $\mathbb{R}^n$** de dimensión arbitraria desconocida a priori.
 2. **Evaluación de combinación lineal** para determinar rigurosamente si un vector $b$ pertenece al subespacio generado por un conjunto de vectores $\{v_1, v_2, \dots, v_k\}$.
-3. **Operaciones matriciales fundamentales**: adición, sustracción, producto por escalar y multiplicación de matrices $A_{m \times n} \cdot B_{n \times p}$ con validación dimensional estricta.
-4. **Resolución computacional de ecuaciones matriciales** de la forma $Ax = b$ con clasificación completa según el Teorema de Rouché-Capelli e integración directa con el programa de eliminación de renglones desarrollado en la **Semana #3**.
+3. **Operaciones matriciales fundamentales**: adición, sustracción, producto por escalar, multiplicación de matrices $A_{m \times n} \cdot B_{n \times p}$ y transpuesta $A^T$ con análisis de simetría y propiedades.
+4. **Cálculo de la inversa de una matriz $A^{-1}$ (Unidad 2.2)**: siguiendo fielmente el procedimiento de las diapositivas de clase (matriz aumentada $[A \mid I_n]$, fórmula $2 \times 2$, métodos de Gauss y Gauss-Jordan, detección de matrices singulares y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$).
+5. **Resolución computacional de ecuaciones matriciales** de la forma $Ax = b$ con clasificación completa según el Teorema de Rouché-Capelli e integración directa con el programa de eliminación de renglones desarrollado en la **Semana #3**.
 
 ---
 
@@ -141,7 +142,76 @@ $$
 c_{ij} = \sum_{k=1}^n a_{ik} \cdot b_{kj}
 $$
 
-### Módulo 4: Ecuaciones Matriciales $Ax = b$ y Enlace al Programa Anterior
+#### Transpuesta de una Matriz $A^T$
+Dada una matriz $A \in \mathcal{M}_{m \times n}(\mathbb{R})$, su transpuesta $A^T \in \mathcal{M}_{n \times m}(\mathbb{R})$ intercambia ordenadamente sus filas por columnas:
+
+$$
+(A^T)_{ji} = a_{ij}, \quad \forall \, 1 \le i \le m, \; 1 \le j \le n
+$$
+
+El programa analiza exhaustivamente sus propiedades teóricas:
+- **Involución**: $(A^T)^T = A$.
+- **Distributividad respecto a la suma**: $(A + B)^T = A^T + B^T$.
+- **Homogeneidad con escalar**: $(k \cdot A)^T = k \cdot A^T$.
+- **Propiedad multiplicativa (orden invertido)**: $(A \cdot B)^T = B^T \cdot A^T$.
+- **Simetría y antisimetría**: si $A$ es cuadrada ($m = n$), se evalúa si es simétrica ($A^T = A$) o antisimétrica ($A^T = -A$).
+- **Invarianza de la traza**: $\mathrm{tr}(A^T) = \mathrm{tr}(A) = \sum_{i=1}^n a_{ii}$.
+- **Invertibilidad de la transpuesta (Teorema Unidad 2.2 c)**: $(A^T)^{-1} = (A^{-1})^T$.
+
+### Módulo 4: Inversa de una Matriz $A^{-1}$ (Unidad 2.2 UAM)
+
+Basado estrictamente en las diapositivas de la asignatura **Álgebra Lineal (MTM0120) - Unidad 2.2: La Inversa de una Matriz**, este módulo implementa:
+
+#### 1. Definición Formal (Diapositiva 3)
+Sea $A$ una matriz cuadrada de orden $n \times n$. Se dice que $A$ es **invertible** (o no singular) si existe una matriz $C$ de orden $n \times n$ tal que:
+
+$$
+C \cdot A = I_n \quad \text{y} \quad A \cdot C = I_n
+$$
+
+Donde $I_n$ es la matriz identidad de orden $n \times n$. Dicha matriz $C$ es única y se denota como $C = A^{-1}$. Una matriz que no posee inversa se denomina **matriz singular** ($\det(A) = 0$).
+
+#### 2. Teorema de Inversión para Matrices $2 \times 2$ (Diapositiva 4)
+Sea $A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$. Si $ad - bc \neq 0$, entonces $A$ es invertible y:
+
+$$
+A^{-1} = \frac{1}{ad - bc} \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}
+$$
+
+Si $ad - bc = 0$, entonces la matriz $A$ no es invertible.
+
+#### 3. Algoritmo de Reducción por Filas $[A \mid I_n] \sim [I_n \mid A^{-1}]$ (Diapositivas 5 a 8 y 10)
+Una matriz $A$ de $n \times n$ es invertible si y solo si es equivalente por filas a la matriz identidad $I_n$. Cualquier secuencia de operaciones elementales de renglón que transforme $A$ en $I_n$ transforma simultáneamente $I_n$ en $A^{-1}$:
+
+$$
+[A \mid I_n] \sim \dots \sim [I_n \mid A^{-1}]
+$$
+
+El programa ofrece dos métodos de cálculo:
+- **Método Gauss-Jordan**: eliminación de renglones simultánea (hacia adelante y hacia atrás en cada columna pivote), normalizando cada renglón pivote $R_i \leftarrow \frac{1}{p} R_i$ y anulando todos los elementos restantes de la columna ($R_k \leftarrow R_k - c R_i$).
+- **Método de Gauss**: eliminación gaussiana hacia adelante hasta obtener la matriz triangular superior $[U \mid B]$. Se comprueba que ningún pivote diagonal sea nulo ($\mathrm{rg}(A) = n$), y posteriormente se ejecuta la fase regresiva de normalización unitaria y anulación sobre la diagonal.
+
+#### 4. Verificación Rigurosa Dual (Diapositiva 9)
+Conforme a la exigencia didáctica del curso (*"No basta con obtener una matriz"*), el sistema comprueba automáticamente ambas identidades conmutativas en aritmética fraccionaria exacta:
+
+$$
+A \cdot A^{-1} = I_n \quad \text{y} \quad A^{-1} \cdot A = I_n
+$$
+
+Verificando además que el residuo matricial sea nulo:
+
+$$
+R = A \cdot A^{-1} - I_n = 0_{n \times n}
+$$
+
+#### 5. Propiedades Teóricas y Teorema de la Matriz Invertible (Diapositivas 11 y 13)
+- $(A^{-1})^{-1} = A$
+- $(A \cdot B)^{-1} = B^{-1} \cdot A^{-1}$
+- $(A^T)^{-1} = (A^{-1})^T$
+- Si $A$ es invertible, la ecuación matricial $Ax = b$ posee solución única $x = A^{-1}b$.
+- Caracterizaciones equivalentes: $\mathrm{rg}(A) = n$, $n$ posiciones pivote, columnas linealmente independientes y núcleo trivial ($Ax = 0 \implies x = 0$).
+
+### Módulo 5: Ecuaciones Matriciales $Ax = b$ y Enlace al Programa Anterior
 
 Dada una matriz de coeficientes $A \in \mathcal{M}_{m \times n}(\mathbb{R})$ y un vector de términos independientes $b \in \mathbb{R}^m$, el sistema lineal se expresa en forma matricial compacta:
 
@@ -176,12 +246,13 @@ Programa Vectores/
 │   ├── vectores/                   # Módulo 1 y evaluación de combinaciones lineales
 │   │   ├── operaciones.py          # Suma, resta, escalar, producto punto y norma
 │   │   └── combinacion_lineal.py   # Resolución de c_1*v_1 + ... + c_k*v_k = b
-│   ├── matrices/                   # Módulo 2: Operaciones matriciales
-│   │   └── operaciones.py          # Suma, resta, escalar y producto A * B
+│   ├── matrices/                   # Módulo 3 y 4: Operaciones matriciales e inversa
+│   │   ├── operaciones.py          # Suma, resta, escalar, producto A * B y transpuesta A^T
+│   │   └── inversa.py              # Inversa A^(-1) por Gauss / Gauss-Jordan y verificación dual
 │   ├── solver/                     # Módulo del solucionador y enlace
 │   │   ├── gauss_solver.py         # Motor Gauss / Gauss-Jordan paso a paso
 │   │   └── anterior_programa.py    # Invocación del programa de la Semana #3
-│   ├── ecuaciones/                 # Módulo 3: Ecuaciones matriciales
+│   ├── ecuaciones/                 # Módulo 5: Ecuaciones matriciales
 │   │   └── ecuacion_matricial.py   # Resolución computacional y residuo de Ax = b
 │   └── ui/                         # Interfaz web de usuario de alta estética
 │       ├── web_server.py           # Servidor local estándar en Python (cero dependencias)
@@ -193,6 +264,7 @@ Programa Vectores/
 └── tests/                          # Suite completa de pruebas unitarias automatizadas
     ├── test_vectores.py            # Tests de operaciones vectoriales
     ├── test_matrices.py            # Tests de álgebra de matrices
+    ├── test_inversa.py             # Tests de matriz inversa y transpuesta
     ├── test_combinacion_lineal.py  # Tests de combinación lineal (SCD, SCI, SI)
     ├── test_ecuaciones.py          # Tests de Ax = b y compatibilidad
     └── test_api_latex.py           # Tests de integración API y formateo matemático
@@ -220,7 +292,7 @@ python main.py --no-browser     # Iniciar servidor sin abrir navegador automáti
 ```
 
 ### 2. Ejecutar las Pruebas Unitarias Automatizadas
-El proyecto incluye una suite de **37 pruebas unitarias y de integración** que validan la exactitud de cada algoritmo y la fidelidad matemática de las respuestas:
+El proyecto incluye una suite de **49 pruebas unitarias y de integración** que validan la exactitud de cada algoritmo y la fidelidad matemática de las respuestas:
 ```bash
 python -m unittest discover tests -v
 ```
@@ -252,3 +324,10 @@ El desarrollo del proyecto se estructuró e integró cronológicamente mediante 
 19. `0f83efc` - `docs(readme): separar bloques matematicos en lineas dedicadas para renderizado MathJax en GitHub`: Ajuste inicial de saltos de línea para visualización de ecuaciones.
 20. `cdc1dbd` - `docs(readme): estructurar bloques matematicos de nivel superior y sincronizar historial completo de commits`: Desacoplamiento de bloques matemáticos fuera de listas para renderizado nativo en GitHub y actualización del árbol de archivos.
 21. `506703e` - `docs(readme): registrar commit 20 en la relacion de cambios del desarrollo`: Sincronización del commit 20 en el registro histórico de desarrollo.
+22. `ed97434` - `docs(readme): eliminar colisiones de cursiva y parentesis en formulas inline de modulos 2 y 3`: Corrección tipográfica en fórmulas inline.
+23. `19c726a` - `feat(matrices): implementar calculo de matriz inversa por metodos Gauss-Jordan y Gauss`: Algoritmo formal de matriz inversa según la Unidad 2.2 del PDF con reducción por renglones $[A \mid I_n]$, fórmula $2 \times 2$ y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$.
+24. `2e816d8` - `feat(matrices): enriquecer calculo y analisis de transpuesta con propiedades algebraicas`: Mapeo explícito fila a columna, simetría, antisimetría, traza y teorema $(A^T)^{-1} = (A^{-1})^T$.
+25. `924dda2` - `feat(server): agregar endpoints de API para matriz inversa y transpuesta detallada`: Endpoints `/api/matrices/inversa` y `/api/matrices/operar` enriquecidos con serialización JSON exacta.
+26. `c9bfd0c` - `feat(ui): integrar interfaz interactiva para matriz inversa, transpuesta y verificacion KaTeX`: Nueva pestaña SPA para cálculo de inversa $A^{-1}$, selección de métodos (Gauss / Gauss-Jordan), presets del PDF y renderizado matemático formal.
+27. `f85d734` - `test: añadir suite exhaustiva de pruebas unitarias para inversa y transpuesta`: Suite de 49 pruebas unitarias herméticas incluyendo servidor de pruebas en proceso.
+28. `[commit actual]` - `docs(readme): documentar teoria de matriz inversa del PDF, transpuesta y actualizar historial`: Documentación detallada de la Unidad 2.2, actualización de árbol de archivos y registro histórico de 28 commits.
