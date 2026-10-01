@@ -139,6 +139,19 @@ class TestApiLatexFormatting(unittest.TestCase):
         self.assertEqual(res["traza"], "2")
         self.assertTrue(len(res["propiedades"]) > 0)
         self.assertTrue(len(res["pasos_mapeo"]) > 0)
+        for prop in res["propiedades"]:
+            self.assertNotIn("pdf", prop.lower())
+            self.assertNotIn("diapositiva", prop.lower())
+            partes = prop.split("$")
+            for idx, parte in enumerate(partes):
+                if idx % 2 == 0:
+                    self.assertNotIn("\\cdot", parte)
+                    self.assertNotIn("\\rightarrow", parte)
+                    self.assertNotIn("\\frac", parte)
+                    self.assertNotIn("\\neq", parte)
+                    self.assertNotIn("\\dim", parte)
+                    self.assertNotIn("\\implies", parte)
+                    self.assertNotIn("\\operatorname", parte)
 
     def test_matrices_inversa_2x2_api(self):
         res = self.post_json("/api/matrices/inversa", {
@@ -152,6 +165,30 @@ class TestApiLatexFormatting(unittest.TestCase):
         self.assertTrue(res["residuo_cero"])
         self.assertTrue(len(res["verificacion_A_por_Ainv"]) > 0)
         self.assertTrue(len(res["verificacion_Ainv_por_A"]) > 0)
+        for v in res["verificacion_A_por_Ainv"]:
+            self.assertIn("$", v)
+            self.assertIn("(A \\cdot A^{-1})", v)
+            self.assertIn("✓ Correcto", v)
+            self.assertNotIn("pdf", v.lower())
+            self.assertNotIn("diapositiva", v.lower())
+            partes = v.split("$")
+            for idx, parte in enumerate(partes):
+                if idx % 2 == 0:
+                    self.assertNotIn("\\cdot", parte)
+                    self.assertNotIn("\\rightarrow", parte)
+                    self.assertNotIn("\\frac", parte)
+        for v in res["verificacion_Ainv_por_A"]:
+            self.assertIn("$", v)
+            self.assertIn("(A^{-1} \\cdot A)", v)
+            self.assertIn("✓ Correcto", v)
+            self.assertNotIn("pdf", v.lower())
+            self.assertNotIn("diapositiva", v.lower())
+            partes = v.split("$")
+            for idx, parte in enumerate(partes):
+                if idx % 2 == 0:
+                    self.assertNotIn("\\cdot", parte)
+                    self.assertNotIn("\\rightarrow", parte)
+                    self.assertNotIn("\\frac", parte)
 
     def test_matrices_inversa_3x3_gauss_api(self):
         res = self.post_json("/api/matrices/inversa", {

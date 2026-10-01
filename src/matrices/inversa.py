@@ -38,7 +38,7 @@ MARCO TEÓRICO Y PROCEDIMIENTO ALGEBRAICO (Unidad 2.2):
       - Comprobar que los n elementos de la diagonal de U son no nulos (rango = n).
       - Fase regresiva: escalamiento unitario de la diagonal y anulación hacia atrás de los elementos sobre la diagonal.
 
-4. Verificación Rigurosa (Diapositiva 9):
+4. Verificación Rigurosa:
    No basta con obtener una matriz:
    - Comprobación 1: A · A^(-1) = I_n
    - Comprobación 2: A^(-1) · A = I_n
@@ -120,7 +120,7 @@ def calcular_inversa_matriz(
     resultado.matriz_A = clonar_matriz(A)
     resultado.metodo_utilizado = metodo.lower()
     
-    # Análisis específico para matrices 2 x 2 (Fórmula del determinante del Teorema, pág 4)
+    # Análisis específico para matrices 2 x 2 (Fórmula del determinante del Teorema)
     if n == 2:
         a = A[0][0]
         b = A[0][1]
@@ -132,16 +132,16 @@ def calcular_inversa_matriz(
         if det != 0:
             inv_det = Fraction(1, 1) / det
             resultado.formula_2x2_detalle = (
-                f"\\det(A) = ({format_number(a)})({format_number(d)}) - ({format_number(b)})({format_number(c)}) = {det_str} \\neq 0.\n"
-                f"A^{{-1}} = \\frac{{1}}{{{det_str}}} \\begin{{pmatrix}} {format_number(d)} & {format_number(-b)} \\\\ {format_number(-c)} & {format_number(a)} \\end{{pmatrix}}"
+                f"$$\\det(A) = ({format_number(a)})({format_number(d)}) - ({format_number(b)})({format_number(c)}) = {det_str} \\neq 0 \\implies "
+                f"A^{{-1}} = \\frac{{1}}{{{det_str}}} \\begin{{pmatrix}} {format_number(d)} & {format_number(-b)} \\\\ {format_number(-c)} & {format_number(a)} \\end{{pmatrix}}$$"
             )
         else:
             resultado.formula_2x2_detalle = (
-                f"\\det(A) = ({format_number(a)})({format_number(d)}) - ({format_number(b)})({format_number(c)}) = 0.\n"
-                f"Dado que \\det(A) = 0, la matriz A es singular (no invertible)."
+                f"$$\\det(A) = ({format_number(a)})({format_number(d)}) - ({format_number(b)})({format_number(c)}) = 0$$\n"
+                f"Dado que $\\det(A) = 0$, la matriz $A$ es singular (no invertible)."
             )
 
-    # Paso 1: Construcción de la matriz aumentada [A | I_n] (Pág 5 y 6 del PDF)
+    # Paso 1: Construcción de la matriz aumentada [A | I_n]
     num_filas = n
     num_cols = 2 * n
     M: List[List[Fraction]] = []
@@ -170,7 +170,7 @@ def calcular_inversa_matriz(
     motivo_singular = ""
     
     if usar_jordan:
-        # MÉTODO GAUSS-JORDAN (Páginas 5-8 del PDF):
+        # MÉTODO GAUSS-JORDAN:
         # Para cada columna j: pivoteo, normalización a 1 y anulación completa arriba y abajo
         for j in range(n):
             # Buscar pivote no nulo en fila r >= j
@@ -405,7 +405,7 @@ def calcular_inversa_matriz(
         f"La matriz inversa $A^{{-1}}$ ha sido obtenida satisfactoriamente."
     )
     
-    # Verificación Rigurosa (Diapositiva 9 del PDF):
+    # Verificación Rigurosa:
     # Comprobación 1: P1 = A · A^(-1) == I_n
     P1, _ = multiplicar_matrices(A, A_inv)
     verif1 = []
@@ -416,10 +416,10 @@ def calcular_inversa_matriz(
             val = P1[i][j]
             if val != esperado:
                 residuo_cero_1 = False
-            simb = "✓" if val == esperado else "✗"
+            simb = "✓ Correcto" if val == esperado else "✗ Discrepancia"
             verif1.append(
-                f"(A \\cdot A^{{-1}})_{{{i+1},{j+1}}} = {format_number(val)} "
-                f"\\; (I_{{{i+1},{j+1}}} = {format_number(esperado)}) \\; {simb}"
+                f"Entrada ({i+1}, {j+1}): $(A \\cdot A^{{-1}})_{{{i+1},{j+1}}} = {format_number(val)}$ "
+                f"(Esperado: $(I_{{{n}}})_{{{i+1},{j+1}}} = {format_number(esperado)}$) $\\rightarrow$ {simb}"
             )
             
     # Comprobación 2: P2 = A^(-1) · A == I_n
@@ -432,10 +432,10 @@ def calcular_inversa_matriz(
             val = P2[i][j]
             if val != esperado:
                 residuo_cero_2 = False
-            simb = "✓" if val == esperado else "✗"
+            simb = "✓ Correcto" if val == esperado else "✗ Discrepancia"
             verif2.append(
-                f"(A^{{-1}} \\cdot A)_{{{i+1},{j+1}}} = {format_number(val)} "
-                f"\\; (I_{{{i+1},{j+1}}} = {format_number(esperado)}) \\; {simb}"
+                f"Entrada ({i+1}, {j+1}): $(A^{{-1}} \\cdot A)_{{{i+1},{j+1}}} = {format_number(val)}$ "
+                f"(Esperado: $(I_{{{n}}})_{{{i+1},{j+1}}} = {format_number(esperado)}$) $\\rightarrow$ {simb}"
             )
             
     resultado.verificacion_A_por_Ainv = verif1

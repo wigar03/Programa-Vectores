@@ -29,7 +29,7 @@ El presente proyecto integrador implementa un sistema computacional integral par
 1. **Operaciones vectoriales en $\mathbb{R}^n$** de dimensión arbitraria desconocida a priori.
 2. **Evaluación de combinación lineal** para determinar rigurosamente si un vector $b$ pertenece al subespacio generado por un conjunto de vectores $\{v_1, v_2, \dots, v_k\}$.
 3. **Operaciones matriciales fundamentales**: adición, sustracción, producto por escalar, multiplicación de matrices $A_{m \times n} \cdot B_{n \times p}$ y transpuesta $A^T$ con análisis de simetría y propiedades.
-4. **Cálculo de la inversa de una matriz $A^{-1}$ (Unidad 2.2)**: siguiendo fielmente el procedimiento de las diapositivas de clase (matriz aumentada $[A \mid I_n]$, fórmula $2 \times 2$, métodos de Gauss y Gauss-Jordan, detección de matrices singulares y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$).
+4. **Cálculo de la inversa de una matriz $A^{-1}$**: siguiendo el procedimiento analítico formal (matriz aumentada $[A \mid I_n]$, fórmula $2 \times 2$, métodos de Gauss y Gauss-Jordan, detección de matrices singulares y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$).
 5. **Resolución computacional de ecuaciones matriciales** de la forma $Ax = b$ con clasificación completa según el Teorema de Rouché-Capelli e integración directa con el programa de eliminación de renglones desarrollado en la **Semana #3**.
 
 ---
@@ -158,11 +158,11 @@ El programa analiza exhaustivamente sus propiedades teóricas:
 - **Invarianza de la traza**: $\mathrm{tr}(A^T) = \mathrm{tr}(A) = \sum_{i=1}^n a_{ii}$.
 - **Invertibilidad de la transpuesta (Teorema Unidad 2.2 c)**: $(A^T)^{-1} = (A^{-1})^T$.
 
-### Módulo 4: Inversa de una Matriz $A^{-1}$ (Unidad 2.2 UAM)
+### Módulo 4: Inversa de una Matriz $A^{-1}$
 
-Basado estrictamente en las diapositivas de la asignatura **Álgebra Lineal (MTM0120) - Unidad 2.2: La Inversa de una Matriz**, este módulo implementa:
+Este módulo implementa el cálculo y análisis formal de la inversa de una matriz:
 
-#### 1. Definición Formal (Diapositiva 3)
+#### 1. Definición Formal
 Sea $A$ una matriz cuadrada de orden $n \times n$. Se dice que $A$ es **invertible** (o no singular) si existe una matriz $C$ de orden $n \times n$ tal que:
 
 $$
@@ -171,7 +171,7 @@ $$
 
 Donde $I_n$ es la matriz identidad de orden $n \times n$. Dicha matriz $C$ es única y se denota como $C = A^{-1}$. Una matriz que no posee inversa se denomina **matriz singular** ($\det(A) = 0$).
 
-#### 2. Teorema de Inversión para Matrices $2 \times 2$ (Diapositiva 4)
+#### 2. Teorema de Inversión para Matrices $2 \times 2$
 Sea $A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$. Si $ad - bc \neq 0$, entonces $A$ es invertible y:
 
 $$
@@ -180,7 +180,7 @@ $$
 
 Si $ad - bc = 0$, entonces la matriz $A$ no es invertible.
 
-#### 3. Algoritmo de Reducción por Filas $[A \mid I_n] \sim [I_n \mid A^{-1}]$ (Diapositivas 5 a 8 y 10)
+#### 3. Algoritmo de Reducción por Renglones $[A \mid I_n] \sim [I_n \mid A^{-1}]$
 Una matriz $A$ de $n \times n$ es invertible si y solo si es equivalente por filas a la matriz identidad $I_n$. Cualquier secuencia de operaciones elementales de renglón que transforme $A$ en $I_n$ transforma simultáneamente $I_n$ en $A^{-1}$:
 
 $$
@@ -191,7 +191,7 @@ El programa ofrece dos métodos de cálculo:
 - **Método Gauss-Jordan**: eliminación de renglones simultánea (hacia adelante y hacia atrás en cada columna pivote), normalizando cada renglón pivote $R_i \leftarrow \frac{1}{p} R_i$ y anulando todos los elementos restantes de la columna ($R_k \leftarrow R_k - c R_i$).
 - **Método de Gauss**: eliminación gaussiana hacia adelante hasta obtener la matriz triangular superior $[U \mid B]$. Se comprueba que ningún pivote diagonal sea nulo ($\mathrm{rg}(A) = n$), y posteriormente se ejecuta la fase regresiva de normalización unitaria y anulación sobre la diagonal.
 
-#### 4. Verificación Rigurosa Dual (Diapositiva 9)
+#### 4. Verificación Rigurosa Dual
 Conforme a la exigencia didáctica del curso (*"No basta con obtener una matriz"*), el sistema comprueba automáticamente ambas identidades conmutativas en aritmética fraccionaria exacta:
 
 $$
@@ -204,7 +204,7 @@ $$
 R = A \cdot A^{-1} - I_n = 0_{n \times n}
 $$
 
-#### 5. Propiedades Teóricas y Teorema de la Matriz Invertible (Diapositivas 11 y 13)
+#### 5. Propiedades Teóricas y Teorema de la Matriz Invertible
 - $(A^{-1})^{-1} = A$
 - $(A \cdot B)^{-1} = B^{-1} \cdot A^{-1}$
 - $(A^T)^{-1} = (A^{-1})^T$
@@ -325,9 +325,10 @@ El desarrollo del proyecto se estructuró e integró cronológicamente mediante 
 20. `cdc1dbd` - `docs(readme): estructurar bloques matematicos de nivel superior y sincronizar historial completo de commits`: Desacoplamiento de bloques matemáticos fuera de listas para renderizado nativo en GitHub y actualización del árbol de archivos.
 21. `506703e` - `docs(readme): registrar commit 20 en la relacion de cambios del desarrollo`: Sincronización del commit 20 en el registro histórico de desarrollo.
 22. `ed97434` - `docs(readme): eliminar colisiones de cursiva y parentesis en formulas inline de modulos 2 y 3`: Corrección tipográfica en fórmulas inline.
-23. `19c726a` - `feat(matrices): implementar calculo de matriz inversa por metodos Gauss-Jordan y Gauss`: Algoritmo formal de matriz inversa según la Unidad 2.2 del PDF con reducción por renglones $[A \mid I_n]$, fórmula $2 \times 2$ y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$.
+23. `19c726a` - `feat(matrices): implementar calculo de matriz inversa por metodos Gauss-Jordan y Gauss`: Algoritmo formal de matriz inversa con reducción por renglones $[A \mid I_n]$, fórmula $2 \times 2$ y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$.
 24. `2e816d8` - `feat(matrices): enriquecer calculo y analisis de transpuesta con propiedades algebraicas`: Mapeo explícito fila a columna, simetría, antisimetría, traza y teorema $(A^T)^{-1} = (A^{-1})^T$.
 25. `924dda2` - `feat(server): agregar endpoints de API para matriz inversa y transpuesta detallada`: Endpoints `/api/matrices/inversa` y `/api/matrices/operar` enriquecidos con serialización JSON exacta.
-26. `c9bfd0c` - `feat(ui): integrar interfaz interactiva para matriz inversa, transpuesta y verificacion KaTeX`: Nueva pestaña SPA para cálculo de inversa $A^{-1}$, selección de métodos (Gauss / Gauss-Jordan), presets del PDF y renderizado matemático formal.
+26. `c9bfd0c` - `feat(ui): integrar interfaz interactiva para matriz inversa, transpuesta y verificacion KaTeX`: Nueva pestaña SPA para cálculo de inversa $A^{-1}$, selección de métodos (Gauss / Gauss-Jordan), presets interactivos y renderizado matemático formal.
 27. `f85d734` - `test: añadir suite exhaustiva de pruebas unitarias para inversa y transpuesta`: Suite de 49 pruebas unitarias herméticas incluyendo servidor de pruebas en proceso.
-28. `[commit actual]` - `docs(readme): documentar teoria de matriz inversa del PDF, transpuesta y actualizar historial`: Documentación detallada de la Unidad 2.2, actualización de árbol de archivos y registro histórico de 28 commits.
+28. `b9e7ea7` - `docs(readme): documentar teoria de matriz inversa, transpuesta y actualizar historial`: Documentación detallada de matriz inversa, transpuesta, actualización de árbol de archivos y registro histórico de 28 commits.
+29. `4f2699a` - `fix(latex): corregir formato latex en verificacion y propiedades, y suprimir referencias externas`: Delimitación estricta de expresiones matemáticas en KaTeX `$ ... $` para comprobación dual $A \cdot A^{-1} = I_n$, propiedades de transpuesta y supresión total de menciones a documentos de referencia.

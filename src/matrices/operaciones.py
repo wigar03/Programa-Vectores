@@ -310,15 +310,15 @@ def analizar_transpuesta_matriz(A_in: Any) -> ResultadoTranspuesta:
         elementos_fila = [format_number(A[i][j]) for j in range(n)]
         fila_str = "[" + ", ".join(elementos_fila) + "]"
         res.pasos_mapeo.append(
-            f"Fila {i + 1} de A: {fila_str} \\rightarrow Columna {i + 1} de A^T"
+            f"Fila {i + 1} de $A$: ${fila_str}$ $\\rightarrow$ Columna {i + 1} de $A^T$"
         )
         
     # Análisis de propiedades
     res.propiedades.append(
-        f"Transposición dimensional: \\dim(A) = {m} \\times {n} \\implies \\dim(A^T) = {n} \\times {m}"
+        f"Transposición dimensional: $\\dim(A) = {m} \\times {n} \\implies \\dim(A^T) = {n} \\times {m}$"
     )
     res.propiedades.append(
-        "Principio de involución: (A^T)^T = A"
+        "Principio de involución: $(A^T)^T = A$"
     )
     
     if res.es_cuadrada:
@@ -339,33 +339,33 @@ def analizar_transpuesta_matriz(A_in: Any) -> ResultadoTranspuesta:
         res.traza = traza
         
         res.propiedades.append(
-            f"Invarianza de la traza: \\mathrm{{tr}}(A^T) = \\mathrm{{tr}}(A) = {format_number(traza)}"
+            f"Invarianza de la traza: $\\operatorname{{tr}}(A^T) = \\operatorname{{tr}}(A) = {format_number(traza)}$"
         )
         
         if es_sim:
             res.propiedades.append(
-                "Matriz simétrica: A^T = A (los elementos reflejados respecto a la diagonal principal coinciden: a_{ij} = a_{ji})"
+                "Matriz simétrica: $A^T = A$ (los elementos reflejados respecto a la diagonal principal coinciden: $a_{ij} = a_{ji}$)"
             )
         else:
             res.propiedades.append(
-                "Matriz no simétrica: A^T \\neq A"
+                "Matriz no simétrica: $A^T \\neq A$"
             )
             
         if es_antisim:
             res.propiedades.append(
-                "Matriz antisimétrica (hemisimétrica): A^T = -A con diagonal nula"
+                "Matriz antisimétrica (hemisimétrica): $A^T = -A$ con diagonal principal nula"
             )
             
         res.propiedades.append(
-            "Teorema 2.2 (Invertibilidad de la transpuesta): Si A es invertible, (A^T)^{-1} = (A^{-1})^T"
+            "Invertibilidad de la transpuesta: Si $A$ es invertible, $(A^T)^{-1} = (A^{-1})^T$"
         )
     else:
         res.propiedades.append(
-            f"Matriz rectangular ({m} \\neq {n}): no aplican conceptos de simetría ni traza"
+            f"Matriz rectangular (${m} \\neq {n}$): no aplican conceptos de simetría ni traza"
         )
         
     res.propiedades.append(
-        "Propiedad multiplicativa: (A \\cdot B)^T = B^T \\cdot A^T"
+        "Propiedad multiplicativa: $(A \\cdot B)^T = B^T \\cdot A^T$"
     )
     
     return res

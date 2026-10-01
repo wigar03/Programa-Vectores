@@ -1115,7 +1115,7 @@ function limpiarModuloInversa() {
 
 function cargarEjemploInversa(tipo) {
   if (tipo === 1) {
-    // Ejemplo 1: 2x2 (Diapositivas 3 y 4 del PDF)
+    // Ejemplo 1: 2x2
     // A = [[2, 5], [-3, -7]]
     document.getElementById("inv-dim-n").value = 2;
     invN = 2;
@@ -1127,9 +1127,9 @@ function cargarEjemploInversa(tipo) {
         if (el) el.value = vals[i][j];
       }
     }
-    mostrarToast("Ejemplo 1 (2x2, pág 3-4 del PDF) cargado.");
+    mostrarToast("Ejemplo 1 (2x2) cargado.");
   } else if (tipo === 2) {
-    // Ejemplo 2: 3x3 (Diapositiva 10 del PDF)
+    // Ejemplo 2: 3x3
     // A = [[0, 1, 2], [1, 0, 3], [4, -3, 8]]
     document.getElementById("inv-dim-n").value = 3;
     invN = 3;
@@ -1145,17 +1145,17 @@ function cargarEjemploInversa(tipo) {
         if (el) el.value = vals[i][j];
       }
     }
-    mostrarToast("Ejemplo 2 (3x3, pág 10 del PDF) cargado.");
+    mostrarToast("Ejemplo 2 (3x3) cargado.");
   } else if (tipo === 3) {
-    // Ejemplo 3: 3x3 (Diapositiva 12, Problemas de Práctica 2.2)
-    // A = [[1, -2, -1], [-1, 5, 6], [5, -4, 5]]
+    // Ejemplo 3: 3x3
+    // A = [[1, 2, 3], [0, 1, 4], [5, 6, 0]]
     document.getElementById("inv-dim-n").value = 3;
     invN = 3;
     renderizarMatrizInversaInput();
     const vals = [
-      ["1", "-2", "-1"],
-      ["-1", "5", "6"],
-      ["5", "-4", "5"]
+      ["1", "2", "3"],
+      ["0", "1", "4"],
+      ["5", "6", "0"]
     ];
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
@@ -1163,9 +1163,9 @@ function cargarEjemploInversa(tipo) {
         if (el) el.value = vals[i][j];
       }
     }
-    mostrarToast("Ejemplo 3 (3x3, pág 12 de Práctica) cargado.");
+    mostrarToast("Ejemplo 3 (3x3) cargado.");
   } else if (tipo === 4) {
-    // Ejemplo 4: Singular (Diapositiva 15 del PDF)
+    // Ejemplo 4: Singular
     // A = [[2, 3, 4], [2, 3, 4], [2, 3, 4]]
     document.getElementById("inv-dim-n").value = 3;
     invN = 3;
@@ -1181,7 +1181,7 @@ function cargarEjemploInversa(tipo) {
         if (el) el.value = vals[i][j];
       }
     }
-    mostrarToast("Ejemplo Singular (3x3, pág 15) cargado.");
+    mostrarToast("Ejemplo 4 (Singular) cargado.");
   }
 }
 
@@ -1225,11 +1225,11 @@ async function calcularInversaUI() {
         <div id="inv-latex-target" class="latex-display-box"></div>
     `;
 
-    // Si es matriz 2x2, mostrar el Teorema 2x2 (Diapositiva 4 del PDF)
+    // Si es matriz 2x2, mostrar el Teorema 2x2
     if (data.orden_n === 2 && data.determinante_2x2 !== null) {
       htmlContenido += `
         <div class="verification-box" style="margin-top: 0.85rem; background: rgba(2, 132, 199, 0.05); border-color: rgba(2, 132, 199, 0.2);">
-          <h4 style="color: var(--accent-cyan);">Teorema de Inversión 2 × 2 (Diapositiva 4 del PDF):</h4>
+          <h4 style="color: var(--accent-cyan);">Teorema de Inversión 2 × 2:</h4>
           <div id="inv-latex-teorema-2x2"></div>
         </div>
       `;
@@ -1259,7 +1259,9 @@ async function calcularInversaUI() {
         const d_val = formatLatexFrac(A[1][1]);
         const neg_b = formatLatexFrac(b_val.startsWith("-") ? b_val.slice(1) : (b_val === "0" ? "0" : "-" + b_val));
         const neg_c = formatLatexFrac(c_val.startsWith("-") ? c_val.slice(1) : (c_val === "0" ? "0" : "-" + c_val));
-        const form2x2 = `\\det(A) = ad - bc = (${a_val})(${d_val}) - (${b_val})(${c_val}) = ${detLatex} \\neq 0 \\implies A^{-1} = \\frac{1}{${detLatex}} \\begin{pmatrix} ${d_val} & ${neg_b} \\\\ ${neg_c} & ${a_val} \\end{pmatrix}`;
+        const form2x2 = detLatex === "0" 
+          ? `\\det(A) = ad - bc = (${a_val})(${d_val}) - (${b_val})(${c_val}) = 0 \\implies \\text{Matriz singular (no invertible)}`
+          : `\\det(A) = ad - bc = (${a_val})(${d_val}) - (${b_val})(${c_val}) = ${detLatex} \\neq 0 \\implies A^{-1} = \\frac{1}{${detLatex}} \\begin{pmatrix} ${d_val} & ${neg_b} \\\\ ${neg_c} & ${a_val} \\end{pmatrix}`;
         renderLatexElement(el2x2, form2x2);
       }
     }
@@ -1270,12 +1272,12 @@ async function calcularInversaUI() {
       renderMixedLatex(diagEl, data.mensaje_diagnostico);
     }
 
-    // Verificación Dual A·A⁻¹ = I y A⁻¹·A = I (Diapositiva 9 del PDF)
+    // Verificación Dual A·A⁻¹ = I y A⁻¹·A = I
     if (data.es_invertible) {
       const verifContainer = document.createElement("div");
       verifContainer.className = "verification-box";
       verifContainer.style.marginTop = "1rem";
-      verifContainer.innerHTML = `<h4>Verificación Algebraica Dual (Diapositiva 9 del PDF):</h4>`;
+      verifContainer.innerHTML = `<h4>Verificación Algebraica Dual:</h4>`;
       
       const v1Title = document.createElement("div");
       v1Title.style.fontWeight = "600";
@@ -1285,6 +1287,8 @@ async function calcularInversaUI() {
 
       (data.verificacion_A_por_Ainv || []).forEach(v => {
         const row = document.createElement("div");
+        row.style.margin = "0.25rem 0";
+        row.style.lineHeight = "1.6";
         renderMixedLatex(row, v);
         verifContainer.appendChild(row);
       });
@@ -1297,6 +1301,8 @@ async function calcularInversaUI() {
 
       (data.verificacion_Ainv_por_A || []).forEach(v => {
         const row = document.createElement("div");
+        row.style.margin = "0.25rem 0";
+        row.style.lineHeight = "1.6";
         renderMixedLatex(row, v);
         verifContainer.appendChild(row);
       });

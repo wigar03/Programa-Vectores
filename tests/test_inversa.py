@@ -16,9 +16,9 @@ from src.matrices.operaciones import (
 
 
 class TestInversaMatriz(unittest.TestCase):
-    def test_inversa_2x2_ejemplo1_pdf(self):
+    def test_inversa_2x2_ejemplo1(self):
         """
-        Ejemplo 1 de la Diapositiva 3 del PDF:
+        Inversa de matriz 2x2:
         A = [[2, 5], [-3, -7]]
         Inversa esperada: C = [[-7, -5], [3, 2]]
         """
@@ -35,10 +35,17 @@ class TestInversaMatriz(unittest.TestCase):
         self.assertTrue(len(res.pasos_reduccion) > 0)
         self.assertTrue(len(res.verificacion_A_por_Ainv) > 0)
         self.assertTrue(len(res.verificacion_Ainv_por_A) > 0)
+        # Validar que las cadenas de verificación contengan delimitadores $ para KaTeX
+        for v in res.verificacion_A_por_Ainv:
+            self.assertIn("$", v)
+            self.assertIn("(A \\cdot A^{-1})", v)
+        for v in res.verificacion_Ainv_por_A:
+            self.assertIn("$", v)
+            self.assertIn("(A^{-1} \\cdot A)", v)
 
-    def test_inversa_2x2_ejemplo2_pdf_teorema(self):
+    def test_inversa_2x2_ejemplo2_teorema(self):
         """
-        Ejemplo 2 de la Diapositiva 4 del PDF:
+        Inversa por fórmula del Teorema 2x2:
         A = [[3, 4], [5, 6]]
         det(A) = 3(6) - 4(5) = -2 != 0
         Inversa: [[-3, 2], [5/2, -3/2]]
@@ -54,9 +61,9 @@ class TestInversaMatriz(unittest.TestCase):
         self.assertEqual(res.matriz_inversa, esperada)
         self.assertTrue(res.residuo_cero)
 
-    def test_inversa_3x3_ejemplo_diapositiva_10(self):
+    def test_inversa_3x3_ejemplo(self):
         """
-        Ejemplo de la Diapositiva 10 del PDF:
+        Inversa de matriz 3x3:
         A = [[0, 1, 2], [1, 0, 3], [4, -3, 8]]
         Inversa esperada:
         [[-9/2, 7, -3/2],
@@ -85,10 +92,10 @@ class TestInversaMatriz(unittest.TestCase):
         self.assertEqual(res_gauss.matriz_inversa, esperada)
         self.assertTrue(res_gauss.residuo_cero)
 
-    def test_inversa_3x3_ejemplo_diapositiva_12_practica(self):
+    def test_inversa_3x3_singular_practica(self):
         """
-        Problema de Práctica 2.2 (1) de la Diapositiva 12 del PDF:
-        A = [[1, -2, -1], [-1, 5, 6], [5, -4, 5]], 'if it exists'.
+        Matriz 3x3 singular:
+        A = [[1, -2, -1], [-1, 5, 6], [5, -4, 5]].
         det(A) = 1(49) - (-2)(-35) + (-1)(-21) = 49 - 70 + 21 = 0.
         La matriz es singular y por tanto NO existe inversa.
         """
@@ -126,9 +133,9 @@ class TestInversaMatriz(unittest.TestCase):
         self.assertEqual(prod1, identidad_3)
         self.assertEqual(prod2, identidad_3)
 
-    def test_matriz_singular_ejemplo_diapositiva_15(self):
+    def test_matriz_singular_filas_iguales(self):
         """
-        Problema de Práctica 2.3 de la Diapositiva 15 del PDF:
+        Matriz singular con filas idénticas:
         A = [[2, 3, 4], [2, 3, 4], [2, 3, 4]]
         Filas idénticas -> Rango = 1 < 3 -> Singular (No invertible).
         """
@@ -144,7 +151,7 @@ class TestInversaMatriz(unittest.TestCase):
 
     def test_matriz_no_cuadrada_rechazo(self):
         """
-        Verifica que se rechacen matrices no cuadradas (Diapositiva 3: 'debe ser cuadrada').
+        Verifica que se rechacen matrices no cuadradas (debe ser cuadrada).
         """
         A = [[1, 2, 3], [4, 5, 6]]
         with self.assertRaises(ValueError) as ctx:
