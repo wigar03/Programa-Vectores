@@ -1044,3 +1044,134 @@ input[type="number"] {
   font-size: 0.85rem;
   font-weight: 500;
 }
+
+/* ==========================================================================
+   Panel de Análisis Comparativo de Eficiencia (Cofactores vs LU)
+   ========================================================================== */
+.efficiency-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 10px;
+  padding: 0.85rem;
+  margin: 0.85rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.efficiency-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.efficiency-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.efficiency-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--accent-amber);
+}
+
+.efficiency-title {
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--text-main);
+}
+
+.badge-rec {
+  background: rgba(5, 150, 105, 0.12);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(5, 150, 105, 0.25);
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+.efficiency-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+@media (max-width: 550px) {
+  .efficiency-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.efficiency-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 8px;
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.efficiency-stat-card.active-recommended {
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.2);
+}
+
+.stat-method {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.stat-complexity {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.stat-ops {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.stat-badge {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.stat-badge-best {
+  background: rgba(5, 150, 105, 0.12);
+  color: var(--accent-emerald);
+}
+
+.stat-badge-alt {
+  background: rgba(2, 132, 199, 0.12);
+  color: var(--accent-cyan);
+}
+
+.stat-badge-warn {
+  background: rgba(225, 29, 72, 0.12);
+  color: var(--accent-rose);
+}
+
+.efficiency-justification {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px dashed var(--bg-card-border);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+}

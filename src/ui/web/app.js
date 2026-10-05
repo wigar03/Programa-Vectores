@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarModuloMatrices();
   inicializarModuloInversa();
   inicializarModuloEcuaciones();
+  inicializarModuloDeterminante();
   refrescarIconosLucide();
 });
 
@@ -1590,6 +1591,400 @@ async function resolverEcuacionMatricialUI() {
     resultBox.innerHTML = `
       <div class="latex-equation-card" style="border-color: rgba(225,29,72,0.4);">
         <div class="latex-header" style="color:var(--accent-rose);">Error al resolver:</div>
+        <p>${err.message}</p>
+      </div>
+    `;
+  }
+}
+
+/* ==========================================================================
+   6. MÓDULO 6: CÁLCULO DE DETERMINANTES |A| (COFACTORES VS LU)
+   ========================================================================== */
+
+function inicializarModuloDeterminante() {
+  const container = document.getElementById("det-matrix-grid");
+  if (!container) return;
+  renderizarMatrizDeterminante();
+  cargarEjemploDeterminante(3);
+}
+
+function cambiarDimDet(delta) {
+  const input = document.getElementById("det-order-n");
+  if (!input) return;
+  let val = parseInt(input.value) || 3;
+  val = Math.max(1, Math.min(8, val + delta));
+  input.value = val;
+  renderizarMatrizDeterminante();
+}
+
+function renderizarMatrizDeterminante() {
+  const input = document.getElementById("det-order-n");
+  const container = document.getElementById("det-matrix-grid");
+  if (!input || !container) return;
+
+  const n = parseInt(input.value) || 3;
+  container.innerHTML = "";
+  container.style.gridTemplateColumns = `repeat(${n}, 62px)`;
+
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const cell = document.createElement("input");
+      cell.type = "text";
+      cell.id = `det-a-${r}-${c}`;
+      cell.className = "cell-input";
+      cell.value = (r === c) ? "1" : "0";
+      cell.placeholder = "0";
+      cell.addEventListener("input", actualizarEficienciaDeterminanteUI);
+      container.appendChild(cell);
+    }
+  }
+
+  actualizarEficienciaDeterminanteUI();
+}
+
+function obtenerMatrizDeterminanteValores() {
+  const input = document.getElementById("det-order-n");
+  const n = parseInt(input.value) || 3;
+  const A = [];
+
+  for (let r = 0; r < n; r++) {
+    const fila = [];
+    for (let c = 0; c < n; c++) {
+      const el = document.getElementById(`det-a-${r}-${c}`);
+      const val = el ? el.value.trim() : "0";
+      fila.push(val === "" ? "0" : val);
+    }
+    A.push(fila);
+  }
+  return A;
+}
+
+function calcularOperacionesTeoricas(n) {
+  // Cofactores: n * (ops(n - 1) + 2)
+  let opsCof = 1;
+  if (n === 2) opsCof = 3;
+  else if (n > 2) {
+    opsCof = 3;
+    for (let k = 3; k <= n; k++) {
+      opsCof = k * (opsCof + 2);
+    }
+  }
+
+  // LU: sum_{k=1}^{n-1} (n - k)*(2*(n - k) + 1) + (n - 1)
+  let opsLu = 1;
+  if (n > 1) {
+    let sum = 0;
+    for (let k = 0; k < n - 1; k++) {
+      const rem = n - 1 - k;
+      sum += rem * (2 * rem + 1);
+    }
+    opsLu = sum + (n - 1);
+  }
+
+  return { opsCof, opsLu };
+}
+
+function actualizarEficienciaDeterminanteUI() {
+  const input = document.getElementById("det-order-n");
+  if (!input) return;
+  const n = parseInt(input.value) || 3;
+
+  const { opsCof, opsLu } = calcularOperacionesTeoricas(n);
+
+  const badgeRec = document.getElementById("det-badge-recommendation");
+  const compLu = document.getElementById("det-complexity-lu");
+  const opsLuEl = document.getElementById("det-ops-lu");
+  const badgeLu = document.getElementById("det-badge-lu");
+  const cardLu = document.getElementById("stat-card-lu");
+
+  const compCof = document.getElementById("det-complexity-cof");
+  const opsCofEl = document.getElementById("det-ops-cof");
+  const badgeCof = document.getElementById("det-badge-cof");
+  const cardCof = document.getElementById("stat-card-cof");
+
+  const verdictEl = document.getElementById("det-efficiency-verdict");
+  const radioLuText = document.getElementById("label-method-lu");
+  const radioCofText = document.getElementById("label-method-cof");
+
+  if (compLu) compLu.innerText = `O(n³) = O(${n}³)`;
+  if (opsLuEl) opsLuEl.innerText = `~${opsLu.toLocaleString()} operaciones elementales`;
+
+  if (compCof) compCof.innerText = `O(n!) = O(${n}!)`;
+  if (opsCofEl) opsCofEl.innerText = `~${opsCof.toLocaleString()} operaciones factoriales`;
+
+  if (n <= 2) {
+    if (badgeRec) badgeRec.innerText = "Ambos Métodos Óptimos";
+    if (badgeLu) {
+      badgeLu.className = "stat-badge stat-badge-best";
+      badgeLu.innerText = "Óptimo";
+    }
+    if (badgeCof) {
+      badgeCof.className = "stat-badge stat-badge-best";
+      badgeCof.innerText = "Directo (ad - bc)";
+    }
+    if (cardLu) cardLu.className = "efficiency-stat-card active-recommended";
+    if (cardCof) cardCof.className = "efficiency-stat-card active-recommended";
+    if (verdictEl) {
+      verdictEl.innerText = `Para orden n = ${n}, el número de operaciones es mínimo e idéntico. Cofactores aplica la fórmula directa inmediata (ad - bc) y LU realiza una reducción elemental equivalente.`;
+    }
+    if (radioLuText) radioLuText.innerHTML = `<strong>Descomposición LU (PA = LU)</strong> — Triangulación Gaussiana [O(n³)]`;
+    if (radioCofText) radioCofText.innerHTML = `<strong>Expansión por Cofactores (Laplace)</strong> — Fórmula directa analítica [O(n!)]`;
+  } else if (n === 3) {
+    if (badgeRec) badgeRec.innerText = "LU Recomendado (Leve Ventaja)";
+    if (badgeLu) {
+      badgeLu.className = "stat-badge stat-badge-best";
+      badgeLu.innerText = "Recomendado";
+    }
+    if (badgeCof) {
+      badgeCof.className = "stat-badge stat-badge-alt";
+      badgeCof.innerText = "Didáctico (Sarrus)";
+    }
+    if (cardLu) cardLu.className = "efficiency-stat-card active-recommended";
+    if (cardCof) cardCof.className = "efficiency-stat-card";
+    if (verdictEl) {
+      verdictEl.innerText = `Para n = 3, ambos métodos son rápidos y exactos. LU requiere ~${opsLu} operaciones elementales, mientras que Cofactores realiza ~${opsCof} operaciones pero permite visualizar el desarrollo por menores y Sarrus.`;
+    }
+    if (radioLuText) radioLuText.innerHTML = `<strong>Descomposición LU (PA = LU)</strong> — Triangulación [O(3³) ≈ ${opsLu} ops] <span class="badge badge-success" style="font-size:0.65rem; padding:0.1rem 0.4rem;">Más Rápido</span>`;
+    if (radioCofText) radioCofText.innerHTML = `<strong>Expansión por Cofactores (Laplace)</strong> — Menores y Sarrus [O(3!) ≈ ${opsCof} ops]`;
+  } else {
+    // n >= 4: LU drásticamente más eficiente
+    const factorRatio = Math.max(1, Math.round(opsCof / Math.max(1, opsLu)));
+    if (badgeRec) badgeRec.innerText = `⭐ LU Ampliamente Superior (×${factorRatio.toLocaleString()} más rápido)`;
+    if (badgeLu) {
+      badgeLu.className = "stat-badge stat-badge-best";
+      badgeLu.innerText = "⭐ ALTAMENTE RECOMENDADO";
+    }
+    if (badgeCof) {
+      badgeCof.className = "stat-badge stat-badge-warn";
+      badgeCof.innerText = "⚠️ Inviable / Factorial";
+    }
+    if (cardLu) cardLu.className = "efficiency-stat-card active-recommended";
+    if (cardCof) cardCof.className = "efficiency-stat-card";
+    if (verdictEl) {
+      verdictEl.innerHTML = `<strong>¡Para n = ${n}, la Descomposición LU es drásticamente más eficiente!</strong> Cofactores requiere un orden factorial de ~${opsCof.toLocaleString()} operaciones, mientras que LU resuelve la triangulación en únicamente ~${opsLu.toLocaleString()} operaciones (O(n³)). ¡LU es <strong>${factorRatio.toLocaleString()} veces</strong> más eficiente!`;
+    }
+    if (radioLuText) radioLuText.innerHTML = `<strong>Descomposición LU (PA = LU)</strong> — [O(${n}³) ≈ ${opsLu.toLocaleString()} ops] <span class="badge badge-success" style="font-size:0.65rem; padding:0.1rem 0.4rem;">⭐ RECOMENDADO</span>`;
+    if (radioCofText) radioCofText.innerHTML = `<strong>Expansión por Cofactores (Laplace)</strong> — [O(${n}!) ≈ ${opsCof.toLocaleString()} ops] <span class="badge badge-error" style="font-size:0.65rem; padding:0.1rem 0.4rem;">⚠️ Alto Costo Factorial</span>`;
+  }
+}
+
+function actualizarPreferenciaMetodo() {
+  const input = document.getElementById("det-order-n");
+  const n = input ? parseInt(input.value) || 3 : 3;
+  const radio = document.querySelector('input[name="det-method"]:checked');
+  if (radio && radio.value === "cofactores" && n >= 5) {
+    mostrarToast(`Aviso: Para matrices ${n}×${n}, Cofactores tiene orden factorial O(${n}!). Se recomienda usar Descomposición LU.`);
+  }
+}
+
+function cargarEjemploDeterminante(caso) {
+  const input = document.getElementById("det-order-n");
+  if (!input) return;
+
+  let matrizDatos = [];
+  if (caso === 2) {
+    input.value = 2;
+    matrizDatos = [
+      ["3", "8"],
+      ["4", "6"]
+    ];
+  } else if (caso === 3) {
+    input.value = 3;
+    matrizDatos = [
+      ["1", "2", "3"],
+      ["0", "1", "4"],
+      ["5", "6", "0"]
+    ];
+  } else if (caso === 4) {
+    input.value = 4;
+    matrizDatos = [
+      ["2", "1", "0", "4"],
+      ["-1", "0", "2", "1"],
+      ["3", "-2", "1", "0"],
+      ["0", "1", "1", "2"]
+    ];
+  } else if (caso === "singular") {
+    input.value = 3;
+    matrizDatos = [
+      ["1", "2", "3"],
+      ["4", "5", "6"],
+      ["5", "7", "9"] // F3 = F1 + F2
+    ];
+  } else if (caso === "triangular") {
+    input.value = 3;
+    matrizDatos = [
+      ["2", "5", "7"],
+      ["0", "3", "-1"],
+      ["0", "0", "4"]
+    ];
+  }
+
+  renderizarMatrizDeterminante();
+  const n = matrizDatos.length;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const el = document.getElementById(`det-a-${r}-${c}`);
+      if (el) el.value = matrizDatos[r][c];
+    }
+  }
+
+  actualizarEficienciaDeterminanteUI();
+  mostrarToast(`Ejemplo cargado exitosamente (${caso}).`);
+}
+
+function limpiarModuloDeterminante() {
+  const input = document.getElementById("det-order-n");
+  const n = input ? parseInt(input.value) || 3 : 3;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const el = document.getElementById(`det-a-${r}-${c}`);
+      if (el) el.value = "0";
+    }
+  }
+  actualizarEficienciaDeterminanteUI();
+  mostrarToast("Casillas de la matriz restablecidas a cero.");
+}
+
+async function calcularDeterminanteUI() {
+  const badge = document.getElementById("det-badge-status");
+  const resultBox = document.getElementById("det-result-content");
+  if (!badge || !resultBox) return;
+
+  badge.className = "badge badge-dim";
+  badge.innerText = "Calculando...";
+
+  const A = obtenerMatrizDeterminanteValores();
+  const metodoInput = document.querySelector('input[name="det-method"]:checked');
+  const metodo = metodoInput ? metodoInput.value : "lu";
+
+  try {
+    const res = await fetch("/api/matrices/determinante", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ A, metodo })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Error al calcular el determinante");
+
+    if (data.es_invertible) {
+      badge.className = "badge badge-success";
+      badge.innerText = "Invertible (No Singular)";
+    } else {
+      badge.className = "badge badge-error";
+      badge.innerText = "Matriz Singular (|A| = 0)";
+    }
+
+    const detVal = data.determinante;
+    const detDec = data.determinante_decimal;
+    const esEntero = !detVal.includes("/");
+    const detFmtLatex = formatLatexFrac(detVal);
+
+    let latexPrincipal = "";
+    if (esEntero) {
+      latexPrincipal = `\\det(A) = |A| = ${detFmtLatex}`;
+    } else {
+      latexPrincipal = `\\det(A) = |A| = ${detFmtLatex} \\approx ${detDec}`;
+    }
+
+    let dictamenHtml = "";
+    if (data.es_invertible) {
+      dictamenHtml = `
+        <div class="verification-box" style="margin-top: 0.85rem; background: rgba(5, 150, 105, 0.05); border-color: rgba(5, 150, 105, 0.25);">
+          <h4 style="color: var(--accent-emerald);">✓ Matriz No Singular (Invertible):</h4>
+          <p>• Como $\\det(A) \\neq 0$, la matriz posee <strong>rango completo</strong>: $\\mathrm{rg}(A) = ${data.orden_n}$.</p>
+          <p>• Sus columnas y filas son <strong>linealmente independientes (L.I.)</strong>.</p>
+          <p>• <strong>Existe matriz inversa única</strong> $A^{-1}$ tal que $A \\cdot A^{-1} = I_{${data.orden_n}}$.</p>
+          <p>• La ecuación $A\\vec{x} = \\vec{b}$ tiene <strong>solución única</strong> $\\vec{x} = A^{-1}\\vec{b}$ para cualquier vector $\\vec{b}$.</p>
+          <p>• Método aplicado: <strong>${data.metodo.toUpperCase()}</strong> (${data.complejidad_teorica} — ~${data.operaciones_estimadas.toLocaleString()} operaciones).</p>
+        </div>
+      `;
+    } else {
+      dictamenHtml = `
+        <div class="verification-box" style="margin-top: 0.85rem; background: rgba(225, 29, 72, 0.05); border-color: rgba(225, 29, 72, 0.25);">
+          <h4 style="color: var(--accent-rose);">✗ Matriz Singular (No Invertible):</h4>
+          <p>• Como $\\det(A) = 0$, la matriz tiene <strong>rango deficiente</strong>: $\\mathrm{rg}(A) < ${data.orden_n}$.</p>
+          <p>• Sus filas y columnas son <strong>linealmente dependientes (L.D.)</strong>.</p>
+          <p>• <strong>No existe matriz inversa</strong> ($\nexists A^{-1}$).</p>
+          <p>• El sistema homogéneo $A\\vec{x} = \\vec{0}$ admite soluciones no triviales (infinitas soluciones).</p>
+          <p>• Método aplicado: <strong>${data.metodo.toUpperCase()}</strong> (${data.complejidad_teorica}).</p>
+        </div>
+      `;
+    }
+
+    let htmlContenido = `
+      <div class="latex-equation-card">
+        <div class="latex-header">Valor Escalar del Determinante |A|:</div>
+        <div id="det-latex-target" class="latex-display-box"></div>
+        ${dictamenHtml}
+      </div>
+    `;
+
+    // Pasos detallados
+    if (data.pasos && data.pasos.length > 0) {
+      htmlContenido += `
+        <div class="steps-container">
+          <h4>Desarrollo Algebraico Paso a Paso (${data.metodo.toUpperCase()}):</h4>
+          <div id="det-steps-list"></div>
+        </div>
+      `;
+    }
+
+    resultBox.innerHTML = htmlContenido;
+
+    // Renderizar KaTeX principal
+    renderLatexElement(document.getElementById("det-latex-target"), latexPrincipal);
+
+    // Renderizar pasos
+    if (data.pasos && data.pasos.length > 0) {
+      const stepsContainer = document.getElementById("det-steps-list");
+      data.pasos.forEach(p => {
+        const stepItem = document.createElement("div");
+        stepItem.className = "step-item";
+
+        const titleEl = document.createElement("div");
+        titleEl.className = "step-item-title";
+        renderMixedLatex(titleEl, `Paso ${p.numero}: ${p.titulo}`);
+        stepItem.appendChild(titleEl);
+
+        const descEl = document.createElement("div");
+        descEl.className = "step-item-desc";
+        renderMixedLatex(descEl, p.descripcion);
+        stepItem.appendChild(descEl);
+
+        if (p.detalles && p.detalles.length > 0) {
+          const detList = document.createElement("div");
+          detList.style.marginTop = "0.4rem";
+          detList.style.fontSize = "0.82rem";
+          detList.style.color = "var(--text-muted)";
+          p.detalles.forEach(d => {
+            const rowD = document.createElement("div");
+            rowD.style.padding = "0.15rem 0";
+            renderMixedLatex(rowD, `• ${d}`);
+            detList.appendChild(rowD);
+          });
+          stepItem.appendChild(detList);
+        }
+
+        if (p.matriz_estado && p.numero > 1) {
+          const matBox = document.createElement("div");
+          matBox.className = "latex-display-box";
+          matBox.style.marginTop = "0.5rem";
+          renderLatexElement(matBox, matrixToLatex(p.matriz_estado));
+          stepItem.appendChild(matBox);
+        }
+
+        stepsContainer.appendChild(stepItem);
+      });
+    }
+
+    refrescarIconosLucide();
+    mostrarToast(`Determinante calculado: |A| = ${detVal}`);
+  } catch (err) {
+    badge.className = "badge badge-error";
+    badge.innerText = "Error";
+    resultBox.innerHTML = `
+      <div class="latex-equation-card" style="border-color: rgba(225,29,72,0.4);">
+        <div class="latex-header" style="color:var(--accent-rose);">Error al calcular:</div>
         <p>${err.message}</p>
       </div>
     `;

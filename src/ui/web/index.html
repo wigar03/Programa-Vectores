@@ -29,7 +29,7 @@
           <span>UAM • FIA</span>
         </div>
         <h1>Calculadora de Álgebra Lineal</h1>
-        <p class="subtitle" id="header-subtitle">Vectores en ℝⁿ, Combinación Lineal, Matrices, Inversa A⁻¹ y Ecuaciones A·x = b</p>
+        <p class="subtitle" id="header-subtitle">Vectores en ℝⁿ, Combinación Lineal, Matrices, Inversa A⁻¹, Ecuaciones Ax = b y Determinante |A|</p>
       </div>
       <div class="header-actions">
         <button id="btn-theme-toggle" class="btn-theme" title="Alternar entre modo claro y modo oscuro">
@@ -60,6 +60,10 @@
       <button class="nav-tab" data-tab="tab-ecuaciones">
         <i data-lucide="equal" class="tab-icon"></i>
         <span class="tab-label">Ecuaciones Matriciales Ax = b</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-determinante">
+        <i data-lucide="scan" class="tab-icon"></i>
+        <span class="tab-label">Determinante |A|</span>
       </button>
     </nav>
 
@@ -527,6 +531,117 @@
             </div>
             <div id="eq-result-content" class="result-box">
               <p class="placeholder-text">Ingrese los coeficientes del sistema y presione "Resolver Ecuación Matricial" para ver la solución exacta y el procedimiento paso a paso.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- MÓDULO 6: DETERMINANTE DE UNA MATRIZ CUADRADA |A|                  -->
+      <!-- =================================================================== -->
+      <section id="tab-determinante" class="tab-pane">
+        <div class="pane-grid">
+          <!-- Tarjeta de Entrada de Parámetros -->
+          <div class="card card-input">
+            <div class="card-header">
+              <h3>Configuración de la Matriz Cuadrada</h3>
+              <span class="badge badge-dim">Orden n × n</span>
+            </div>
+
+            <!-- Selector de Dimensión n -->
+            <div class="selector-row">
+              <label for="det-order-n" class="field-label">Orden de la Matriz (n):</label>
+              <div class="stepper-box">
+                <button type="button" class="btn-step" onclick="cambiarDimDet(-1)" title="Disminuir orden">
+                  <i data-lucide="minus"></i>
+                </button>
+                <input type="number" id="det-order-n" min="1" max="8" value="3" onchange="renderizarMatrizDeterminante()">
+                <button type="button" class="btn-step" onclick="cambiarDimDet(1)" title="Aumentar orden">
+                  <i data-lucide="plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Grilla de Matriz Cuadrada A -->
+            <div class="matrix-setup-section">
+              <div class="section-subtitle">Elementos de la Matriz A (admite enteros, fracciones y decimales):</div>
+              <div id="det-matrix-grid" class="matrix-grid"></div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- PANEL DE EVALUACIÓN DE EFICIENCIA PREVIO A LA SELECCIÓN   -->
+            <!-- ========================================================= -->
+            <div class="efficiency-panel" id="det-efficiency-panel">
+              <div class="efficiency-header">
+                <div class="efficiency-title-row">
+                  <i data-lucide="zap" class="efficiency-icon"></i>
+                  <span class="efficiency-title">Análisis de Eficiencia Previo a la Selección</span>
+                </div>
+                <span id="det-badge-recommendation" class="badge badge-rec">Recomendación Activa</span>
+              </div>
+              
+              <div class="efficiency-comparison-grid">
+                <div class="efficiency-stat-card active-recommended" id="stat-card-lu">
+                  <div class="stat-method">Descomposición LU (PA = LU)</div>
+                  <div class="stat-complexity" id="det-complexity-lu">O(n³) = O(3³)</div>
+                  <div class="stat-ops" id="det-ops-lu">~14 operaciones elementales</div>
+                  <div class="stat-badge stat-badge-best" id="det-badge-lu">Más Eficiente</div>
+                </div>
+                <div class="efficiency-stat-card" id="stat-card-cof">
+                  <div class="stat-method">Expansión por Cofactores</div>
+                  <div class="stat-complexity" id="det-complexity-cof">O(n!) = O(3!)</div>
+                  <div class="stat-ops" id="det-ops-cof">~15 operaciones factoriales</div>
+                  <div class="stat-badge stat-badge-alt" id="det-badge-cof">Didáctico</div>
+                </div>
+              </div>
+
+              <div class="efficiency-justification" id="det-efficiency-verdict">
+                Para n = 3, ambos métodos son rápidos y exactos. LU empieza a requerir menos operaciones elementales que Cofactores, mientras que Cofactores permite visualizar el desarrollo formal por menores y Sarrus.
+              </div>
+            </div>
+
+            <!-- Selector de Método: LU vs Cofactores -->
+            <div class="solver-method-selector">
+              <div class="section-subtitle" style="margin-bottom: 0.35rem;">Seleccione el Método de Cálculo:</div>
+              <label class="radio-label">
+                <input type="radio" name="det-method" value="lu" checked onchange="actualizarPreferenciaMetodo()">
+                <span id="label-method-lu"><strong>Descomposición LU (PA = LU)</strong> — Triangulación con pivoteo parcial [O(n³)]</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="det-method" value="cofactores" onchange="actualizarPreferenciaMetodo()">
+                <span id="label-method-cof"><strong>Expansión por Cofactores (Laplace)</strong> — Desarrollo por fila/columna óptima [O(n!)]</span>
+              </label>
+            </div>
+
+            <button type="button" class="btn-primary btn-large" onclick="calcularDeterminanteUI()">
+              <i data-lucide="play" class="btn-icon"></i>
+              <span>Calcular Determinante |A| y Analizar Invertibilidad</span>
+            </button>
+
+            <!-- Barra de Herramientas y Ejemplos -->
+            <div class="card-footer-actions">
+              <div class="sample-actions">
+                <button type="button" class="btn-text" onclick="cargarEjemploDeterminante(2)">Ej. 2×2</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploDeterminante(3)">Ej. 3×3</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploDeterminante(4)">Ej. 4×4</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploDeterminante('singular')">Singular (|A|=0)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploDeterminante('triangular')">Triangular</button>
+              </div>
+              <button type="button" class="btn-clear" onclick="limpiarModuloDeterminante()" title="Limpiar todas las casillas">
+                <i data-lucide="trash-2" class="btn-icon"></i>
+                <span>Limpiar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tarjeta de Resultados -->
+          <div class="card card-result">
+            <div class="card-header">
+              <h3>Determinante, Invertibilidad y Desarrollo</h3>
+              <span id="det-badge-status" class="badge">Pendiente</span>
+            </div>
+            <div id="det-result-content" class="result-box">
+              <p class="placeholder-text">Configure la matriz cuadrada y presione "Calcular Determinante |A|" para obtener el valor escalar exacto, dictamen de invertibilidad y el procedimiento paso a paso.</p>
             </div>
           </div>
         </div>

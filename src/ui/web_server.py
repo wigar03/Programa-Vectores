@@ -38,6 +38,10 @@ from src.matrices.operaciones import (
     analizar_transpuesta_matriz,
 )
 from src.matrices.inversa import calcular_inversa_matriz
+from src.matrices.determinante import (
+    calcular_determinante,
+    analizar_eficiencia_determinante,
+)
 from src.ecuaciones.ecuacion_matricial import resolver_ecuacion_matricial
 
 
@@ -93,6 +97,10 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 self._handle_matrices_inversa(body)
             elif parsed.path == "/api/ecuaciones/resolver":
                 self._handle_ecuaciones_resolver(body)
+            elif parsed.path == "/api/matrices/determinante":
+                self._handle_matrices_determinante(body)
+            elif parsed.path == "/api/matrices/eficiencia-determinante":
+                self._handle_eficiencia_determinante(body)
             else:
                 self._send_json({"error": f"Ruta API no encontrada: {parsed.path}"}, status=404)
         except Exception as err:
@@ -323,6 +331,53 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             "solucion_dict": {k: serialize_fraction_or_str(v) for k, v in res.solucion_dict.items()},
             "pasos": pasos_serializables,
             "verificacion": res.verificacion_residual,
+        }
+        self._send_json(data)
+
+    def _handle_matrices_determinante(self, body):
+        A = body.get("A", [])
+        metodo = body.get("metodo", "lu")
+
+        res = calcular_determinante(A, metodo=metodo)
+
+        pasos_serializables = []
+        for p in res.pasos:
+            pasos_serializables.append({
+                "numero": p.numero,
+                "titulo": p.titulo,
+                "descripcion": p.descripcion,
+                "matriz_estado": p.matriz_estado,
+                "detalles": p.detalles,
+            })
+
+        data = {
+            "orden_n": res.orden_n,
+            "metodo": res.metodo,
+            "determinante": serialize_fraction_or_str(res.determinante),
+            "determinante_decimal": format_number(res.determinante, as_decimal=True, decimal_places=6),
+            "es_invertible": res.es_invertible,
+            "complejidad_teorica": res.complejidad_teorica,
+            "operaciones_estimadas": res.operaciones_estimadas,
+            "pasos": pasos_serializables,
+        }
+        self._send_json(data)
+
+    def _handle_eficiencia_determinante(self, body):
+        n = int(body.get("n", 3))
+        A = body.get("A", None)
+        analisis = analizar_eficiencia_determinante(A if A else n)
+
+        data = {
+            "orden_n": analisis.orden_n,
+            "ops_cofactores": analisis.ops_cofactores,
+            "complejidad_cofactores": analisis.complejidad_cofactores,
+            "ops_lu": analisis.ops_lu,
+            "complejidad_lu": analisis.complejidad_lu,
+            "metodo_recomendado": analisis.metodo_recomendado,
+            "metodo_recomendado_nombre": analisis.metodo_recomendado_nombre,
+            "justificacion": analisis.justificacion,
+            "insignia_cofactores": analisis.insignia_cofactores,
+            "insignia_lu": analisis.insignia_lu,
         }
         self._send_json(data)
 

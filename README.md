@@ -31,6 +31,7 @@ El presente proyecto integrador implementa un sistema computacional integral par
 3. **Operaciones matriciales fundamentales**: adición, sustracción, producto por escalar, multiplicación de matrices $A_{m \times n} \cdot B_{n \times p}$ y transpuesta $A^T$ con análisis de simetría y propiedades.
 4. **Cálculo de la inversa de una matriz $A^{-1}$**: siguiendo el procedimiento analítico formal (matriz aumentada $[A \mid I_n]$, fórmula $2 \times 2$, métodos de Gauss y Gauss-Jordan, detección de matrices singulares y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$).
 5. **Resolución computacional de ecuaciones matriciales** de la forma $Ax = b$ con clasificación completa según el Teorema de Rouché-Capelli e integración directa con el programa de eliminación de renglones desarrollado en la **Semana #3**.
+6. **Cálculo del determinante de matrices cuadradas $|A|$ en la interfaz interactiva**: implementación 100% Python estándar (sin librerías externas) integrada en el servidor web, que permite seleccionar entre **Expansión por Cofactores (Laplace)** y **Descomposición LU ($PA = LU$)**, evaluando e indicando dinámicamente la eficiencia computacional ($O(n!)$ vs $O(n^3)$) antes de la selección.
 
 ---
 
@@ -230,13 +231,78 @@ $$
 r = A \cdot x_{\mathrm{sol}} - b = 0
 $$
 
+### Módulo 6: Determinante de Matrices Cuadradas $|A|$ (Cofactores vs Descomposición LU)
+
+Este módulo implementa el cálculo exacto del determinante $|A|$ o $\det(A)$ para cualquier matriz cuadrada $A \in \mathcal{M}_{n \times n}(\mathbb{R})$ mediante una pestaña interactiva dedicada dentro del servidor web de la aplicación, desarrollada 100% en Python estándar (sin librerías prohibidas como NumPy, SciPy o rutinas de `math`):
+
+#### 1. Definición Formal y Significado Geométrico
+El determinante es un escalar único asociado a una matriz cuadrada que cuantifica el factor de dilatación o contracción del hipervolumen $n$-dimensional generado por los vectores fila o columna.
+- Para $n = 1$: $\det([a]) = a$.
+- Para $n = 2$: el valor absoluto $|\det(A)|$ representa el área orientada del paralelogramo en $\mathbb{R}^2$.
+- Para $n = 3$: $|\det(A)|$ representa el volumen orientado del paralelepípedo en $\mathbb{R}^3$.
+- Invertibilidad: $\det(A) \neq 0 \iff$ la matriz $A$ es no singular (invertible, rango completo $\mathrm{rg}(A) = n$). Si $\det(A) = 0$, la matriz es singular (filas linealmente dependientes, sin matriz inversa).
+
+#### 2. Método de Expansión por Cofactores (Teorema de Laplace)
+Para cualquier fila fija $i \in \{1, \dots, n\}$:
+
+$$
+\det(A) = \sum_{j=1}^n a_{ij} C_{ij} = \sum_{j=1}^n (-1)^{i+j} a_{ij} \det(M_{ij})
+$$
+
+Donde $C_{ij} = (-1)^{i+j} \det(M_{ij})$ es el cofactor del elemento $a_{ij}$, y $M_{ij}$ es la submatriz menor de orden $(n-1) \times (n-1)$ obtenida suprimiendo la fila $i$ y la columna $j$.
+
+- **Estrategia Óptima**: El algoritmo inspecciona sistemáticamente filas y columnas para seleccionar aquella con mayor cantidad de ceros, anulando términos y reduciendo la recursión.
+- **Complejidad Computacional**: $\mathcal{O}(n!)$ operaciones factoriales.
+  - Para $n = 2$: 2 multiplicaciones ($ad - bc$).
+  - Para $n = 3$: 6 multiplicaciones y sumas (regla de Sarrus).
+  - Para $n = 4$: 24 evaluaciones de submatrices $3 \times 3$ ($\approx 40$ operaciones).
+  - Para $n = 5$: 120 evaluaciones de submatrices ($\approx 205$ operaciones).
+  - Para $n = 8$: 40,320 evaluaciones.
+
+#### 3. Método de Descomposición LU con Pivoteo Parcial ($PA = LU$)
+Mediante eliminación gaussiana por renglones con pivoteo parcial (para máxima estabilidad exacta):
+
+$$
+P \cdot A = L \cdot U
+$$
+
+Donde:
+- $P$ es la matriz de permutación con $s$ intercambios de filas ($\det(P) = (-1)^s$).
+- $L$ es triangular inferior unitaria con unos en la diagonal ($\det(L) = 1$) y multiplicadores $m_{ik} = \frac{u_{ik}}{u_{kk}}$ debajo de la diagonal.
+- $U$ es la matriz triangular superior con los pivotes resultantes en su diagonal principal.
+
+Aplicando las propiedades del determinante:
+
+$$
+\det(P \cdot A) = \det(L \cdot U) \implies (-1)^s \det(A) = 1 \cdot \left(\prod_{i=1}^n u_{ii}\right)
+$$
+
+$$
+\det(A) = (-1)^s \prod_{i=1}^n u_{ii}
+$$
+
+Si en alguna columna no existe ningún pivote no nulo disponible, la matriz tiene rango deficiente ($\mathrm{rg}(A) < n$) y se concluye inmediatamente que $\det(A) = 0$.
+
+- **Complejidad Computacional**: $\mathcal{O}(n^3)$ operaciones polinomiales ($\approx \frac{2}{3}n^3$ flops).
+  - Para $n = 2$: $\approx 2$ operaciones.
+  - Para $n = 3$: $\approx 14$ operaciones.
+  - Para $n = 4$: $\approx 36$ operaciones.
+  - Para $n = 5$: $\approx 75$ operaciones.
+  - Para $n = 8$: $\approx 320$ operaciones.
+
+#### 4. Análisis Comparativo de Eficiencia Previo a la Selección
+Cumpliendo la especificación requerida, la aplicación evalúa e informa **antes de que el usuario elija el método** cuál es el más eficiente según la dimensión $n$ actual:
+- **Para $n \le 2$**: Ambos métodos presentan un costo computacional mínimo e idéntico. Cofactores ofrece la fórmula analítica directa inmediata ($ad - bc$).
+- **Para $n = 3$**: Ambos métodos son rápidos y exactos. Cofactores es didáctico (desarrollo por Sarrus / Laplace) mientras que LU presenta una leve ventaja en operaciones elementales.
+- **Para $n \ge 4$**: **La Descomposición LU es drásticamente más eficiente.** La complejidad polinomial $\mathcal{O}(n^3)$ supera exponencialmente a la complejidad factorial $\mathcal{O}(n!)$. Para $n = 5$, Cofactores requiere $\approx 120$ evaluaciones frente a solo $\approx 75$ operaciones elementales en LU; para $n = 8$, Cofactores exigiría más de 40,000 llamadas recursivas frente a solo 320 operaciones en LU.
+
 ---
 
 ## 4. Estructura del Código
 
 ```text
 Programa Vectores/
-├── main.py                         # Punto de entrada principal con selector y lanzador web
+├── main.py                         # Punto de entrada principal con selector (--gui o web)
 ├── README.md                       # Documentación institucional completa
 ├── .gitignore                      # Exclusiones de control de versiones
 ├── src/
@@ -246,16 +312,17 @@ Programa Vectores/
 │   ├── vectores/                   # Módulo 1 y evaluación de combinaciones lineales
 │   │   ├── operaciones.py          # Suma, resta, escalar, producto punto y norma
 │   │   └── combinacion_lineal.py   # Resolución de c_1*v_1 + ... + c_k*v_k = b
-│   ├── matrices/                   # Módulo 3 y 4: Operaciones matriciales e inversa
+│   ├── matrices/                   # Módulos 3, 4 y 6: Operaciones, inversa y determinantes
 │   │   ├── operaciones.py          # Suma, resta, escalar, producto A * B y transpuesta A^T
-│   │   └── inversa.py              # Inversa A^(-1) por Gauss / Gauss-Jordan y verificación dual
+│   │   ├── inversa.py              # Inversa A^(-1) por Gauss / Gauss-Jordan y verificación dual
+│   │   └── determinante.py         # Determinantes exactos (Cofactores vs LU) y análisis de eficiencia
 │   ├── solver/                     # Módulo del solucionador y enlace
 │   │   ├── gauss_solver.py         # Motor Gauss / Gauss-Jordan paso a paso
 │   │   └── anterior_programa.py    # Invocación del programa de la Semana #3
 │   ├── ecuaciones/                 # Módulo 5: Ecuaciones matriciales
 │   │   └── ecuacion_matricial.py   # Resolución computacional y residuo de Ax = b
 │   └── ui/                         # Interfaz web de usuario de alta estética
-│       ├── web_server.py           # Servidor local estándar en Python (cero dependencias)
+│       ├── web_server.py           # Servidor local estándar en Python (cero dependencias externas)
 │       └── web/                    # Frontend SPA moderno (HTML5, CSS, JS reactivo, Modo Claro/Oscuro)
 │           ├── index.html          # Estructura semántica accesible con iconografía Lucide
 │           ├── styles.css          # Paleta visual minimalista y diseño responsivo
@@ -265,6 +332,7 @@ Programa Vectores/
     ├── test_vectores.py            # Tests de operaciones vectoriales
     ├── test_matrices.py            # Tests de álgebra de matrices
     ├── test_inversa.py             # Tests de matriz inversa y transpuesta
+    ├── test_determinante.py        # Tests de determinantes (1x1 a 4x4, singularidad y eficiencia)
     ├── test_combinacion_lineal.py  # Tests de combinación lineal (SCD, SCI, SI)
     ├── test_ecuaciones.py          # Tests de Ax = b y compatibilidad
     └── test_api_latex.py           # Tests de integración API y formateo matemático
@@ -275,11 +343,11 @@ Programa Vectores/
 ## 5. Instrucciones de Instalación y Uso
 
 ### Prerrequisitos
-- Python 3.8 o superior instalado en el sistema.
-- **Sin necesidad de instalar paquetes externos vía `pip`**: el programa funciona 100% con la biblioteca estándar.
+- Python 3.8 o superior instalado en el sistema (compatible con `python` o `py`).
+- **Sin necesidad de instalar paquetes externos vía `pip`**: el programa funciona 100% con la biblioteca estándar (`fractions`, `http.server`, etc.).
 
-### 1. Ejecutar la Interfaz Web Interactiva
-Inicia la aplicación moderna con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y botones de reseteo:
+### 1. Ejecutar la Aplicación Web Interactiva
+Inicia la aplicación web SPA con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y todos los 6 módulos integrados (Vectores, Combinación Lineal, Matrices, Inversa, Ax = b y Determinante):
 ```bash
 python main.py
 ```
@@ -292,7 +360,7 @@ python main.py --no-browser     # Iniciar servidor sin abrir navegador automáti
 ```
 
 ### 2. Ejecutar las Pruebas Unitarias Automatizadas
-El proyecto incluye una suite de **49 pruebas unitarias y de integración** que validan la exactitud de cada algoritmo y la fidelidad matemática de las respuestas:
+El proyecto incluye una suite completa de **60 pruebas unitarias y de integración** que validan la exactitud de cada algoritmo y la fidelidad matemática de las respuestas:
 ```bash
 python -m unittest discover tests -v
 ```
@@ -332,3 +400,4 @@ El desarrollo del proyecto se estructuró e integró cronológicamente mediante 
 27. `f85d734` - `test: añadir suite exhaustiva de pruebas unitarias para inversa y transpuesta`: Suite de 49 pruebas unitarias herméticas incluyendo servidor de pruebas en proceso.
 28. `b9e7ea7` - `docs(readme): documentar teoria de matriz inversa, transpuesta y actualizar historial`: Documentación detallada de matriz inversa, transpuesta, actualización de árbol de archivos y registro histórico de 28 commits.
 29. `4f2699a` - `fix(latex): corregir formato latex en verificacion y propiedades, y suprimir referencias externas`: Delimitación estricta de expresiones matemáticas en KaTeX `$ ... $` para comprobación dual $A \cdot A^{-1} = I_n$, propiedades de transpuesta y supresión total de menciones a documentos de referencia.
+30. `feat(determinantes)` - `feat(determinantes): integrar modulo web interactivo de determinantes por cofactores y LU`: Motor de determinantes 100% Python estándar en $\mathbb{Q}$ (sin librerías prohibidas), panel interactivo de evaluación previa de eficiencia ($O(n!)$ vs $O(n^3)$), nueva pestaña SPA en servidor web con renderizado KaTeX y 11 nuevas pruebas unitarias (60 tests totales).

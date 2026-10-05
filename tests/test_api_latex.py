@@ -226,6 +226,36 @@ class TestApiLatexFormatting(unittest.TestCase):
         for paso in res["pasos"]:
             self.assertIn("$", paso["title"])
 
+    def test_determinante_api_lu_y_cofactores(self):
+        # Probar cálculo de determinante 3x3 por LU
+        A = [["1", "2", "3"], ["0", "1", "4"], ["5", "6", "0"]]
+        res_lu = self.post_json("/api/matrices/determinante", {
+            "A": A,
+            "metodo": "lu"
+        })
+        self.assertEqual(res_lu["determinante"], "1")
+        self.assertTrue(res_lu["es_invertible"])
+        self.assertEqual(res_lu["orden_n"], 3)
+        self.assertGreater(len(res_lu["pasos"]), 0)
+
+        # Probar cálculo por cofactores
+        res_cof = self.post_json("/api/matrices/determinante", {
+            "A": A,
+            "metodo": "cofactores"
+        })
+        self.assertEqual(res_cof["determinante"], "1")
+        self.assertTrue(res_cof["es_invertible"])
+
+    def test_eficiencia_determinante_api(self):
+        # Probar endpoint de análisis de eficiencia previo
+        res_ef = self.post_json("/api/matrices/eficiencia-determinante", {
+            "n": 4
+        })
+        self.assertEqual(res_ef["orden_n"], 4)
+        self.assertEqual(res_ef["metodo_recomendado"], "lu")
+        self.assertIn("O(n!)", res_ef["complejidad_cofactores"])
+        self.assertIn("O(n³)", res_ef["complejidad_lu"])
+
 
 if __name__ == "__main__":
     unittest.main()

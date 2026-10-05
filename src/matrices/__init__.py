@@ -17,6 +17,15 @@ from src.matrices.inversa import (
     calcular_inversa_matriz,
     ResultadoInversa,
 )
+from src.matrices.determinante import (
+    calcular_determinante,
+    calcular_determinante_cofactores,
+    calcular_determinante_lu,
+    analizar_eficiencia_determinante,
+    ResultadoDeterminante,
+    AnalisisEficiencia,
+    PasoDeterminante,
+)
 
 __all__ = [
     "suma_matrices",
@@ -30,4 +39,12 @@ __all__ = [
     "obtener_dimensiones_matriz",
     "calcular_inversa_matriz",
     "ResultadoInversa",
+    "calcular_determinante",
+    "calcular_determinante_cofactores",
+    "calcular_determinante_lu",
+    "analizar_eficiencia_determinante",
+    "ResultadoDeterminante",
+    "AnalisisEficiencia",
+    "PasoDeterminante",
 ]
+
