@@ -360,7 +360,7 @@ python main.py --no-browser     # Iniciar servidor sin abrir navegador automáti
 ```
 
 ### 2. Ejecutar las Pruebas Unitarias Automatizadas
-El proyecto incluye una suite completa de **60 pruebas unitarias y de integración** que validan la exactitud de cada algoritmo y la fidelidad matemática de las respuestas:
+El proyecto incluye una suite completa de **62 pruebas unitarias y de integración** que validan la exactitud de cada algoritmo y la fidelidad matemática de las respuestas:
 ```bash
 python -m unittest discover tests -v
 ```
@@ -399,6 +399,7 @@ El desarrollo del proyecto se estructuró e integró cronológicamente mediante 
 26. `c9bfd0c` - `feat(ui): integrar interfaz interactiva para matriz inversa, transpuesta y verificacion KaTeX`: Nueva pestaña SPA para cálculo de inversa $A^{-1}$, selección de métodos (Gauss / Gauss-Jordan), presets interactivos y renderizado matemático formal.
 27. `f85d734` - `test: añadir suite exhaustiva de pruebas unitarias para inversa y transpuesta`: Suite de 49 pruebas unitarias herméticas incluyendo servidor de pruebas en proceso.
 28. `b9e7ea7` - `docs(readme): documentar teoria de matriz inversa, transpuesta y actualizar historial`: Documentación detallada de matriz inversa, transpuesta, actualización de árbol de archivos y registro histórico de 28 commits.
-29. `4f2699a` - `fix(latex): corregir formato latex en verificacion y propiedades, y suprimir referencias externas`: Delimitación estricta de expresiones matemáticas en KaTeX `$ ... $` para comprobación dual $A \cdot A^{-1} = I_n$, propiedades de transpuesta y supresión total de menciones a documentos de referencia.
+29. `8698bc4` - `fix(latex): corregir delimitadores KaTeX en verificacion y propiedades, y suprimir referencias externas`: Delimitación estricta de expresiones matemáticas en KaTeX `$ ... $` para comprobación dual $A \cdot A^{-1} = I_n$, propiedades de transpuesta y supresión total de menciones a documentos de referencia.
 30. `de7619f` - `feat(determinantes): integrar modulo web interactivo de determinantes por cofactores y LU`: Motor de determinantes 100% Python estándar en $\mathbb{Q}$ (sin librerías prohibidas), panel interactivo de evaluación previa de eficiencia ($O(n!)$ vs $O(n^3)$), nueva pestaña SPA en servidor web con renderizado KaTeX y 11 nuevas pruebas unitarias (60 tests totales).
-31. `0f90367` - `fix(latex): corregir delimitadores KaTeX y renderizado de dictamen teorico en determinantes`: Delimitación formal de expresiones matemáticas `$ ... $` en pasos de cofactores y triangulación LU, y renderizado dinámico con KaTeX del dictamen de invertibilidad.
+31. `f80f4ef` - `fix(latex): corregir delimitadores KaTeX y renderizado de dictamen teorico en determinantes`: Delimitación formal de expresiones matemáticas `$ ... $` en pasos de cofactores y triangulación LU, renderizado dinámico con KaTeX del dictamen de invertibilidad e integración de pruebas unitarias automatizadas (62 tests totales).
+32. `docs(code): estructurar y delimitar con comentarios los apartados del programa y transpuesta`: Inclusión de comentarios de bloque uniformes y prominentes que delimitan con claridad el inicio de cada apartado (Vectores, Combinación Lineal, Matrices Básicas, Sub-apartado de Transpuesta, Inversa, Ecuaciones Matriciales y Determinantes) en backend, frontend y módulos de cálculo.

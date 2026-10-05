@@ -78,6 +78,14 @@ from src.core.arithmetic import (
 
 
 # ==============================================================================
+# ==============================================================================
+# APARTADO 6: DETERMINANTE DE MATRICES CUADRADAS |A|
+# Algoritmos: Expansión de Laplace por Cofactores vs Descomposición LU (PA = LU)
+# Análisis: Complejidad O(n!) vs O(n³), Recomendación Óptima y Dictamen Invertibilidad
+# ==============================================================================
+# ==============================================================================
+
+# ==============================================================================
 # BLOQUE 1: ESTRUCTURAS DE DATOS PARA RESULTADOS Y PASOS
 # ==============================================================================
 

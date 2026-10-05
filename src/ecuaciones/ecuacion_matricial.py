@@ -51,6 +51,16 @@ from src.solver.gauss_solver import GaussResult, Step
 from src.solver.anterior_programa import resolver_sistema_con_programa_anterior
 
 
+# ==============================================================================
+# ==============================================================================
+# APARTADO 5: ECUACIONES MATRICIALES Ax = b
+# Solucionador: Eliminación Gaussiana y Gauss-Jordan con clasificación Rouché-Capelli:
+# - Sistema Compatible Determinado (SCD): Solución única y residuo nulo r = Ax - b = 0
+# - Sistema Compatible Indeterminado (SCI): Parametrización con variables libres
+# - Sistema Incompatible (SI): Demostración analítica de inconsistencia (0 = c)
+# ==============================================================================
+# ==============================================================================
+
 class ResultadoEcuacionMatricial:
     """
     Estructura que recopila el análisis integral de la ecuación matricial Ax = b.

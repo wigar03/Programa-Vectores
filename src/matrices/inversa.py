@@ -65,6 +65,14 @@ from src.matrices.operaciones import (
 )
 
 
+# ==============================================================================
+# ==============================================================================
+# APARTADO 4: INVERSA DE UNA MATRIZ A⁻¹
+# Algoritmos: Reducción por Renglones [A | I_n] ~ [I_n | A⁻¹] (Gauss y Gauss-Jordan)
+# Teoremas: Inversión 2×2, Detección de Singularidad y Doble Verificación A·A⁻¹ = I_n
+# ==============================================================================
+# ==============================================================================
+
 class ResultadoInversa:
     """
     Estructura que encapsula el resultado completo del cálculo de la inversa A^(-1).

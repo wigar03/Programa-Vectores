@@ -66,6 +66,14 @@ def validar_igualdad_dimension(u: List[Fraction], v: List[Fraction], operacion: 
     return dim_u
 
 
+# ==============================================================================
+# ==============================================================================
+# APARTADO 1: OPERACIONES CON VECTORES EN R^n
+# Operaciones: Suma (u + v), Resta (u - v), Multiplicación por Escalar (c · u),
+# Producto Punto Euclídeo (u · v) y Norma / Magnitud Vectorial (||u||, ||u||²)
+# ==============================================================================
+# ==============================================================================
+
 def suma_vectores(u_in: Any, v_in: Any) -> List[Fraction]:
     """
     Calcula la suma algebraica de dos vectores en R^n: w = u + v.

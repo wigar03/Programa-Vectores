@@ -239,9 +239,13 @@ function mostrarToast(mensaje, duracion = 3000) {
   }, duracion);
 }
 
-/* ==========================================================================
-   4. Módulo de Vectores en R^n (Responsivo hasta n = 20)
-   ========================================================================== */
+// =============================================================================
+// =============================================================================
+// APARTADO 1: OPERACIONES CON VECTORES EN R^n
+// Operaciones: Suma (u + v), Resta (u - v), Producto por Escalar (c · u),
+// Producto Punto Euclídeo (u · v) y Norma / Magnitud Vectorial (||u||, ||u||²)
+// =============================================================================
+// =============================================================================
 let vectorDim = 3;
 
 function inicializarModuloVectores() {
@@ -452,9 +456,13 @@ function renderizarResultadoVectorUI(calc) {
   refrescarIconosLucide();
 }
 
-/* ==========================================================================
-   5. Módulo de Combinación Lineal
-   ========================================================================== */
+// =============================================================================
+// =============================================================================
+// APARTADO 2: EVALUACIÓN DE COMBINACIÓN LINEAL Y SUBESPACIOS
+// Problema: c₁·v₁ + c₂·v₂ + ... + cₖ·vₖ = b en R^n
+// Solucionador: Eliminación Gaussiana, Rouché-Capelli (SCD / SCI / SI) y comprobación
+// =============================================================================
+// =============================================================================
 let combN = 2;
 let combK = 2;
 
@@ -783,9 +791,13 @@ function renderizarResultadoCombinacionUI(calc) {
   refrescarIconosLucide();
 }
 
-/* ==========================================================================
-   6. Módulo de Matrices Básicas
-   ========================================================================== */
+// =============================================================================
+// =============================================================================
+// APARTADO 3: OPERACIONES MATRICIALES BÁSICAS
+// Operaciones: Suma (A + B), Resta (A - B), Producto por Escalar (k · A),
+// Multiplicación Matricial (A · B) y Transpuesta de Matrices (A^T, B^T)
+// =============================================================================
+// =============================================================================
 function inicializarModuloMatrices() {
   renderizarMatrizA();
   renderizarMatrizB();
@@ -994,6 +1006,10 @@ async function operarMatrices(operacion) {
       resultBox.appendChild(stepsWrapper);
     }
 
+    // -------------------------------------------------------------------------
+    // SUB-APARTADO: RESULTADOS Y PROPIEDADES DE LA TRANSPUESTA (A^T o B^T)
+    // Muestra: Análisis dimensional, simetría, traza y mapeo de filas a columnas
+    // -------------------------------------------------------------------------
     if (data.propiedades && data.propiedades.length > 0) {
       const propsWrapper = document.createElement("div");
       propsWrapper.className = "steps-container";
@@ -1044,9 +1060,13 @@ async function operarMatrices(operacion) {
   }
 }
 
-/* ==========================================================================
-   7. Módulo de Inversa de una Matriz A⁻¹ (Unidad 2.2 UAM)
-   ========================================================================== */
+// =============================================================================
+// =============================================================================
+// APARTADO 4: INVERSA DE UNA MATRIZ A⁻¹
+// Algoritmos: Reducción por Renglones [A | I_n] ~ [I_n | A⁻¹] (Gauss / Gauss-Jordan)
+// Teoremas: Inversión 2×2, Detección de Singularidad y Doble Verificación A·A⁻¹ = I_n
+// =============================================================================
+// =============================================================================
 let invN = 2;
 
 function inicializarModuloInversa() {
@@ -1360,9 +1380,15 @@ async function calcularInversaUI() {
   }
 }
 
-/* ==========================================================================
-   8. Módulo de Ecuaciones Matriciales Ax = b
-   ========================================================================== */
+// =============================================================================
+// =============================================================================
+// APARTADO 5: ECUACIONES MATRICIALES Ax = b
+// Solucionador: Eliminación Gaussiana y Gauss-Jordan con clasificación Rouché-Capelli:
+// - Sistema Compatible Determinado (SCD): Solución única y comprobación de residuo cero
+// - Sistema Compatible Indeterminado (SCI): Parametrización en función de variables libres
+// - Sistema Incompatible (SI): Demostración analítica de inconsistencia (0 = c)
+// =============================================================================
+// =============================================================================
 let eqM = 3;
 let eqN = 3;
 
@@ -1597,9 +1623,13 @@ async function resolverEcuacionMatricialUI() {
   }
 }
 
-/* ==========================================================================
-   6. MÓDULO 6: CÁLCULO DE DETERMINANTES |A| (COFACTORES VS LU)
-   ========================================================================== */
+// =============================================================================
+// =============================================================================
+// APARTADO 6: DETERMINANTE DE MATRICES CUADRADAS |A|
+// Algoritmos: Expansión de Laplace por Cofactores vs Descomposición / Eliminación LU
+// Análisis: Complejidad Temporal O(n!) vs O(n³), Dictamen de Invertibilidad y Regla de Sarrus
+// =============================================================================
+// =============================================================================
 
 function inicializarModuloDeterminante() {
   const container = document.getElementById("det-matrix-grid");

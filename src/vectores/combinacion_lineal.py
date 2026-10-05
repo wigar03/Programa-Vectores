@@ -56,6 +56,14 @@ from src.solver.gauss_solver import solve_gaussian_elimination, GaussResult, Ste
 from src.vectores.operaciones import suma_vectores, multiplicar_escalar_vector
 
 
+# ==============================================================================
+# ==============================================================================
+# APARTADO 2: EVALUACIÓN DE COMBINACIÓN LINEAL Y SUBESPACIOS
+# Problema: Determinar si b pertenece a gen(S) resolviendo c₁·v₁ + ... + cₖ·vₖ = b
+# Algoritmo: Matriz aumentada [V | b], eliminación gaussiana y Rouché-Capelli
+# ==============================================================================
+# ==============================================================================
+
 class ResultadoCombinacionLineal:
     """
     Estructura exhaustiva que documenta el análisis algebraico de combinación lineal.

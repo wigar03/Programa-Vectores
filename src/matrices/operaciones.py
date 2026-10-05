@@ -85,6 +85,14 @@ def validar_compatibilidad_suma(
     return (m_A, n_A)
 
 
+# ==============================================================================
+# ==============================================================================
+# APARTADO 3: OPERACIONES MATRICIALES BÁSICAS
+# Operaciones: Suma (A + B), Resta (A - B), Producto por Escalar (k · A)
+# y Multiplicación de Matrices (A · B) mediante producto renglón por columna
+# ==============================================================================
+# ==============================================================================
+
 def suma_matrices(A_in: Any, B_in: Any) -> List[List[Fraction]]:
     """
     Calcula la suma matricial C = A + B.
@@ -245,6 +253,15 @@ def multiplicar_matrices(A_in: Any, B_in: Any) -> Tuple[List[List[Fraction]], Li
         
     return (C, pasos_detalle)
 
+
+# ==============================================================================
+# ==============================================================================
+# SUB-APARTADO: TRANSPUESTA DE UNA MATRIZ (A^T, B^T)
+# Operaciones: Cálculo de la matriz transpuesta (A^T)_ji = a_ij, intercambio de
+# dimensiones (m x n) -> (n x m), análisis de simetría (A = A^T),
+# antisimetría (A = -A^T), traza invariante Tr(A) y propiedades algebraicas
+# ==============================================================================
+# ==============================================================================
 
 def transpuesta_matriz(A_in: Any) -> List[List[Fraction]]:
     """

@@ -106,6 +106,13 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
         except Exception as err:
             self._send_json({"error": str(err)}, status=400)
 
+    # ==============================================================================
+    # ==============================================================================
+    # APARTADO 1: OPERACIONES CON VECTORES EN R^n
+    # Operaciones: Suma (u + v), Resta (u - v), Multiplicación por Escalar (c · u),
+    # Producto Punto Euclídeo (u · v) y Norma / Magnitud Vectorial (||u||, ||u||²)
+    # ==============================================================================
+    # ==============================================================================
     def _handle_vectores_operar(self, body):
         op = body.get("operacion", "")
         u = [parse_number(x) for x in body.get("u", [])]
@@ -164,6 +171,13 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
 
         self._send_json(data)
 
+    # ==============================================================================
+    # ==============================================================================
+    # APARTADO 2: EVALUACIÓN DE COMBINACIÓN LINEAL Y SUBESPACIOS
+    # Problema: c₁·v₁ + c₂·v₂ + ... + cₖ·vₖ = b en R^n
+    # Algoritmo: Eliminación Gaussiana y Clasificación Rouché-Capelli
+    # ==============================================================================
+    # ==============================================================================
     def _handle_vectores_combinacion(self, body):
         vectores = body.get("vectores", [])
         b = body.get("b", [])
@@ -190,6 +204,13 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
         }
         self._send_json(data)
 
+    # ==============================================================================
+    # ==============================================================================
+    # APARTADO 3: OPERACIONES MATRICIALES BÁSICAS
+    # Operaciones: Suma (A + B), Resta (A - B), Multiplicación por Escalar (k · A),
+    # Producto Matricial (A · B) y Transpuesta de Matrices (A^T, B^T)
+    # ==============================================================================
+    # ==============================================================================
     def _handle_matrices_operar(self, body):
         op = body.get("operacion", "")
         A = body.get("A", [])
@@ -233,6 +254,11 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 ),
                 "pasos_multiplicacion": pasos_mult,
             }
+        # ----------------------------------------------------------------------
+        # SUB-APARTADO: TRANSPUESTA DE UNA MATRIZ (A^T y B^T)
+        # Análisis: Mapeo de filas a columnas, simetría, antisimetría, traza
+        # y propiedades algebraicas fundamentales
+        # ----------------------------------------------------------------------
         elif op == "transpuesta_a":
             analisis = analizar_transpuesta_matriz(A)
             data = {
@@ -270,6 +296,13 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
 
         self._send_json(data)
 
+    # ==============================================================================
+    # ==============================================================================
+    # APARTADO 4: INVERSA DE UNA MATRIZ A⁻¹
+    # Métodos: Reducción por Renglones [A | I_n] ~ [I_n | A⁻¹] (Gauss / Gauss-Jordan)
+    # Verificación Dual: A · A⁻¹ = I_n y A⁻¹ · A = I_n con Residuo Cero
+    # ==============================================================================
+    # ==============================================================================
     def _handle_matrices_inversa(self, body):
         A = body.get("A", [])
         metodo = body.get("metodo", "gauss_jordan")
@@ -306,6 +339,13 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
         }
         self._send_json(data)
 
+    # ==============================================================================
+    # ==============================================================================
+    # APARTADO 5: ECUACIONES MATRICIALES Ax = b
+    # Métodos: Eliminación Gaussiana y Gauss-Jordan con Clasificación Rouché-Capelli
+    # Casos: Solución Única (SCD), Infinitas Soluciones (SCI) o Inconsistencia (SI)
+    # ==============================================================================
+    # ==============================================================================
     def _handle_ecuaciones_resolver(self, body):
         A = body.get("A", [])
         b = body.get("b", [])
@@ -334,6 +374,13 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
         }
         self._send_json(data)
 
+    # ==============================================================================
+    # ==============================================================================
+    # APARTADO 6: DETERMINANTE DE MATRICES CUADRADAS |A|
+    # Algoritmos: Expansión de Laplace por Cofactores vs Descomposición LU (PA = LU)
+    # Análisis: Complejidad O(n!) vs O(n³), Recomendación Óptima y Dictamen Invertibilidad
+    # ==============================================================================
+    # ==============================================================================
     def _handle_matrices_determinante(self, body):
         A = body.get("A", [])
         metodo = body.get("metodo", "lu")
