@@ -1886,36 +1886,11 @@ async function calcularDeterminanteUI() {
       latexPrincipal = `\\det(A) = |A| = ${detFmtLatex} \\approx ${detDec}`;
     }
 
-    let dictamenHtml = "";
-    if (data.es_invertible) {
-      dictamenHtml = `
-        <div class="verification-box" style="margin-top: 0.85rem; background: rgba(5, 150, 105, 0.05); border-color: rgba(5, 150, 105, 0.25);">
-          <h4 style="color: var(--accent-emerald);">✓ Matriz No Singular (Invertible):</h4>
-          <p>• Como $\\det(A) \\neq 0$, la matriz posee <strong>rango completo</strong>: $\\mathrm{rg}(A) = ${data.orden_n}$.</p>
-          <p>• Sus columnas y filas son <strong>linealmente independientes (L.I.)</strong>.</p>
-          <p>• <strong>Existe matriz inversa única</strong> $A^{-1}$ tal que $A \\cdot A^{-1} = I_{${data.orden_n}}$.</p>
-          <p>• La ecuación $A\\vec{x} = \\vec{b}$ tiene <strong>solución única</strong> $\\vec{x} = A^{-1}\\vec{b}$ para cualquier vector $\\vec{b}$.</p>
-          <p>• Método aplicado: <strong>${data.metodo.toUpperCase()}</strong> (${data.complejidad_teorica} — ~${data.operaciones_estimadas.toLocaleString()} operaciones).</p>
-        </div>
-      `;
-    } else {
-      dictamenHtml = `
-        <div class="verification-box" style="margin-top: 0.85rem; background: rgba(225, 29, 72, 0.05); border-color: rgba(225, 29, 72, 0.25);">
-          <h4 style="color: var(--accent-rose);">✗ Matriz Singular (No Invertible):</h4>
-          <p>• Como $\\det(A) = 0$, la matriz tiene <strong>rango deficiente</strong>: $\\mathrm{rg}(A) < ${data.orden_n}$.</p>
-          <p>• Sus filas y columnas son <strong>linealmente dependientes (L.D.)</strong>.</p>
-          <p>• <strong>No existe matriz inversa</strong> ($\nexists A^{-1}$).</p>
-          <p>• El sistema homogéneo $A\\vec{x} = \\vec{0}$ admite soluciones no triviales (infinitas soluciones).</p>
-          <p>• Método aplicado: <strong>${data.metodo.toUpperCase()}</strong> (${data.complejidad_teorica}).</p>
-        </div>
-      `;
-    }
-
     let htmlContenido = `
       <div class="latex-equation-card">
         <div class="latex-header">Valor Escalar del Determinante |A|:</div>
         <div id="det-latex-target" class="latex-display-box"></div>
-        ${dictamenHtml}
+        <div id="det-dictamen-box"></div>
       </div>
     `;
 
@@ -1933,6 +1908,63 @@ async function calcularDeterminanteUI() {
 
     // Renderizar KaTeX principal
     renderLatexElement(document.getElementById("det-latex-target"), latexPrincipal);
+
+    // Renderizar dictamen teórico de invertibilidad con KaTeX
+    const dictamenBox = document.getElementById("det-dictamen-box");
+    if (dictamenBox) {
+      dictamenBox.className = "verification-box";
+      dictamenBox.style.marginTop = "0.85rem";
+
+      if (data.es_invertible) {
+        dictamenBox.style.background = "rgba(5, 150, 105, 0.05)";
+        dictamenBox.style.borderColor = "rgba(5, 150, 105, 0.25)";
+
+        const h4 = document.createElement("h4");
+        h4.style.color = "var(--accent-emerald)";
+        h4.innerText = "✓ Matriz No Singular (Invertible):";
+        dictamenBox.appendChild(h4);
+
+        const lineas = [
+          `Como $\\det(A) \\neq 0$, la matriz posee rango completo: $\\operatorname{rg}(A) = ${data.orden_n}$.`,
+          "Sus columnas y filas son linealmente independientes (L.I.).",
+          `Existe matriz inversa única $A^{-1}$ tal que $A \\cdot A^{-1} = I_{${data.orden_n}}$.`,
+          `La ecuación $A\\vec{x} = \\vec{b}$ tiene solución única $\\vec{x} = A^{-1}\\vec{b}$ para cualquier vector $\\vec{b}$.`,
+          `Método aplicado: ${data.metodo.toUpperCase()} (${data.complejidad_teorica} — ~${data.operaciones_estimadas.toLocaleString()} operaciones).`
+        ];
+
+        lineas.forEach(txt => {
+          const row = document.createElement("div");
+          row.style.margin = "0.25rem 0";
+          row.style.lineHeight = "1.6";
+          renderMixedLatex(row, `• ${txt}`);
+          dictamenBox.appendChild(row);
+        });
+      } else {
+        dictamenBox.style.background = "rgba(225, 29, 72, 0.05)";
+        dictamenBox.style.borderColor = "rgba(225, 29, 72, 0.25)";
+
+        const h4 = document.createElement("h4");
+        h4.style.color = "var(--accent-rose)";
+        h4.innerText = "✗ Matriz Singular (No Invertible):";
+        dictamenBox.appendChild(h4);
+
+        const lineas = [
+          `Como $\\det(A) = 0$, la matriz tiene rango deficiente: $\\operatorname{rg}(A) < ${data.orden_n}$.`,
+          "Sus filas y columnas son linealmente dependientes (L.D.).",
+          "No existe matriz inversa ($\\nexists A^{-1}$).",
+          "El sistema homogéneo $A\\vec{x} = \\vec{0}$ admite soluciones no triviales (infinitas soluciones).",
+          `Método aplicado: ${data.metodo.toUpperCase()} (${data.complejidad_teorica}).`
+        ];
+
+        lineas.forEach(txt => {
+          const row = document.createElement("div");
+          row.style.margin = "0.25rem 0";
+          row.style.lineHeight = "1.6";
+          renderMixedLatex(row, `• ${txt}`);
+          dictamenBox.appendChild(row);
+        });
+      }
+    }
 
     // Renderizar pasos
     if (data.pasos && data.pasos.length > 0) {

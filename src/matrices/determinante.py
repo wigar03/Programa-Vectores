@@ -316,7 +316,7 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
         if orden_actual == 1:
             val = mat[0][0]
             lineas_explicativas.append(
-                f"Matriz 1×1 [{format_number(val)}]: Determinante directo = {format_number(val)}"
+                f"Matriz $1 \\times 1$ $[{format_number(val)}]$: $\\det(A) = {format_number(val)}$"
             )
             return val, lineas_explicativas
 
@@ -328,10 +328,10 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
             prod_diag_secundaria = b * c
             det_2x2 = prod_diag_principal - prod_diag_secundaria
             expr = (
-                f"det {etiqueta_submatriz} = ({format_number(a)})·({format_number(d)}) - "
-                f"({format_number(b)})·({format_number(c)}) = "
+                f"$\\det({etiqueta_submatriz}) = ({format_number(a)}) \\cdot ({format_number(d)}) - "
+                f"({format_number(b)}) \\cdot ({format_number(c)}) = "
                 f"{format_number(prod_diag_principal)} - ({format_number(prod_diag_secundaria)}) = "
-                f"{format_number(det_2x2)}"
+                f"{format_number(det_2x2)}$"
             )
             lineas_explicativas.append(expr)
             return det_2x2, lineas_explicativas
@@ -382,8 +382,8 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
 
             if elemento == 0:
                 lineas_explicativas.append(
-                    f"  • Elemento a_{{{fila_idx + 1},{col_idx + 1}}} = 0: "
-                    f"Término anulado 0 · C_{{{fila_idx + 1},{col_idx + 1}}} = 0 (se omite cálculo del menor)."
+                    f"Elemento $a_{{{fila_idx + 1},{col_idx + 1}}} = 0$: "
+                    f"Término nulo $0 \\cdot C_{{{fila_idx + 1},{col_idx + 1}}} = 0$ (se omite el cálculo del menor)."
                 )
                 terminos_suma_str.append("0")
                 continue
@@ -397,20 +397,20 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
             suma_acumulada += termino_valor
 
             lineas_explicativas.append(
-                f"  • Elemento a_{{{fila_idx + 1},{col_idx + 1}}} = {format_number(elemento)}: "
-                f"Signo (-1)^({fila_idx + 1}+{col_idx + 1}) = {signo_str}. "
-                f"det({nombre_menor}) = {format_number(det_menor)}. "
-                f"Cofactor C_{{{fila_idx + 1},{col_idx + 1}}} = {format_number(cofactor)}. "
-                f"Término = ({format_number(elemento)})·({format_number(cofactor)}) = {format_number(termino_valor)}."
+                f"Elemento $a_{{{fila_idx + 1},{col_idx + 1}}} = {format_number(elemento)}$: "
+                f"Signo $(-1)^{{{fila_idx + 1} + {col_idx + 1}}} = {signo_str}$, "
+                f"$\\det({nombre_menor}) = {format_number(det_menor)}$, "
+                f"Cofactor $C_{{{fila_idx + 1},{col_idx + 1}}} = {format_number(cofactor)}$. "
+                f"Término: $({format_number(elemento)}) \\cdot ({format_number(cofactor)}) = {format_number(termino_valor)}$."
             )
             for pm in pasos_menor:
-                lineas_explicativas.append(f"      {pm}")
+                lineas_explicativas.append(f"  $\\rightarrow$ {pm}")
 
             terminos_suma_str.append(format_number(termino_valor))
 
         total_str = " + ".join(terminos_suma_str)
         lineas_explicativas.append(
-            f"Suma de términos: det({etiqueta_submatriz}) = {total_str} = {format_number(suma_acumulada)}"
+            f"Suma de cofactores: $\\det({etiqueta_submatriz}) = {total_str} = {format_number(suma_acumulada)}$"
         )
         return suma_acumulada, lineas_explicativas
 
@@ -419,12 +419,12 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
     res.pasos.append(
         PasoDeterminante(
             numero=contador_pasos,
-            titulo=f"Matriz Cuadrada A de Orden {n}×{n}",
+            titulo=f"Matriz Cuadrada A de Orden ${n} \\times {n}$",
             descripcion="Se plantea la matriz cuadrada para expansión por cofactores (Laplace).",
             matriz_estado=matriz,
             detalles=[
-                f"Dimensión: {n} filas × {n} columnas.",
-                f"Complejidad teórica: O(n!) = O({n}!) operaciones factoriales.",
+                f"Dimensión: ${n} \\times {n}$ elementos.",
+                f"Complejidad teórica: $\\mathcal{{O}}(n!) = \\mathcal{{O}}({n}!)$ operaciones factoriales.",
                 f"Operaciones elementales estimadas: ~{res.operaciones_estimadas:,} cálculos.",
             ],
         )
@@ -454,14 +454,14 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
             numero=contador_pasos,
             titulo="Conclusión e Invertibilidad",
             descripcion=(
-                f"Determinante obtenido: det(A) = {format_number(det_final)}. "
+                f"Determinante obtenido: $\\det(A) = {format_number(det_final)}$. "
                 f"La matriz es {'INVERTIBLE (No Singular)' if res.es_invertible else 'SINGULAR (No Invertible)'}."
             ),
             matriz_estado=matriz,
             detalles=[
-                f"Valor exacto fraccionario: {det_final}",
-                f"Valor decimal aproximado: {format_number(det_final, as_decimal=True, decimal_places=6)}",
-                f"Criterio de Rango: {'Rango completo rg(A) = n' if res.es_invertible else 'Rango deficiente rg(A) < n'}.",
+                f"Valor exacto fraccionario: ${format_number(det_final)}$",
+                f"Valor decimal aproximado: $\\approx {format_number(det_final, as_decimal=True, decimal_places=6)}$",
+                f"Criterio de Rango: {'Rango completo $\\operatorname{rg}(A) = n$' if res.es_invertible else 'Rango deficiente $\\operatorname{rg}(A) < n$'}.",
             ],
         )
     )
@@ -537,13 +537,13 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
         PasoDeterminante(
             numero=contador_pasos,
             titulo=f"Matriz Cuadrada Inicial A ({n}×{n})",
-            descripcion="Se inicializa el procedimiento de Descomposición LU con pivoteo parcial (PA = LU).",
+            descripcion="Se inicializa el procedimiento de Descomposición LU con pivoteo parcial ($P \\cdot A = L \\cdot U$).",
             matriz_estado=U,
             detalles=[
-                f"Dimensión: {n} filas × {n} columnas.",
-                f"Complejidad teórica: O(n³) = O({n}³) operaciones polinomiales.",
+                f"Dimensión: ${n} \\times {n}$ elementos.",
+                f"Complejidad teórica: $\\mathcal{{O}}(n^3) = \\mathcal{{O}}({n}^3)$ operaciones polinomiales.",
                 f"Operaciones elementales estimadas: ~{res.operaciones_estimadas:,} flops.",
-                "Fórmula fundamental: det(A) = (-1)^s · det(L) · det(U) = (-1)^s · prod(u_ii).",
+                "Fórmula fundamental: $\\det(A) = (-1)^s \\cdot \\det(L) \\cdot \\det(U) = (-1)^s \\cdot \\prod_{i=1}^n u_{ii}$.",
             ],
         )
     )
@@ -569,12 +569,12 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
                     titulo=f"Columna {k + 1} sin Pivote No Nulo (Matriz Singular)",
                     descripcion=(
                         f"Todos los elementos de la columna {k + 1} desde la fila {k + 1} son cero. "
-                        f"La matriz tiene rango deficiente rg(A) < {n}, por tanto det(A) = 0."
+                        f"La matriz tiene rango deficiente $\\operatorname{{rg}}(A) < {n}$, por tanto $\\det(A) = 0$."
                     ),
                     matriz_estado=U,
                     detalles=[
-                        f"Pivote en ({k + 1}, {k + 1}) nulo y sin fila candidata no nula.",
-                        "Por el Teorema del Rango y Determinante, |A| = 0 idénticamente.",
+                        f"Pivote en entrada $({k + 1}, {k + 1})$ nulo y sin fila candidata no nula.",
+                        "Por el Teorema del Determinante y Rango, $|A| = 0$ idénticamente.",
                     ],
                 )
             )
@@ -595,16 +595,16 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
             res.pasos.append(
                 PasoDeterminante(
                     numero=contador_pasos,
-                    titulo=f"Pivoteo Parcial: Intercambio F_{k + 1} ↔ F_{mejor_fila + 1}",
+                    titulo=f"Pivoteo Parcial: Intercambio $F_{{{k + 1}}} \\leftrightarrow F_{{{mejor_fila + 1}}}$",
                     descripcion=(
                         f"Se intercambian las filas {k + 1} y {mejor_fila + 1} para ubicar el pivote de mayor "
-                        f"magnitud ({format_number(U[k][k])}). Cada intercambio multiplica el determinante por (-1). "
-                        f"Total de intercambios acumulados s = {intercambios_filas}."
+                        f"magnitud (${format_number(U[k][k])}$). Cada intercambio multiplica el determinante por $(-1)$. "
+                        f"Total de intercambios acumulados: $s = {intercambios_filas}$."
                     ),
                     matriz_estado=U,
                     detalles=[
-                        f"Operación de permutación: F_{k + 1} <-> F_{mejor_fila + 1}.",
-                        f"Signo de paridad acumulado: (-1)^{intercambios_filas} = {(-1)**intercambios_filas:+d}.",
+                        f"Operación de permutación: $F_{{{k + 1}}} \\leftrightarrow F_{{{mejor_fila + 1}}}$.",
+                        f"Signo de paridad acumulado: $(-1)^{{{intercambios_filas}}} = {(-1)**intercambios_filas:+d}$.",
                     ],
                 )
             )
@@ -622,8 +622,8 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
                 L[i][k] = multiplicador
 
                 detalles_eliminacion.append(
-                    f"Fila {i + 1}: m_{{{i + 1},{k + 1}}} = ({format_number(U[i][k])}) / ({format_number(pivote)}) = "
-                    f"{format_number(multiplicador)}. Operación: F_{i + 1} <- F_{i + 1} - ({format_number(multiplicador)})·F_{k + 1}"
+                    f"Fila {i + 1}: Multiplicador $m_{{{i + 1},{k + 1}}} = \\frac{{{format_number(U[i][k])}}}{{{format_number(pivote)}}} = "
+                    f"{format_number(multiplicador)}$. Operación: $F_{{{i + 1}}} \\leftarrow F_{{{i + 1}}} - ({format_number(multiplicador)}) \\cdot F_{{{k + 1}}}$"
                 )
 
                 # Aplicar eliminación en la fila i de U
@@ -637,7 +637,7 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
                 PasoDeterminante(
                     numero=contador_pasos,
                     titulo=f"Eliminación Gaussiana en Columna {k + 1}",
-                    descripcion=f"Se anulan los elementos bajo el pivote u_{{{k + 1},{k + 1}}} = {format_number(pivote)}.",
+                    descripcion=f"Se anulan los elementos bajo el pivote $u_{{{k + 1},{k + 1}}} = {format_number(pivote)}$.",
                     matriz_estado=U,
                     detalles=detalles_eliminacion,
                 )
@@ -656,7 +656,7 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
 
         for idx, diag_val in enumerate(elementos_diagonal):
             producto_diagonal *= diag_val
-            detalles_prod_diag.append(f"u_{{{idx + 1},{idx + 1}}} = {format_number(diag_val)}")
+            detalles_prod_diag.append(f"$u_{{{idx + 1},{idx + 1}}} = {format_number(diag_val)}$")
 
         # Factor de signo por permutaciones de filas
         factor_signo = 1 if (intercambios_filas % 2 == 0) else -1
@@ -672,15 +672,15 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
                 numero=contador_pasos,
                 titulo="Cálculo Final por Producto de la Diagonal de U",
                 descripcion=(
-                    f"Al ser U triangular superior, det(U) = prod(u_ii). "
-                    f"Se multiplica por (-1)^s donde s = {intercambios_filas} intercambios."
+                    f"Al ser $U$ triangular superior, $\\det(U) = \\prod_{{i=1}}^{{n}} u_{{ii}}$. "
+                    f"Se multiplica por $(-1)^s$ donde $s = {intercambios_filas}$ intercambios."
                 ),
                 matriz_estado=U,
                 detalles=[
-                    f"Elementos diagonales de U: {', '.join(detalles_prod_diag)}.",
-                    f"Producto de la diagonal: det(U) = {format_number(producto_diagonal)}.",
-                    f"Intercambios de filas: s = {intercambios_filas} => Signo (-1)^{intercambios_filas} = {factor_signo:+d}.",
-                    f"Fórmula final: det(A) = ({factor_signo:+d}) · ({format_number(producto_diagonal)}) = {format_number(det_final)}.",
+                    f"Elementos diagonales de $U$: {', '.join(detalles_prod_diag)}.",
+                    f"Producto de la diagonal: $\\det(U) = {format_number(producto_diagonal)}$.",
+                    f"Intercambios de filas: $s = {intercambios_filas} \\implies (-1)^{{{intercambios_filas}}} = {factor_signo:+d}$.",
+                    f"Fórmula final: $\\det(A) = ({factor_signo:+d}) \\cdot ({format_number(producto_diagonal)}) = {format_number(det_final)}$.",
                 ],
             )
         )
@@ -692,14 +692,14 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
             numero=contador_pasos,
             titulo="Conclusión e Invertibilidad",
             descripcion=(
-                f"Determinante obtenido: det(A) = {format_number(det_final)}. "
+                f"Determinante obtenido: $\\det(A) = {format_number(det_final)}$. "
                 f"La matriz es {'INVERTIBLE (No Singular)' if res.es_invertible else 'SINGULAR (No Invertible)'}."
             ),
             matriz_estado=U,
             detalles=[
-                f"Valor exacto fraccionario: {det_final}",
-                f"Valor decimal aproximado: {format_number(det_final, as_decimal=True, decimal_places=6)}",
-                f"Criterio de Rango: {'Rango completo rg(A) = n' if res.es_invertible else 'Rango deficiente rg(A) < n'}.",
+                f"Valor exacto fraccionario: ${format_number(det_final)}$",
+                f"Valor decimal aproximado: $\\approx {format_number(det_final, as_decimal=True, decimal_places=6)}$",
+                f"Criterio de Rango: {'Rango completo $\\operatorname{rg}(A) = n$' if res.es_invertible else 'Rango deficiente $\\operatorname{rg}(A) < n$'}.",
             ],
         )
     )

@@ -238,6 +238,20 @@ class TestApiLatexFormatting(unittest.TestCase):
         self.assertEqual(res_lu["orden_n"], 3)
         self.assertGreater(len(res_lu["pasos"]), 0)
 
+        for p in res_lu["pasos"]:
+            for text_field in [p["titulo"], p["descripcion"]] + p["detalles"]:
+                self.assertNotIn("pdf", text_field.lower())
+                self.assertNotIn("diapositiva", text_field.lower())
+                partes = text_field.split("$")
+                for idx, parte in enumerate(partes):
+                    if idx % 2 == 0:
+                        self.assertNotIn("\\det", parte)
+                        self.assertNotIn("\\cdot", parte)
+                        self.assertNotIn("\\prod", parte)
+                        self.assertNotIn("\\leftrightarrow", parte)
+                        self.assertNotIn("\\leftarrow", parte)
+                        self.assertNotIn("\\frac", parte)
+
         # Probar cálculo por cofactores
         res_cof = self.post_json("/api/matrices/determinante", {
             "A": A,
@@ -245,6 +259,16 @@ class TestApiLatexFormatting(unittest.TestCase):
         })
         self.assertEqual(res_cof["determinante"], "1")
         self.assertTrue(res_cof["es_invertible"])
+        for p in res_cof["pasos"]:
+            for text_field in [p["titulo"], p["descripcion"]] + p["detalles"]:
+                self.assertNotIn("pdf", text_field.lower())
+                self.assertNotIn("diapositiva", text_field.lower())
+                partes = text_field.split("$")
+                for idx, parte in enumerate(partes):
+                    if idx % 2 == 0:
+                        self.assertNotIn("\\det", parte)
+                        self.assertNotIn("\\cdot", parte)
+                        self.assertNotIn("\\frac", parte)
 
     def test_eficiencia_determinante_api(self):
         # Probar endpoint de análisis de eficiencia previo
@@ -255,6 +279,8 @@ class TestApiLatexFormatting(unittest.TestCase):
         self.assertEqual(res_ef["metodo_recomendado"], "lu")
         self.assertIn("O(n!)", res_ef["complejidad_cofactores"])
         self.assertIn("O(n³)", res_ef["complejidad_lu"])
+        self.assertNotIn("pdf", res_ef["justificacion"].lower())
+        self.assertNotIn("diapositiva", res_ef["justificacion"].lower())
 
 
 if __name__ == "__main__":
