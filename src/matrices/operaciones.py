@@ -43,6 +43,7 @@ from src.core.arithmetic import (
     parse_number,
     validar_matriz_numerica,
     format_number,
+    format_latex_number,
     formatear_matriz,
 )
 
@@ -324,7 +325,7 @@ def analizar_transpuesta_matriz(A_in: Any) -> ResultadoTranspuesta:
     
     # Detalle de mapeo de renglones a columnas
     for i in range(m):
-        elementos_fila = [format_number(A[i][j]) for j in range(n)]
+        elementos_fila = [format_latex_number(A[i][j]) for j in range(n)]
         fila_str = "[" + ", ".join(elementos_fila) + "]"
         res.pasos_mapeo.append(
             f"Fila {i + 1} de $A$: ${fila_str}$ $\\rightarrow$ Columna {i + 1} de $A^T$"
@@ -356,7 +357,7 @@ def analizar_transpuesta_matriz(A_in: Any) -> ResultadoTranspuesta:
         res.traza = traza
         
         res.propiedades.append(
-            f"Invarianza de la traza: $\\operatorname{{tr}}(A^T) = \\operatorname{{tr}}(A) = {format_number(traza)}$"
+            f"Invarianza de la traza: $\\operatorname{{tr}}(A^T) = \\operatorname{{tr}}(A) = {format_latex_number(traza)}$"
         )
         
         if es_sim:
@@ -374,7 +375,7 @@ def analizar_transpuesta_matriz(A_in: Any) -> ResultadoTranspuesta:
             )
             
         res.propiedades.append(
-            "Invertibilidad de la transpuesta: Si $A$ es invertible, $(A^T)^{-1} = (A^{-1})^T$"
+            "Invertibilidad de la transpuesta: Si $A$ es no singular (invertible), entonces $A^T$ también es no singular con $(A^T)^{-1} = (A^{-1})^T$"
         )
     else:
         res.propiedades.append(

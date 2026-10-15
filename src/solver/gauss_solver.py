@@ -26,7 +26,12 @@ Teorema de Rouché-Capelli:
 from fractions import Fraction
 from typing import List, Tuple, Dict, Any, Optional, Union
 
-from src.core.arithmetic import parse_number, format_number
+from src.core.arithmetic import (
+    parse_number,
+    format_number,
+    format_latex_number,
+    format_latex_scalar,
+)
 
 
 class Step:
@@ -332,10 +337,18 @@ def solve_gaussian_elimination(
     else:
         # Sistema Compatible Determinado (Solución Única)
         result.system_type = "SCD"
-        result.system_type_desc = (
-            f"SISTEMA COMPATIBLE DETERMINADO (Solución Única).\n"
-            f"$\\operatorname{{rg}}(A) = \\operatorname{{rg}}(A|b) = {rank_A} = n = {num_vars}$ (número de incógnitas)."
-        )
+        if result.num_equations == num_vars:
+            result.system_type_desc = (
+                f"SISTEMA COMPATIBLE DETERMINADO (Solución Única).\n"
+                f"$\\operatorname{{rg}}(A) = \\operatorname{{rg}}(A|b) = {rank_A} = n = {num_vars}$ (número de incógnitas).\n"
+                f"La matriz de coeficientes $A$ es **No Singular (Invertible)** con $\\det(A) \\neq 0$, "
+                f"lo que garantiza que la solución única viene dada por $\\vec{{x}} = A^{{-1}}\\vec{{b}}$."
+            )
+        else:
+            result.system_type_desc = (
+                f"SISTEMA COMPATIBLE DETERMINADO (Solución Única).\n"
+                f"$\\operatorname{{rg}}(A) = \\operatorname{{rg}}(A|b) = {rank_A} = n = {num_vars}$ (número de incógnitas)."
+            )
         
         sol_dict: Dict[int, Fraction] = {}
         for r in range(num_vars):
@@ -343,7 +356,7 @@ def solve_gaussian_elimination(
             sol_dict[r] = val
             result.solution[variable_names[r]] = val
             result.backward_substitution_steps.append(
-                f"Fila {r + 1} de la matriz reducida: ${variable_names[r]} = {format_number(val)}$"
+                f"Fila {r + 1} de la matriz reducida: ${variable_names[r]} = {format_latex_number(val)}$"
             )
             
         result.solution_vector = [result.solution[var] for var in variable_names]
@@ -356,14 +369,18 @@ def solve_gaussian_elimination(
                 coeff = result.initial_matrix[r][c]
                 var_val = sol_dict[c]
                 lhs_eval += coeff * var_val
-                eq_terms.append(f"({format_number(coeff)}) \\cdot ({format_number(var_val)})")
+                coeff_latex = format_latex_scalar(coeff, parenthesize_if_negative=True)
+                val_latex = format_latex_scalar(var_val, parenthesize_if_negative=True)
+                eq_terms.append(f"{coeff_latex} \\cdot {val_latex}")
                 
             orig_b = result.initial_matrix[r][num_cols - 1]
-            check_str = " + ".join(eq_terms) + f" = {format_number(lhs_eval)}"
+            lhs_latex = format_latex_number(lhs_eval)
+            orig_b_latex = format_latex_number(orig_b)
+            check_str = " + ".join(eq_terms) + f" = {lhs_latex}"
             is_valid = (lhs_eval == orig_b)
             status_sym = "✓ Correcto" if is_valid else "✗ Error"
             result.verification_steps.append(
-                f"Ecuación {r + 1}: ${check_str}$ (Esperado: ${format_number(orig_b)}$) $\\rightarrow$ {status_sym}"
+                f"Ecuación {r + 1}: ${check_str}$ (Esperado: ${orig_b_latex}$) $\\rightarrow$ {status_sym}"
             )
             
     return result

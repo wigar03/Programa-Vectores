@@ -88,6 +88,32 @@ def format_number(frac: Fraction, as_decimal: bool = False, decimal_places: int 
     return f"{frac.numerator}/{frac.denominator}"
 
 
+def format_latex_number(frac_in: Any) -> str:
+    """
+    Retorna la representación canónica en LaTeX de un número racional.
+    - Si el denominador es 1, se muestra como entero: '3', '-5', '0'.
+    - Si es fracción propia o impropia a/b, retorna '\\frac{a}{b}' (o '-\\frac{a}{b}' si es negativa).
+    """
+    frac = parse_number(frac_in)
+    if frac.denominator == 1:
+        return str(frac.numerator)
+    if frac.numerator < 0:
+        return f"-\\frac{{{-frac.numerator}}}{{{frac.denominator}}}"
+    return f"\\frac{{{frac.numerator}}}{{{frac.denominator}}}"
+
+
+def format_latex_scalar(frac_in: Any, parenthesize_if_negative: bool = False) -> str:
+    """
+    Retorna la representación en LaTeX con delimitadores de paréntesis opcionales
+    si el número es negativo, útil en multiplicaciones y sumas algebraicas.
+    """
+    frac = parse_number(frac_in)
+    latex_str = format_latex_number(frac)
+    if parenthesize_if_negative and frac < 0:
+        return f"\\left({latex_str}\\right)"
+    return latex_str
+
+
 def validar_vector_numerico(vector: Any) -> List[Fraction]:
     """
     Valida y convierte una lista o secuencia de valores a un vector algebraico en Q^n.

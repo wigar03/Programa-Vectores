@@ -54,6 +54,8 @@ from typing import Any, List, Tuple, Dict, Optional, Union
 from src.core.arithmetic import (
     parse_number,
     format_number,
+    format_latex_number,
+    format_latex_scalar,
     validar_matriz_numerica,
     formatear_matriz,
 )
@@ -136,17 +138,41 @@ def calcular_inversa_matriz(
         d = A[1][1]
         det = a * d - b * c
         resultado.determinante_2x2 = det
-        det_str = format_number(det)
+        det_latex = format_latex_number(det)
+        
+        a_latex = format_latex_scalar(a, parenthesize_if_negative=True)
+        b_latex = format_latex_scalar(b, parenthesize_if_negative=True)
+        c_latex = format_latex_scalar(c, parenthesize_if_negative=True)
+        d_latex = format_latex_scalar(d, parenthesize_if_negative=True)
+        
         if det != 0:
             inv_det = Fraction(1, 1) / det
+            inv_det_latex = format_latex_number(inv_det)
+            
+            # Matriz adjunta clásica [d, -b; -c, a]
+            adj_d = format_latex_number(d)
+            adj_neg_b = format_latex_number(-b)
+            adj_neg_c = format_latex_number(-c)
+            adj_a = format_latex_number(a)
+            
+            # Matriz inversa resultante evaluada
+            res_00 = format_latex_number(d * inv_det)
+            res_01 = format_latex_number(-b * inv_det)
+            res_10 = format_latex_number(-c * inv_det)
+            res_11 = format_latex_number(a * inv_det)
+            
+            det_factor_str = f"\\frac{{1}}{{{det_latex}}}" if det.denominator == 1 else inv_det_latex
+            
             resultado.formula_2x2_detalle = (
-                f"$$\\det(A) = ({format_number(a)})({format_number(d)}) - ({format_number(b)})({format_number(c)}) = {det_str} \\neq 0 \\implies "
-                f"A^{{-1}} = \\frac{{1}}{{{det_str}}} \\begin{{pmatrix}} {format_number(d)} & {format_number(-b)} \\\\ {format_number(-c)} & {format_number(a)} \\end{{pmatrix}}$$"
+                f"$$\\det(A) = ad - bc = ({a_latex})({d_latex}) - ({b_latex})({c_latex}) = {det_latex} \\neq 0$$\n"
+                f"$$\\implies A^{{-1}} = \\frac{{1}}{{\\det(A)}} \\begin{{pmatrix}} d & -b \\\\ -c & a \\end{{pmatrix}} = "
+                f"{det_factor_str} \\begin{{pmatrix}} {adj_d} & {adj_neg_b} \\\\ {adj_neg_c} & {adj_a} \\end{{pmatrix}} = "
+                f"\\begin{{pmatrix}} {res_00} & {res_01} \\\\ {res_10} & {res_11} \\end{{pmatrix}}$$"
             )
         else:
             resultado.formula_2x2_detalle = (
-                f"$$\\det(A) = ({format_number(a)})({format_number(d)}) - ({format_number(b)})({format_number(c)}) = 0$$\n"
-                f"Dado que $\\det(A) = 0$, la matriz $A$ es singular (no invertible)."
+                f"$$\\det(A) = ad - bc = ({a_latex})({d_latex}) - ({b_latex})({c_latex}) = 0$$\n"
+                f"Dado que $\\det(A) = 0$, la matriz $A$ es singular (no invertible), por lo que no existe matriz inversa ($\\nexists A^{{-1}}$)."
             )
 
     # Paso 1: Construcción de la matriz aumentada [A | I_n]
@@ -205,7 +231,7 @@ def calcular_inversa_matriz(
                     Step(
                         step_number=step_num,
                         title=f"Intercambio de Filas: $F_{{{j + 1}}} \\leftrightarrow F_{{{best_row + 1}}}$",
-                        description=f"Se intercambia la fila {j + 1} con la fila {best_row + 1} para ubicar el pivote no nulo ${format_number(M[j][j])}$.",
+                        description=f"Se intercambia la fila {j + 1} con la fila {best_row + 1} para ubicar el pivote no nulo ${format_latex_number(M[j][j])}$.",
                         matrix_state=M,
                         operation_code=f"F_{j+1} <-> F_{best_row+1}",
                         highlight_rows=[j, best_row],
@@ -217,6 +243,8 @@ def calcular_inversa_matriz(
             # Normalización del renglón pivote: hacer 1 el elemento diagonal
             if pivot_val != 1:
                 inv_p = Fraction(1, 1) / pivot_val
+                inv_p_latex = format_latex_number(inv_p)
+                p_latex = format_latex_number(pivot_val)
                 calc_details = []
                 for c in range(j, num_cols):
                     orig = M[j][c]
@@ -225,11 +253,19 @@ def calcular_inversa_matriz(
                         f"F_{j+1}[{c+1}]: {format_number(orig)} · ({format_number(inv_p)}) = {format_number(M[j][c])}"
                     )
                 step_num += 1
+                if pivot_val == -1:
+                    norm_formula = f"F_{{{j + 1}}} \\leftarrow -F_{{{j + 1}}}"
+                elif pivot_val.denominator == 1 and pivot_val > 0:
+                    norm_formula = f"F_{{{j + 1}}} \\leftarrow \\frac{{1}}{{{pivot_val.numerator}}} \\cdot F_{{{j + 1}}}"
+                elif pivot_val.denominator == 1 and pivot_val < 0:
+                    norm_formula = f"F_{{{j + 1}}} \\leftarrow -\\frac{{1}}{{{abs(pivot_val.numerator)}}} \\cdot F_{{{j + 1}}}"
+                else:
+                    norm_formula = f"F_{{{j + 1}}} \\leftarrow {inv_p_latex} \\cdot F_{{{j + 1}}}"
                 pasos.append(
                     Step(
                         step_number=step_num,
-                        title=f"Normalización de Pivote: $F_{{{j + 1}}} \\leftarrow \\left(\\frac{{1}}{{{format_number(pivot_val)}}}\\right) \\cdot F_{{{j + 1}}}$",
-                        description=f"Se divide la fila {j + 1} entre el pivote ${format_number(pivot_val)}$ para transformarlo en 1 unitario.",
+                        title=f"Normalización de Pivote: ${norm_formula}$",
+                        description=f"Se multiplica la fila {j + 1} por ${inv_p_latex}$ (inverso del pivote ${p_latex}$) para transformarlo en 1 unitario.",
                         matrix_state=M,
                         operation_code=f"F_{j+1} <- ({format_number(inv_p)})·F_{j+1}",
                         highlight_rows=[j],
@@ -253,11 +289,13 @@ def calcular_inversa_matriz(
                             f"Col {c+1}: {format_number(orig_val)} - ({format_number(factor)})·({format_number(M[j][c])}) = {format_number(M[r][c])}"
                         )
                     op_sign = "-" if factor > 0 else "+"
+                    abs_factor = abs(factor)
+                    factor_latex = f"{format_latex_number(abs_factor)} \\cdot " if abs_factor != 1 else ""
                     step_num += 1
                     pasos.append(
                         Step(
                             step_number=step_num,
-                            title=f"Eliminación: $F_{{{r + 1}}} \\leftarrow F_{{{r + 1}}} {op_sign} {format_number(abs(factor))} \\cdot F_{{{j + 1}}}$",
+                            title=f"Eliminación: $F_{{{r + 1}}} \\leftarrow F_{{{r + 1}}} {op_sign} {factor_latex}F_{{{j + 1}}}$",
                             description=f"Se hace cero la entrada en la fila {r + 1}, columna {j + 1} usando el pivote de la fila {j + 1}.",
                             matrix_state=M,
                             operation_code=f"F_{r+1} <- F_{r+1} {op_sign} ({format_number(abs(factor))})·F_{j+1}",
@@ -292,7 +330,7 @@ def calcular_inversa_matriz(
                     Step(
                         step_number=step_num,
                         title=f"Fase Gauss: Intercambio $F_{{{j + 1}}} \\leftrightarrow F_{{{best_row + 1}}}$",
-                        description=f"Se intercambia fila {j + 1} con fila {best_row + 1} para ubicar el pivote ${format_number(M[j][j])}$.",
+                        description=f"Se intercambia fila {j + 1} con fila {best_row + 1} para ubicar el pivote ${format_latex_number(M[j][j])}$.",
                         matrix_state=M,
                         operation_code=f"F_{j+1} <-> F_{best_row+1}",
                         highlight_rows=[j, best_row],
@@ -313,11 +351,13 @@ def calcular_inversa_matriz(
                             f"Col {c+1}: {format_number(orig)} - ({format_number(factor)})·({format_number(M[j][c])}) = {format_number(M[r][c])}"
                         )
                     op_sign = "-" if factor > 0 else "+"
+                    abs_factor = abs(factor)
+                    factor_latex = f"{format_latex_number(abs_factor)} \\cdot " if abs_factor != 1 else ""
                     step_num += 1
                     pasos.append(
                         Step(
                             step_number=step_num,
-                            title=f"Eliminación Hacia Adelante: $F_{{{r + 1}}} \\leftarrow F_{{{r + 1}}} {op_sign} {format_number(abs(factor))} \\cdot F_{{{j + 1}}}$",
+                            title=f"Eliminación Hacia Adelante: $F_{{{r + 1}}} \\leftarrow F_{{{r + 1}}} {op_sign} {factor_latex}F_{{{j + 1}}}$",
                             description=f"Se genera un cero debajo del pivote en fila {r + 1}, columna {j + 1}.",
                             matrix_state=M,
                             operation_code=f"F_{r+1} <- F_{r+1} {op_sign} ({format_number(abs(factor))})·F_{j+1}",
@@ -341,14 +381,24 @@ def calcular_inversa_matriz(
                 p_diag = M[j][j]
                 if p_diag != 1:
                     inv_diag = Fraction(1, 1) / p_diag
+                    inv_diag_latex = format_latex_number(inv_diag)
+                    p_diag_latex = format_latex_number(p_diag)
                     for c in range(num_cols):
                         M[j][c] *= inv_diag
                     step_num += 1
+                    if p_diag == -1:
+                        norm_formula = f"F_{{{j + 1}}} \\leftarrow -F_{{{j + 1}}}"
+                    elif p_diag.denominator == 1 and p_diag > 0:
+                        norm_formula = f"F_{{{j + 1}}} \\leftarrow \\frac{{1}}{{{p_diag.numerator}}} \\cdot F_{{{j + 1}}}"
+                    elif p_diag.denominator == 1 and p_diag < 0:
+                        norm_formula = f"F_{{{j + 1}}} \\leftarrow -\\frac{{1}}{{{abs(p_diag.numerator)}}} \\cdot F_{{{j + 1}}}"
+                    else:
+                        norm_formula = f"F_{{{j + 1}}} \\leftarrow {inv_diag_latex} \\cdot F_{{{j + 1}}}"
                     pasos.append(
                         Step(
                             step_number=step_num,
-                            title=f"Normalización Diagonal: $F_{{{j + 1}}} \\leftarrow \\left(\\frac{{1}}{{{format_number(p_diag)}}}\\right) \\cdot F_{{{j + 1}}}$",
-                            description=f"Se normaliza el pivote diagonal de la fila {j + 1} a 1.",
+                            title=f"Normalización Diagonal: ${norm_formula}$",
+                            description=f"Se normaliza el pivote diagonal de la fila {j + 1} (${p_diag_latex}$) a 1 multiplicando por ${inv_diag_latex}$.",
                             matrix_state=M,
                             operation_code=f"F_{j+1} <- ({format_number(inv_diag)})·F_{j+1}",
                             highlight_rows=[j],
@@ -362,11 +412,13 @@ def calcular_inversa_matriz(
                         for c in range(num_cols):
                             M[r][c] -= factor * M[j][c]
                         op_sign = "-" if factor > 0 else "+"
+                        abs_factor = abs(factor)
+                        factor_latex = f"{format_latex_number(abs_factor)} \\cdot " if abs_factor != 1 else ""
                         step_num += 1
                         pasos.append(
                             Step(
                                 step_number=step_num,
-                                title=f"Sustitución Regresiva: $F_{{{r + 1}}} \\leftarrow F_{{{r + 1}}} {op_sign} {format_number(abs(factor))} \\cdot F_{{{j + 1}}}$",
+                                title=f"Sustitución Regresiva: $F_{{{r + 1}}} \\leftarrow F_{{{r + 1}}} {op_sign} {factor_latex}F_{{{j + 1}}}$",
                                 description=f"Se anula el término sobre la diagonal en fila {r + 1}, columna {j + 1}.",
                                 matrix_state=M,
                                 operation_code=f"F_{r+1} <- F_{r+1} {op_sign} ({format_number(abs(factor))})·F_{j+1}",
@@ -393,9 +445,9 @@ def calcular_inversa_matriz(
         resultado.es_invertible = False
         resultado.matriz_inversa = None
         resultado.mensaje_diagnostico = (
-            f"LA MATRIZ NO ES INVERTIBLE (Matriz Singular).\n"
+            f"✗ Matriz Singular (No Invertible):\n"
             f"Razón teórica (Teorema de la Matriz Invertible): {motivo_singular}\n"
-            f"El rango por filas es menor que {n}, por lo que no existe ninguna matriz C tal que C · A = I_n."
+            f"El rango por filas es deficiente ($\\operatorname{{rg}}(A) < {n}$), por lo que no existe ninguna matriz $C$ tal que $C \\cdot A = I_{{{n}}}$ ($\\nexists A^{{-1}}$)."
         )
         return resultado
         
@@ -408,9 +460,11 @@ def calcular_inversa_matriz(
     resultado.es_invertible = True
     resultado.matriz_inversa = A_inv
     resultado.mensaje_diagnostico = (
-        f"MATRIZ INVERTIBLE (No Singular).\n"
-        f"A es equivalente por filas a $I_{{{n}}}$, por lo que $[A \\mid I_{{{n}}}] \\sim [I_{{{n}}} \\mid A^{{-1}}]$.\n"
-        f"La matriz inversa $A^{{-1}}$ ha sido obtenida satisfactoriamente."
+        f"✓ Matriz No Singular (Invertible):\n"
+        f"La matriz $A$ de orden ${n} \\times {n}$ tiene rango completo $\\operatorname{{rg}}(A) = {n}$ y determinante no nulo ($\\det(A) \\neq 0$).\n"
+        f"Al ser no singular, es equivalente por filas a la matriz identidad $I_{{{n}}}$ ($A \\sim I_{{{n}}}$), por lo que la reducción simultánea por renglones produce:\n"
+        f"$$[A \\mid I_{{{n}}}] \\sim [I_{{{n}}} \\mid A^{{-1}}]$$\n"
+        f"La matriz inversa $A^{{-1}}$ existe, es única y satisface rigurosamente la doble identidad $A \\cdot A^{{-1}} = A^{{-1}} \\cdot A = I_{{{n}}}$."
     )
     
     # Verificación Rigurosa:
@@ -426,8 +480,8 @@ def calcular_inversa_matriz(
                 residuo_cero_1 = False
             simb = "✓ Correcto" if val == esperado else "✗ Discrepancia"
             verif1.append(
-                f"Entrada ({i+1}, {j+1}): $(A \\cdot A^{{-1}})_{{{i+1},{j+1}}} = {format_number(val)}$ "
-                f"(Esperado: $(I_{{{n}}})_{{{i+1},{j+1}}} = {format_number(esperado)}$) $\\rightarrow$ {simb}"
+                f"Entrada ({i+1}, {j+1}): $(A \\cdot A^{{-1}})_{{{i+1},{j+1}}} = {format_latex_number(val)}$ "
+                f"(Esperado: $(I_{{{n}}})_{{{i+1},{j+1}}} = {format_latex_number(esperado)}$) $\\rightarrow$ {simb}"
             )
             
     # Comprobación 2: P2 = A^(-1) · A == I_n
@@ -442,8 +496,8 @@ def calcular_inversa_matriz(
                 residuo_cero_2 = False
             simb = "✓ Correcto" if val == esperado else "✗ Discrepancia"
             verif2.append(
-                f"Entrada ({i+1}, {j+1}): $(A^{{-1}} \\cdot A)_{{{i+1},{j+1}}} = {format_number(val)}$ "
-                f"(Esperado: $(I_{{{n}}})_{{{i+1},{j+1}}} = {format_number(esperado)}$) $\\rightarrow$ {simb}"
+                f"Entrada ({i+1}, {j+1}): $(A^{{-1}} \\cdot A)_{{{i+1},{j+1}}} = {format_latex_number(val)}$ "
+                f"(Esperado: $(I_{{{n}}})_{{{i+1},{j+1}}} = {format_latex_number(esperado)}$) $\\rightarrow$ {simb}"
             )
             
     resultado.verificacion_A_por_Ainv = verif1

@@ -163,6 +163,36 @@ class TestApiLatexFormatting(unittest.TestCase):
         self.assertEqual(res["determinante_2x2"], "1")
         self.assertEqual(res["matriz_inversa"], [["-7", "-5"], ["3", "2"]])
         self.assertTrue(res["residuo_cero"])
+        
+        # Validar formato LaTeX del Teorema 2x2 para matriz invertible (no singular)
+        self.assertIsNotNone(res.get("formula_2x2_detalle"))
+        form_2x2 = res["formula_2x2_detalle"]
+        self.assertIn("\\det(A) = ad - bc", form_2x2)
+        self.assertIn("\\neq 0", form_2x2)
+        self.assertIn("A^{-1} =", form_2x2)
+        self.assertIn("\\begin{pmatrix}", form_2x2)
+        self.assertIn("\\end{pmatrix}", form_2x2)
+
+        # Validar dictamen formal de matriz no singular (invertible)
+        diag = res["mensaje_diagnostico"]
+        self.assertIn("✓ Matriz No Singular (Invertible):", diag)
+        self.assertIn("\\operatorname{rg}(A) = 2", diag)
+        self.assertIn("\\det(A) \\neq 0", diag)
+        self.assertIn("[A \\mid I_{2}] \\sim [I_{2} \\mid A^{-1}]", diag)
+        self.assertIn("A \\cdot A^{-1} = A^{-1} \\cdot A = I_{2}", diag)
+        
+        # Comprobar que ningún comando LaTeX se fuga fuera de delimitadores
+        import re
+        partes_diag = re.split(r"(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)", diag)
+        for parte in partes_diag:
+            if not parte.startswith("$"):
+                self.assertNotIn("\\operatorname", parte)
+                self.assertNotIn("\\det", parte)
+                self.assertNotIn("\\sim", parte)
+                self.assertNotIn("\\neq", parte)
+                self.assertNotIn("\\mid", parte)
+                self.assertNotIn("\\cdot", parte)
+
         self.assertTrue(len(res["verificacion_A_por_Ainv"]) > 0)
         self.assertTrue(len(res["verificacion_Ainv_por_A"]) > 0)
         for v in res["verificacion_A_por_Ainv"]:
@@ -202,6 +232,19 @@ class TestApiLatexFormatting(unittest.TestCase):
             ["-2", "4", "-1"],
             ["3/2", "-2", "1/2"]
         ])
+        self.assertIn("✓ Matriz No Singular (Invertible):", res["mensaje_diagnostico"])
+        self.assertIn("\\operatorname{rg}(A) = 3", res["mensaje_diagnostico"])
+        
+        # Verificar que los pasos no filtren LaTeX fuera de delimitadores
+        for paso in res["pasos"]:
+            for field in [paso["title"], paso["description"]]:
+                partes = field.split("$")
+                for idx, parte in enumerate(partes):
+                    if idx % 2 == 0:
+                        self.assertNotIn("\\leftarrow", parte)
+                        self.assertNotIn("\\leftrightarrow", parte)
+                        self.assertNotIn("\\cdot", parte)
+                        self.assertNotIn("\\frac", parte)
 
     def test_matrices_inversa_singular_api(self):
         res = self.post_json("/api/matrices/inversa", {
@@ -211,6 +254,8 @@ class TestApiLatexFormatting(unittest.TestCase):
         self.assertFalse(res["es_invertible"])
         self.assertIsNone(res["matriz_inversa"])
         self.assertIn("singular", res["mensaje_diagnostico"].lower())
+        self.assertIn("✗ Matriz Singular (No Invertible):", res["mensaje_diagnostico"])
+        self.assertIn("\\operatorname{rg}(A) < 3", res["mensaje_diagnostico"])
 
     def test_ecuacion_matricial_scd(self):
         res = self.post_json("/api/ecuaciones/resolver", {
@@ -219,10 +264,18 @@ class TestApiLatexFormatting(unittest.TestCase):
         })
         self.assertEqual(res["tipo_sistema"], "SCD")
         self.assertIn("\\operatorname{rg}(A)", res["descripcion_sistema"])
+        self.assertIn("No Singular (Invertible)", res["descripcion_sistema"])
+        self.assertIn("A^{-1}\\vec{b}", res["descripcion_sistema"])
         for verif in res["verificacion"]:
             self.assertIn("$", verif)
             self.assertIn("✓ Satisface", verif)
             self.assertIn("\\rightarrow", verif)
+            partes = verif.split("$")
+            for idx, parte in enumerate(partes):
+                if idx % 2 == 0:
+                    self.assertNotIn("\\cdot", parte)
+                    self.assertNotIn("\\rightarrow", parte)
+                    self.assertNotIn("\\frac", parte)
         for paso in res["pasos"]:
             self.assertIn("$", paso["title"])
 

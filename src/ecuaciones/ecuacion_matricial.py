@@ -42,6 +42,8 @@ from typing import Any, List, Dict, Tuple, Optional, Union
 from src.core.arithmetic import (
     parse_number,
     format_number,
+    format_latex_number,
+    format_latex_scalar,
     validar_vector_numerico,
     validar_matriz_numerica,
     formatear_vector,
@@ -177,14 +179,27 @@ def resolver_ecuacion_matricial(
                 c_val = res.vector_solucion[j]
                 if isinstance(c_val, Fraction):
                     eval_lhs += A[i][j] * c_val
-                    detalles_prod.append(f"({format_number(A[i][j])}) \\cdot ({format_number(c_val)})")
+                    a_latex = format_latex_scalar(A[i][j], parenthesize_if_negative=True)
+                    c_latex = format_latex_scalar(c_val, parenthesize_if_negative=True)
+                    detalles_prod.append(f"{a_latex} \\cdot {c_latex}")
             
             diferencia = eval_lhs - b[i]
             valido = (diferencia == 0)
             simbolo = "✓ Satisface" if valido else "✗ Discrepancia"
             suma_str = " + ".join(detalles_prod)
+            eval_latex = format_latex_number(eval_lhs)
+            b_latex = format_latex_number(b[i])
             res.verificacion_residual.append(
-                f"Fila {i + 1}: ${suma_str} = {format_number(eval_lhs)}$ (Esperado: ${format_number(b[i])}$) $\\rightarrow$ {simbolo}"
+                f"Fila {i + 1}: ${suma_str} = {eval_latex}$ (Esperado: ${b_latex}$) $\\rightarrow$ {simbolo}"
+            )
+        
+        # Conexión teórica con Matrices No Singulares (Invertibles) cuando m == n
+        if m == n:
+            res.descripcion_sistema += (
+                f"\n✓ Dictamen de Invertibilidad (Teorema Fundamental): Al ser $A$ cuadrada de orden ${n} \\times {n}$ "
+                f"y con rango completo $\\operatorname{{rg}}(A) = {n}$, la matriz de coeficientes $A$ es **No Singular (Invertible)** "
+                f"con determinante no nulo ($\\det(A) \\neq 0$). Por tanto, la solución única es calculable mediante "
+                f"la matriz inversa: $\\vec{{x}} = A^{{-1}}\\vec{{b}}$."
             )
             
     elif res.tipo_sistema == "SCI":

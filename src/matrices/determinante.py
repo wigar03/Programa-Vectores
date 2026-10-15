@@ -72,6 +72,8 @@ from typing import List, Tuple, Dict, Any, Optional, Union
 from src.core.arithmetic import (
     parse_number,
     format_number,
+    format_latex_number,
+    format_latex_scalar,
     validar_matriz_numerica,
     formatear_matriz,
 )
@@ -336,10 +338,10 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
             prod_diag_secundaria = b * c
             det_2x2 = prod_diag_principal - prod_diag_secundaria
             expr = (
-                f"$\\det({etiqueta_submatriz}) = ({format_number(a)}) \\cdot ({format_number(d)}) - "
-                f"({format_number(b)}) \\cdot ({format_number(c)}) = "
-                f"{format_number(prod_diag_principal)} - ({format_number(prod_diag_secundaria)}) = "
-                f"{format_number(det_2x2)}$"
+                f"$\\det({etiqueta_submatriz}) = ({format_latex_scalar(a, True)}) \\cdot ({format_latex_scalar(d, True)}) - "
+                f"({format_latex_scalar(b, True)}) \\cdot ({format_latex_scalar(c, True)}) = "
+                f"{format_latex_scalar(prod_diag_principal, True)} - ({format_latex_scalar(prod_diag_secundaria, True)}) = "
+                f"{format_latex_number(det_2x2)}$"
             )
             lineas_explicativas.append(expr)
             return det_2x2, lineas_explicativas
@@ -371,7 +373,7 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
         )
 
         suma_acumulada = Fraction(0, 1)
-        terminos_suma_str: List[str] = []
+        terminos_suma_vals: List[Fraction] = []
 
         for k in range(orden_actual):
             if mejor_tipo == "fila":
@@ -393,7 +395,7 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
                     f"Elemento $a_{{{fila_idx + 1},{col_idx + 1}}} = 0$: "
                     f"Término nulo $0 \\cdot C_{{{fila_idx + 1},{col_idx + 1}}} = 0$ (se omite el cálculo del menor)."
                 )
-                terminos_suma_str.append("0")
+                terminos_suma_vals.append(Fraction(0, 1))
                 continue
 
             # Evaluar el menor recursivamente
@@ -405,20 +407,29 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
             suma_acumulada += termino_valor
 
             lineas_explicativas.append(
-                f"Elemento $a_{{{fila_idx + 1},{col_idx + 1}}} = {format_number(elemento)}$: "
+                f"Elemento $a_{{{fila_idx + 1},{col_idx + 1}}} = {format_latex_number(elemento)}$: "
                 f"Signo $(-1)^{{{fila_idx + 1} + {col_idx + 1}}} = {signo_str}$, "
-                f"$\\det({nombre_menor}) = {format_number(det_menor)}$, "
-                f"Cofactor $C_{{{fila_idx + 1},{col_idx + 1}}} = {format_number(cofactor)}$. "
-                f"Término: $({format_number(elemento)}) \\cdot ({format_number(cofactor)}) = {format_number(termino_valor)}$."
+                f"$\\det({nombre_menor}) = {format_latex_number(det_menor)}$, "
+                f"Cofactor $C_{{{fila_idx + 1},{col_idx + 1}}} = {format_latex_number(cofactor)}$. "
+                f"Término: $({format_latex_scalar(elemento, True)}) \\cdot ({format_latex_scalar(cofactor, True)}) = {format_latex_number(termino_valor)}$."
             )
             for pm in pasos_menor:
                 lineas_explicativas.append(f"  $\\rightarrow$ {pm}")
 
-            terminos_suma_str.append(format_number(termino_valor))
+            terminos_suma_vals.append(termino_valor)
 
-        total_str = " + ".join(terminos_suma_str)
+        total_parts = []
+        for idx_t, term in enumerate(terminos_suma_vals):
+            if idx_t == 0:
+                total_parts.append(format_latex_number(term))
+            else:
+                if term < 0:
+                    total_parts.append(f"- {format_latex_number(-term)}")
+                else:
+                    total_parts.append(f"+ {format_latex_number(term)}")
+        total_str = " ".join(total_parts)
         lineas_explicativas.append(
-            f"Suma de cofactores: $\\det({etiqueta_submatriz}) = {total_str} = {format_number(suma_acumulada)}$"
+            f"Suma de cofactores: $\\det({etiqueta_submatriz}) = {total_str} = {format_latex_number(suma_acumulada)}$"
         )
         return suma_acumulada, lineas_explicativas
 
@@ -462,14 +473,15 @@ def calcular_determinante_cofactores(matriz_in: Any) -> ResultadoDeterminante:
             numero=contador_pasos,
             titulo="Conclusión e Invertibilidad",
             descripcion=(
-                f"Determinante obtenido: $\\det(A) = {format_number(det_final)}$. "
+                f"Determinante obtenido: $\\det(A) = {format_latex_number(det_final)}$. "
                 f"La matriz es {'INVERTIBLE (No Singular)' if res.es_invertible else 'SINGULAR (No Invertible)'}."
             ),
             matriz_estado=matriz,
             detalles=[
-                f"Valor exacto fraccionario: ${format_number(det_final)}$",
+                f"Valor exacto fraccionario: ${format_latex_number(det_final)}$",
                 f"Valor decimal aproximado: $\\approx {format_number(det_final, as_decimal=True, decimal_places=6)}$",
-                f"Criterio de Rango: {'Rango completo $\\operatorname{rg}(A) = n$' if res.es_invertible else 'Rango deficiente $\\operatorname{rg}(A) < n$'}.",
+                f"Criterio de Invertibilidad: {'$\\det(A) \\neq 0 \\implies$ Matriz no singular (invertible, existe matriz inversa única $A^{-1}$)' if res.es_invertible else '$\\det(A) = 0 \\implies$ Matriz singular (no invertible, $\\nexists A^{-1}$)'}.",
+                f"Criterio de Rango: {'Rango completo $\\mathrm{rg}(A) = ' + str(n) + '$' if res.es_invertible else 'Rango deficiente $\\mathrm{rg}(A) < ' + str(n) + '$'}.",
             ],
         )
     )
@@ -606,7 +618,7 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
                     titulo=f"Pivoteo Parcial: Intercambio $F_{{{k + 1}}} \\leftrightarrow F_{{{mejor_fila + 1}}}$",
                     descripcion=(
                         f"Se intercambian las filas {k + 1} y {mejor_fila + 1} para ubicar el pivote de mayor "
-                        f"magnitud (${format_number(U[k][k])}$). Cada intercambio multiplica el determinante por $(-1)$. "
+                        f"magnitud (${format_latex_number(U[k][k])}$). Cada intercambio multiplica el determinante por $(-1)$. "
                         f"Total de intercambios acumulados: $s = {intercambios_filas}$."
                     ),
                     matriz_estado=U,
@@ -630,8 +642,8 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
                 L[i][k] = multiplicador
 
                 detalles_eliminacion.append(
-                    f"Fila {i + 1}: Multiplicador $m_{{{i + 1},{k + 1}}} = \\frac{{{format_number(U[i][k])}}}{{{format_number(pivote)}}} = "
-                    f"{format_number(multiplicador)}$. Operación: $F_{{{i + 1}}} \\leftarrow F_{{{i + 1}}} - ({format_number(multiplicador)}) \\cdot F_{{{k + 1}}}$"
+                    f"Fila {i + 1}: Multiplicador $m_{{{i + 1},{k + 1}}} = \\frac{{{format_latex_number(U[i][k])}}}{{{format_latex_number(pivote)}}} = "
+                    f"{format_latex_number(multiplicador)}$. Operación: $F_{{{i + 1}}} \\leftarrow F_{{{i + 1}}} - ({format_latex_scalar(multiplicador, True)}) \\cdot F_{{{k + 1}}}$"
                 )
 
                 # Aplicar eliminación en la fila i de U
@@ -645,7 +657,7 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
                 PasoDeterminante(
                     numero=contador_pasos,
                     titulo=f"Eliminación Gaussiana en Columna {k + 1}",
-                    descripcion=f"Se anulan los elementos bajo el pivote $u_{{{k + 1},{k + 1}}} = {format_number(pivote)}$.",
+                    descripcion=f"Se anulan los elementos bajo el pivote $u_{{{k + 1},{k + 1}}} = {format_latex_number(pivote)}$.",
                     matriz_estado=U,
                     detalles=detalles_eliminacion,
                 )
@@ -664,7 +676,7 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
 
         for idx, diag_val in enumerate(elementos_diagonal):
             producto_diagonal *= diag_val
-            detalles_prod_diag.append(f"$u_{{{idx + 1},{idx + 1}}} = {format_number(diag_val)}$")
+            detalles_prod_diag.append(f"$u_{{{idx + 1},{idx + 1}}} = {format_latex_number(diag_val)}$")
 
         # Factor de signo por permutaciones de filas
         factor_signo = 1 if (intercambios_filas % 2 == 0) else -1
@@ -686,9 +698,9 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
                 matriz_estado=U,
                 detalles=[
                     f"Elementos diagonales de $U$: {', '.join(detalles_prod_diag)}.",
-                    f"Producto de la diagonal: $\\det(U) = {format_number(producto_diagonal)}$.",
+                    f"Producto de la diagonal: $\\det(U) = {format_latex_number(producto_diagonal)}$.",
                     f"Intercambios de filas: $s = {intercambios_filas} \\implies (-1)^{{{intercambios_filas}}} = {factor_signo:+d}$.",
-                    f"Fórmula final: $\\det(A) = ({factor_signo:+d}) \\cdot ({format_number(producto_diagonal)}) = {format_number(det_final)}$.",
+                    f"Fórmula final: $\\det(A) = ({factor_signo:+d}) \\cdot ({format_latex_number(producto_diagonal)}) = {format_latex_number(det_final)}$.",
                 ],
             )
         )
@@ -700,14 +712,15 @@ def calcular_determinante_lu(matriz_in: Any) -> ResultadoDeterminante:
             numero=contador_pasos,
             titulo="Conclusión e Invertibilidad",
             descripcion=(
-                f"Determinante obtenido: $\\det(A) = {format_number(det_final)}$. "
+                f"Determinante obtenido: $\\det(A) = {format_latex_number(det_final)}$. "
                 f"La matriz es {'INVERTIBLE (No Singular)' if res.es_invertible else 'SINGULAR (No Invertible)'}."
             ),
             matriz_estado=U,
             detalles=[
-                f"Valor exacto fraccionario: ${format_number(det_final)}$",
+                f"Valor exacto fraccionario: ${format_latex_number(det_final)}$",
                 f"Valor decimal aproximado: $\\approx {format_number(det_final, as_decimal=True, decimal_places=6)}$",
-                f"Criterio de Rango: {'Rango completo $\\operatorname{rg}(A) = n$' if res.es_invertible else 'Rango deficiente $\\operatorname{rg}(A) < n$'}.",
+                f"Criterio de Invertibilidad: {'$\\det(A) \\neq 0 \\implies$ Matriz no singular (invertible, existe matriz inversa única $A^{-1}$)' if res.es_invertible else '$\\det(A) = 0 \\implies$ Matriz singular (no invertible, $\\nexists A^{-1}$)'}.",
+                f"Criterio de Rango: {'Rango completo $\\mathrm{rg}(A) = ' + str(n) + '$' if res.es_invertible else 'Rango deficiente $\\mathrm{rg}(A) < ' + str(n) + '$'}.",
             ],
         )
     )

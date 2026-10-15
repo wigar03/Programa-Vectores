@@ -49,6 +49,8 @@ from typing import Any, List, Dict, Optional, Union
 from src.core.arithmetic import (
     parse_number,
     format_number,
+    format_latex_number,
+    format_latex_scalar,
     validar_vector_numerico,
     formatear_vector,
 )
@@ -216,11 +218,20 @@ def evaluar_combinacion_lineal(
         # SCD: Solución Única
         resultado.es_combinacion = True
         resultado.tipo_solucion = "UNICA"
-        resultado.justificacion_teorica = (
-            rf"El vector $\vec{{b}}$ SÍ es combinación lineal del conjunto de vectores de forma ÚNICA." "\n"
-            rf"Justificación: $\operatorname{{rg}}(V) = \operatorname{{rg}}(V|b) = {gauss_res.rank_A} = k = {k}$ (número de vectores)." "\n"
-            rf"Existe una única combinación de escalares $(c_1, \dots, c_{{{k}}})$ tal que $c_1\vec{{v}}_1 + \dots + c_{{{k}}}\vec{{v}}_{{{k}}} = \vec{{b}}$."
-        )
+        if n == k:
+            resultado.justificacion_teorica = (
+                rf"El vector $\vec{{b}}$ SÍ es combinación lineal del conjunto de vectores de forma ÚNICA." "\n"
+                rf"Justificación: $\operatorname{{rg}}(V) = \operatorname{{rg}}(V|b) = {gauss_res.rank_A} = k = {k}$ (número de vectores)." "\n"
+                rf"Dado que la matriz de vectores $V$ es cuadrada de orden ${n} \times {n}$ con rango completo, $V$ es una **Matriz No Singular (Invertible)** "
+                rf"con $\det(V) \neq 0$, lo que confirma que el conjunto de columnas $\{{\vec{{v}}_1, \dots, \vec{{v}}_{k}\}}$ constituye una base de $\mathbb{{R}}^{{{n}}}$." "\n"
+                rf"Existe una única combinación de escalares $(c_1, \dots, c_{{{k}}})$ tal que $c_1\vec{{v}}_1 + \dots + c_{{{k}}}\vec{{v}}_{{{k}}} = \vec{{b}}$."
+            )
+        else:
+            resultado.justificacion_teorica = (
+                rf"El vector $\vec{{b}}$ SÍ es combinación lineal del conjunto de vectores de forma ÚNICA." "\n"
+                rf"Justificación: $\operatorname{{rg}}(V) = \operatorname{{rg}}(V|b) = {gauss_res.rank_A} = k = {k}$ (número de vectores)." "\n"
+                rf"Existe una única combinación de escalares $(c_1, \dots, c_{{{k}}})$ tal que $c_1\vec{{v}}_1 + \dots + c_{{{k}}}\vec{{v}}_{{{k}}} = \vec{{b}}$."
+            )
         
         c_valores = [gauss_res.solution_vector[j] for j in range(k)]  # Todos son Fraction
         resultado.escalares_particulares = [parse_number(val) for val in c_valores]
@@ -251,13 +262,17 @@ def _comprobar_solucion(resultado: ResultadoCombinacionLineal, c_vals: List[Frac
             v_ji = resultado.vectores_conjunto[j][i]
             producto = c_j * v_ji
             suma_i += producto
-            terminos_str.append(f"({format_number(c_j)}) \\cdot ({format_number(v_ji)})")
+            c_latex = format_latex_scalar(c_j, parenthesize_if_negative=True)
+            v_latex = format_latex_scalar(v_ji, parenthesize_if_negative=True)
+            terminos_str.append(f"{c_latex} \\cdot {v_latex}")
             
         b_i = resultado.vector_objetivo[i]
         es_valido = (suma_i == b_i)
         simbolo = "✓ Satisface" if es_valido else "✗ Falla"
         
         desglose = " + ".join(terminos_str)
+        suma_latex = format_latex_number(suma_i)
+        b_latex = format_latex_number(b_i)
         resultado.comprobacion_sustitucion.append(
-            f"Componente {i + 1}: ${desglose} = {format_number(suma_i)}$ [Esperado: ${format_number(b_i)}$] $\\rightarrow$ {simbolo}"
+            f"Componente {i + 1}: ${desglose} = {suma_latex}$ [Esperado: ${b_latex}$] $\\rightarrow$ {simbolo}"
         )

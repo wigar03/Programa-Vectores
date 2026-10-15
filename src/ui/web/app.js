@@ -1237,20 +1237,20 @@ async function calcularInversaUI() {
     if (data.es_invertible && data.matriz_inversa) {
       latexPrincipal = `A^{-1} = ${matrixToLatex(data.matriz_inversa)}`;
     } else {
-      latexPrincipal = `\\nexists \\; A^{-1} \\quad (\\det(A) = 0 \\text{ o } \\mathrm{rg}(A) < ${data.orden_n})`;
+      latexPrincipal = `\\nexists \\; A^{-1} \\quad (\\det(A) = 0 \\text{ o } \\operatorname{rg}(A) < ${data.orden_n})`;
     }
 
     let htmlContenido = `
       <div class="latex-equation-card">
-        <div class="latex-header">${data.es_invertible ? "Matriz Inversa Calculada A⁻¹:" : "Dictamen de Singularidad:"}</div>
+        <div class="latex-header">${data.es_invertible ? "Matriz Inversa Calculada A⁻¹ (No Singular):" : "Dictamen de Matriz Singular (No Invertible):"}</div>
         <div id="inv-latex-target" class="latex-display-box"></div>
     `;
 
     // Si es matriz 2x2, mostrar el Teorema 2x2
     if (data.orden_n === 2 && data.determinante_2x2 !== null) {
       htmlContenido += `
-        <div class="verification-box" style="margin-top: 0.85rem; background: rgba(2, 132, 199, 0.05); border-color: rgba(2, 132, 199, 0.2);">
-          <h4 style="color: var(--accent-cyan);">Teorema de Inversión 2 × 2:</h4>
+        <div class="verification-box" style="margin-top: 0.85rem; background: rgba(2, 132, 199, 0.05); border-color: rgba(2, 132, 199, 0.25);">
+          <h4 style="color: var(--accent-cyan);">Teorema de la Matriz Invertible 2 × 2:</h4>
           <div id="inv-latex-teorema-2x2"></div>
         </div>
       `;
@@ -1273,23 +1273,32 @@ async function calcularInversaUI() {
     if (data.orden_n === 2 && data.determinante_2x2 !== null) {
       const el2x2 = document.getElementById("inv-latex-teorema-2x2");
       if (el2x2) {
-        const detLatex = formatLatexFrac(data.determinante_2x2);
-        const a_val = formatLatexFrac(A[0][0]);
-        const b_val = formatLatexFrac(A[0][1]);
-        const c_val = formatLatexFrac(A[1][0]);
-        const d_val = formatLatexFrac(A[1][1]);
-        const neg_b = formatLatexFrac(b_val.startsWith("-") ? b_val.slice(1) : (b_val === "0" ? "0" : "-" + b_val));
-        const neg_c = formatLatexFrac(c_val.startsWith("-") ? c_val.slice(1) : (c_val === "0" ? "0" : "-" + c_val));
-        const form2x2 = detLatex === "0" 
-          ? `\\det(A) = ad - bc = (${a_val})(${d_val}) - (${b_val})(${c_val}) = 0 \\implies \\text{Matriz singular (no invertible)}`
-          : `\\det(A) = ad - bc = (${a_val})(${d_val}) - (${b_val})(${c_val}) = ${detLatex} \\neq 0 \\implies A^{-1} = \\frac{1}{${detLatex}} \\begin{pmatrix} ${d_val} & ${neg_b} \\\\ ${neg_c} & ${a_val} \\end{pmatrix}`;
-        renderLatexElement(el2x2, form2x2);
+        if (data.formula_2x2_detalle) {
+          renderMixedLatex(el2x2, data.formula_2x2_detalle);
+        } else {
+          const detLatex = formatLatexFrac(data.determinante_2x2);
+          const a_val = formatLatexFrac(A[0][0]);
+          const b_val = formatLatexFrac(A[0][1]);
+          const c_val = formatLatexFrac(A[1][0]);
+          const d_val = formatLatexFrac(A[1][1]);
+          const form2x2 = detLatex === "0" 
+            ? `\\det(A) = ad - bc = (${a_val})(${d_val}) - (${b_val})(${c_val}) = 0 \\implies \\text{Matriz singular (no invertible)}`
+            : `\\det(A) = ad - bc = (${a_val})(${d_val}) - (${b_val})(${c_val}) = ${detLatex} \\neq 0 \\implies A^{-1} = \\frac{1}{${detLatex}} \\begin{pmatrix} ${d_val} & -${b_val} \\\\ -${c_val} & ${a_val} \\end{pmatrix}`;
+          renderLatexElement(el2x2, form2x2);
+        }
       }
     }
 
     // Render diagnóstico teórico
     const diagEl = document.getElementById("inv-diagnostic");
     if (diagEl && data.mensaje_diagnostico) {
+      if (data.es_invertible) {
+        diagEl.style.borderLeft = "4px solid var(--accent-emerald)";
+        diagEl.style.background = "rgba(5, 150, 105, 0.05)";
+      } else {
+        diagEl.style.borderLeft = "4px solid var(--accent-rose)";
+        diagEl.style.background = "rgba(225, 29, 72, 0.05)";
+      }
       renderMixedLatex(diagEl, data.mensaje_diagnostico);
     }
 
@@ -1298,12 +1307,12 @@ async function calcularInversaUI() {
       const verifContainer = document.createElement("div");
       verifContainer.className = "verification-box";
       verifContainer.style.marginTop = "1rem";
-      verifContainer.innerHTML = `<h4>Verificación Algebraica Dual:</h4>`;
+      verifContainer.innerHTML = `<h4 style="color: var(--accent-emerald);">✓ Doble Verificación Algebraica de Invertibilidad:</h4>`;
       
       const v1Title = document.createElement("div");
       v1Title.style.fontWeight = "600";
       v1Title.style.marginTop = "0.4rem";
-      renderMixedLatex(v1Title, "1. Comprobación directa: $A \\cdot A^{-1} = I_{" + data.orden_n + "}$");
+      renderMixedLatex(v1Title, "• Comprobación directa: $A \\cdot A^{-1} = I_{" + data.orden_n + "}$");
       verifContainer.appendChild(v1Title);
 
       (data.verificacion_A_por_Ainv || []).forEach(v => {
@@ -1317,7 +1326,16 @@ async function calcularInversaUI() {
       const v2Title = document.createElement("div");
       v2Title.style.fontWeight = "600";
       v2Title.style.marginTop = "0.6rem";
-      renderMixedLatex(v2Title, "2. Comprobación conmutativa: $A^{-1} \\cdot A = I_{" + data.orden_n + "}$");
+      renderMixedLatex(v2Title, "• Comprobación conmutativa: $A^{-1} \\cdot A = I_{" + data.orden_n + "}$");
+      verifContainer.appendChild(v2Title);
+
+      (data.verificacion_Ainv_por_A || []).forEach(v => {
+        const row = document.createElement("div");
+        row.style.margin = "0.25rem 0";
+        row.style.lineHeight = "1.6";
+        renderMixedLatex(row, v);
+        verifContainer.appendChild(row);
+      });
       verifContainer.appendChild(v2Title);
 
       (data.verificacion_Ainv_por_A || []).forEach(v => {
@@ -1535,9 +1553,10 @@ async function resolverEcuacionMatricialUI() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Error al resolver la ecuación");
 
+    const esCuadrada = (eqM === eqN);
     if (data.tipo_sistema === "SCD") {
       badge.className = "badge badge-success";
-      badge.innerText = "Solución Única (SCD)";
+      badge.innerText = esCuadrada ? "Solución Única (A Invertible / No Singular)" : "Solución Única (SCD)";
     } else if (data.tipo_sistema === "SCI") {
       badge.className = "badge badge-warning";
       badge.innerText = "Infinitas Soluciones (SCI)";
@@ -1552,7 +1571,11 @@ async function resolverEcuacionMatricialUI() {
     
     let latexSol = "";
     if (data.tipo_sistema === "SCD") {
-      latexSol = `\\vec{x}^* = ${vectorToLatexCol(data.vector_solucion)}`;
+      if (esCuadrada) {
+        latexSol = `\\vec{x}^* = A^{-1}\\vec{b} = ${vectorToLatexCol(data.vector_solucion)}`;
+      } else {
+        latexSol = `\\vec{x}^* = ${vectorToLatexCol(data.vector_solucion)}`;
+      }
     } else if (data.tipo_sistema === "SCI") {
       latexSol = `\\vec{x} = ${vectorToLatexCol(data.vector_solucion)} \\quad (\\text{Infinitas soluciones})`;
     } else {
