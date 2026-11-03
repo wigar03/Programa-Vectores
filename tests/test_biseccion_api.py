@@ -66,3 +66,9 @@ class TestBiseccionApi(unittest.TestCase):
         self.assertEqual(estado, 200)
         self.assertEqual(res["iteraciones"], 0)
         self.assertEqual(res["raiz"], .5)
+
+    def test_recursos_de_interfaz_disponibles(self):
+        for ruta in ["/", "/biseccion.js", "/biseccion.css"]:
+            with self.subTest(ruta=ruta), urlopen(self.url + ruta, timeout=5) as res:
+                self.assertEqual(res.status, 200)
+                self.assertIn("bis-", res.read().decode("utf-8"))

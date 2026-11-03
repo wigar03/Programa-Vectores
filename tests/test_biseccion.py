@@ -80,6 +80,11 @@ class TestBiseccion(unittest.TestCase):
         self.assertEqual(res["motivo"], "precision_agotada")
         json.dumps(res, allow_nan=False)
 
+    def test_intervalo_adyacente_que_ya_cumple_tolerancia(self):
+        res = resolver_biseccion("(x-1)-1e-16", 1, math.nextafter(1, 2), 1e-10)
+        self.assertTrue(res["convergio"])
+        self.assertEqual(res["motivo"], "tolerancia")
+
     def test_grafica_separa_dominio_invalido(self):
         puntos = muestrear_funcion("1/x", -1, 1)
         self.assertEqual(len(puntos), 201)

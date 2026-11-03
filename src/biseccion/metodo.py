@@ -75,7 +75,7 @@ def resolver_biseccion(funcion, a, b, tolerancia=0.0001,
         }[criterio]
         if fc == 0:
             motivo, convergio = "raiz_evaluada", True
-        elif estancado:
+        elif estancado and not (cumple and criterio in {"intervalo", "residuo"}):
             motivo, convergio = "precision_agotada", False
         elif cumple:
             motivo, convergio = "tolerancia", True
