@@ -24,8 +24,8 @@ class TestBiseccionApi(unittest.TestCase):
         cls.servidor.server_close()
         cls.hilo.join()
 
-    def enviar(self, datos):
-        req = Request(self.url + "/api/biseccion/resolver", json.dumps(datos).encode(),
+    def enviar(self, datos, ruta="/api/biseccion/resolver"):
+        req = Request(self.url + ruta, json.dumps(datos).encode(),
                       {"Content-Type": "application/json"})
         try:
             respuesta = urlopen(req, timeout=5)
@@ -72,3 +72,20 @@ class TestBiseccionApi(unittest.TestCase):
             with self.subTest(ruta=ruta), urlopen(self.url + ruta, timeout=5) as res:
                 self.assertEqual(res.status, 200)
                 self.assertIn("bis-", res.read().decode("utf-8"))
+
+    def test_preview_representa_sin_evaluar_dominio(self):
+        for funcion, latex in [("sqrt(x)", r"\sqrt{x}"),
+                               ("1/(x-1)", r"\frac{1}{x - 1}")]:
+            with self.subTest(funcion=funcion):
+                estado, res = self.enviar({"funcion": funcion}, "/api/biseccion/preview")
+                self.assertEqual(estado, 200)
+                self.assertEqual(res["latex"], latex)
+                self.assertNotIn("raiz", res)
+
+    def test_preview_rechaza_codigo_y_expresiones_incompletas(self):
+        for caso in [{}, [], None, {"funcion": "x^"}, {"funcion": "sqrt("},
+                     {"funcion": "__import__('os')"}, {"funcion": r"\htmlClass{foo}{x}"}]:
+            with self.subTest(caso=caso):
+                estado, res = self.enviar(caso, "/api/biseccion/preview")
+                self.assertEqual(estado, 400)
+                self.assertIn("error", res)

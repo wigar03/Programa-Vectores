@@ -7,6 +7,34 @@ from src.biseccion.expresiones import Expresion, numero_real
 
 
 class TestExpresiones(unittest.TestCase):
+    def test_latex_polinomio(self):
+        self.assertEqual(Expresion("x^4-5*x^3+0.5*x^2-11*x+10").latex(),
+                         r"x^{4} - 5 \cdot x^{3} + 0.5 \cdot x^{2} - 11 \cdot x + 10")
+
+    def test_latex_funciones(self):
+        casos = {"sqrt(x)": r"\sqrt{x}", "abs(x)": r"\left|x\right|",
+                 "ln(x)": r"\ln\left(x\right)", "log(x)": r"\log_{10}\left(x\right)",
+                 "sin(pi*x)": r"\sin\left(\pi \cdot x\right)", "exp(x)": r"e^{x}"}
+        for entrada, salida in casos.items():
+            with self.subTest(entrada=entrada):
+                self.assertEqual(Expresion(entrada).latex(), salida)
+
+    def test_latex_conserva_agrupacion_y_precedencia(self):
+        casos = {"(x+1)^2": r"\left(x + 1\right)^{2}",
+                 "x-(x+1)": r"x - \left(x + 1\right)",
+                 "(x+1)/(x-1)": r"\frac{x + 1}{x - 1}",
+                 "x*(x+1)": r"x \cdot \left(x + 1\right)",
+                 "(-x)^2": r"\left(-x\right)^{2}",
+                 "exp(x)^2": r"\left(e^{x}\right)^{2}",
+                 "x**2**3": r"x^{2^{3}}"}
+        for entrada, salida in casos.items():
+            with self.subTest(entrada=entrada):
+                self.assertEqual(Expresion(entrada).latex(), salida)
+
+    def test_latex_notacion_cientifica(self):
+        self.assertEqual(Expresion("1e-10*x").latex(), r"1 \times 10^{-10} \cdot x")
+        self.assertEqual(Expresion("1e-10^2").latex(), r"\left(1 \times 10^{-10}\right)^{2}")
+
     def test_polinomio_de_referencia(self):
         f = Expresion("x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10")
         self.assertAlmostEqual(f(0.6), 2.6296)

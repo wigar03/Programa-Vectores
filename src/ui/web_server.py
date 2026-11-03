@@ -44,6 +44,7 @@ from src.matrices.determinante import (
 )
 from src.ecuaciones.ecuacion_matricial import resolver_ecuacion_matricial
 from src.biseccion.metodo import resolver_biseccion, muestrear_funcion
+from src.biseccion.expresiones import Expresion
 
 
 def serialize_fraction_or_str(val):
@@ -104,6 +105,10 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 self._handle_eficiencia_determinante(body)
             elif parsed.path == "/api/biseccion/resolver":
                 self._handle_biseccion(body)
+            elif parsed.path == "/api/biseccion/preview":
+                if not isinstance(body, dict):
+                    raise ValueError("Envíe un objeto JSON con la función.")
+                self._send_json({"latex": Expresion(body.get("funcion")).latex()})
             else:
                 self._send_json({"error": f"Ruta API no encontrada: {parsed.path}"}, status=404)
         except Exception as err:

@@ -86,6 +86,59 @@ class Expresion:
             raise ValueError("El exponente excede el límite de 1000.")
         return numero_real(OPERACIONES[type(nodo.op)](izquierda, derecha), "f(x)")
 
+    def latex(self):
+        """Representa el mismo árbol validado sin evaluar la función ni aceptar LaTeX libre."""
+        def parentesis(texto):
+            return rf"\left({texto}\right)"
+
+        def convertir(nodo):
+            if isinstance(nodo, ast.Constant):
+                texto = str(nodo.value)
+                if "e" in texto.lower():
+                    mantisa, exponente = texto.lower().split("e")
+                    return rf"{mantisa} \times 10^{{{int(exponente)}}}"
+                return texto
+            if isinstance(nodo, ast.Name):
+                return r"\pi" if nodo.id == "pi" else nodo.id
+            if isinstance(nodo, ast.UnaryOp):
+                argumento = convertir(nodo.operand)
+                if isinstance(nodo.operand, ast.BinOp):
+                    argumento = parentesis(argumento)
+                return ("-" if isinstance(nodo.op, ast.USub) else "+") + argumento
+            if isinstance(nodo, ast.Call):
+                argumento = convertir(nodo.args[0])
+                nombre = nodo.func.id
+                if nombre == "sqrt":
+                    return rf"\sqrt{{{argumento}}}"
+                if nombre == "abs":
+                    return rf"\left|{argumento}\right|"
+                if nombre == "exp":
+                    return rf"e^{{{argumento}}}"
+                nombre = r"\log_{10}" if nombre == "log" else "\\" + nombre
+                return nombre + parentesis(argumento)
+            izquierda, derecha = convertir(nodo.left), convertir(nodo.right)
+            if isinstance(nodo.op, ast.Div):
+                return rf"\frac{{{izquierda}}}{{{derecha}}}"
+            if isinstance(nodo.op, ast.Pow):
+                if (isinstance(nodo.left, (ast.BinOp, ast.UnaryOp, ast.Call))
+                        or isinstance(nodo.left, ast.Constant)
+                        and (nodo.left.value < 0 or "e" in str(nodo.left.value).lower())):
+                    izquierda = parentesis(izquierda)
+                return rf"{izquierda}^{{{derecha}}}"
+            if isinstance(nodo.op, ast.Mult):
+                if isinstance(nodo.left, ast.BinOp) and isinstance(nodo.left.op, (ast.Add, ast.Sub)):
+                    izquierda = parentesis(izquierda)
+                if (isinstance(nodo.right, ast.UnaryOp) or isinstance(nodo.right, ast.BinOp)
+                        and isinstance(nodo.right.op, (ast.Add, ast.Sub))):
+                    derecha = parentesis(derecha)
+                return izquierda + r" \cdot " + derecha
+            if isinstance(nodo.right, ast.UnaryOp) or (isinstance(nodo.op, ast.Sub)
+                    and isinstance(nodo.right, ast.BinOp) and isinstance(nodo.right.op, (ast.Add, ast.Sub))):
+                derecha = parentesis(derecha)
+            return izquierda + (" + " if isinstance(nodo.op, ast.Add) else " - ") + derecha
+
+        return convertir(self.arbol)
+
     def __call__(self, x):
         """Evalúa en un punto real y traduce errores de dominio a mensajes de entrada."""
         x = numero_real(x, "x")
