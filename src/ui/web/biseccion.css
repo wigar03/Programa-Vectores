@@ -1,0 +1,47 @@
+/* Estilos exclusivos del módulo de bisección; respeta el tema de la calculadora. */
+.biseccion-pane .bis-intro { color: var(--text-muted); margin: 0 0 1rem; }
+.biseccion-pane .bis-input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: .7rem .8rem;
+  margin: .4rem 0 .8rem;
+  border: 1px solid var(--bg-input-border);
+  border-radius: 8px;
+  background: var(--bg-input);
+  color: var(--text-main);
+  font: inherit;
+}
+.biseccion-pane .bis-expression { font-family: 'JetBrains Mono', monospace; font-size: .88rem; }
+.biseccion-pane .bis-input:focus-visible,
+.biseccion-pane .bis-table-scroll:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+.biseccion-pane .bis-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.biseccion-pane .bis-help { color: var(--text-muted); font-size: .8rem; line-height: 1.6; margin: .4rem 0 1rem; }
+.biseccion-pane .bis-theory { background: var(--card-highlight-bg); border: 1px solid var(--card-highlight-border); border-radius: 10px; padding: 1rem; margin: 1rem 0; font-size: .85rem; line-height: 1.6; }
+.biseccion-pane .bis-theory p { margin: .5rem 0 0; color: var(--text-muted); }
+.biseccion-pane .bis-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0; }
+.biseccion-pane .bis-stat { padding: 1rem; border: 1px solid var(--bg-card-border); background: var(--bg-secondary); border-radius: 10px; min-width: 0; }
+.biseccion-pane .bis-stat dt { color: var(--text-muted); font-size: .78rem; margin-bottom: .4rem; }
+.biseccion-pane .bis-stat dd { margin: 0; font-family: 'JetBrains Mono', monospace; font-size: .95rem; overflow-wrap: anywhere; }
+.biseccion-pane .bis-function { overflow-wrap: anywhere; font-family: 'JetBrains Mono', monospace; font-size: .85rem; }
+.biseccion-pane .bis-message { line-height: 1.6; overflow-wrap: anywhere; }
+.biseccion-pane .bis-error { color: var(--accent-rose); }
+.biseccion-pane .bis-plot { margin-top: 1rem; color: var(--text-muted); }
+.biseccion-pane .bis-plot svg { display: block; width: 100%; height: auto; background: var(--bg-secondary); border: 1px solid var(--bg-card-border); border-radius: 10px; }
+.biseccion-pane .bis-curve { stroke: var(--accent-blue); }
+.biseccion-pane .bis-root { stroke: var(--accent-emerald); fill: var(--accent-emerald); }
+.biseccion-pane .bis-band { fill: var(--accent-emerald); opacity: .12; }
+.biseccion-pane .bis-table-card { grid-column: 1 / -1; }
+.biseccion-pane .bis-table-scroll { overflow: auto; max-height: 480px; border: 1px solid var(--bg-card-border); border-radius: 8px; }
+.biseccion-pane table { border-collapse: separate; border-spacing: 0; width: 100%; font: .78rem 'JetBrains Mono', monospace; white-space: nowrap; }
+.biseccion-pane caption { text-align: left; padding: .9rem; color: var(--text-muted); font-family: 'Outfit', sans-serif; white-space: normal; }
+.biseccion-pane th, .biseccion-pane td { padding: .75rem; text-align: right; border-bottom: 1px solid var(--bg-card-border); }
+.biseccion-pane th { position: sticky; top: 0; background: var(--bg-secondary); z-index: 1; }
+.biseccion-pane tbody tr:last-child { background: var(--card-highlight-bg); }
+.biseccion-pane td:last-child { text-align: left; }
+.biseccion-pane [hidden] { display: none; }
+.biseccion-pane button:disabled { opacity: .6; cursor: wait; }
+@media (max-width: 480px) {
+  .biseccion-pane .bis-fields, .biseccion-pane .bis-summary { grid-template-columns: 1fr; gap: .4rem; }
+}

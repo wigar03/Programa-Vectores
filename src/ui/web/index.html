@@ -18,6 +18,7 @@
   <script src="lucide.min.js"></script>
   
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="biseccion.css">
 </head>
 <body>
   <div class="app-container">
@@ -64,6 +65,10 @@
       <button class="nav-tab" data-tab="tab-determinante">
         <i data-lucide="scan" class="tab-icon"></i>
         <span class="tab-label">Determinante |A|</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-biseccion">
+        <i data-lucide="split" class="tab-icon"></i>
+        <span class="tab-label">Método de Bisección</span>
       </button>
     </nav>
 
@@ -650,6 +655,86 @@
         </div>
       </section>
 
+      <!-- APARTADO 7: BÚSQUEDA NUMÉRICA DE RAÍCES POR BISECCIÓN -->
+      <section id="tab-biseccion" class="tab-pane biseccion-pane" aria-label="Método de Bisección">
+        <div class="pane-grid">
+          <div class="card card-input">
+            <div class="card-header">
+              <h3>Método de Bisección</h3>
+              <span class="badge badge-dim">f(x) = 0</span>
+            </div>
+            <p class="bis-intro">Encuentre una raíz dividiendo un intervalo a la mitad en cada iteración.</p>
+            <form id="bis-form">
+              <label class="field-label" for="bis-funcion">Función f(x)</label>
+              <input id="bis-funcion" name="funcion" class="bis-input bis-expression" type="text"
+                value="x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10" required maxlength="500"
+                autocomplete="off" spellcheck="false" aria-describedby="bis-syntax">
+              <p id="bis-syntax" class="bis-help">Use * para multiplicar y ^ o ** para potencias. Funciones: sin, cos, tan, exp, ln (natural), log (base 10), sqrt y abs. Constantes: pi y e. Ángulos en radianes.</p>
+              <div class="bis-fields">
+                <div>
+                  <label class="field-label" for="bis-a">Extremo inferior (a)</label>
+                  <input id="bis-a" name="a" class="bis-input" type="text" value="0.6" required aria-describedby="bis-numbers">
+                </div>
+                <div>
+                  <label class="field-label" for="bis-b">Extremo superior (b)</label>
+                  <input id="bis-b" name="b" class="bis-input" type="text" value="1" required aria-describedby="bis-numbers">
+                </div>
+              </div>
+              <p id="bis-numbers" class="bis-help">Admite decimales con punto, fracciones (1/2) y notación científica (1e-4).</p>
+              <label class="field-label" for="bis-criterio">Criterio de parada</label>
+              <select id="bis-criterio" name="criterio" class="bis-input" aria-describedby="bis-criterion-help">
+                <option value="intervalo">Ancho del intervalo: b − a ≤ tolerancia</option>
+                <option value="relativo">Error relativo aproximado (%) ≤ tolerancia</option>
+                <option value="residuo">Residuo: |f(c)| ≤ tolerancia</option>
+              </select>
+              <p id="bis-criterion-help" class="bis-help">Detiene cuando b − a ≤ tolerancia. La cota del error en el punto medio es (b − a)/2.</p>
+              <div class="bis-fields">
+                <div>
+                  <label id="bis-tolerance-label" class="field-label" for="bis-tolerancia">Tolerancia</label>
+                  <input id="bis-tolerancia" name="tolerancia" class="bis-input" type="text" value="0.0001" required>
+                </div>
+                <div>
+                  <label class="field-label" for="bis-max">Máximo de iteraciones</label>
+                  <input id="bis-max" name="max_iteraciones" class="bis-input" type="number" value="100" min="1" max="1000" step="1" required>
+                </div>
+              </div>
+              <div class="bis-theory">
+                <strong>Condición de aplicación</strong>
+                <p>La función debe ser continua en todo [a, b] y sus extremos deben tener signos opuestos. Verifique la continuidad antes de calcular; un cambio de signo también puede deberse a una discontinuidad.</p>
+                <p>c = (a + b)/2. Si f(a) y f(c) tienen signos opuestos, b ← c; en caso contrario, a ← c. Si f(c) = 0, el proceso termina.</p>
+              </div>
+              <button id="bis-submit" type="submit" class="btn-primary btn-large">
+                <i data-lucide="play" class="btn-icon"></i><span>Calcular raíz por bisección</span>
+              </button>
+            </form>
+            <div class="card-footer-actions">
+              <div class="sample-actions">
+                <button type="button" class="btn-text" data-bis-example="hoja">Ejemplo de referencia</button>
+                <button type="button" class="btn-text" data-bis-example="coseno">cos(x) − x</button>
+                <button type="button" class="btn-text" data-bis-example="potencia">x¹⁰ − 1</button>
+              </div>
+              <button id="bis-clear" type="button" class="btn-clear">
+                <i data-lucide="trash-2" class="btn-icon"></i><span>Limpiar</span>
+              </button>
+            </div>
+          </div>
+          <div class="card card-result">
+            <div class="card-header">
+              <h3>Raíz y verificación</h3>
+              <span id="bis-status" class="badge" role="status" aria-live="polite">Pendiente</span>
+            </div>
+            <div id="bis-result" class="result-box" aria-live="polite">
+              <p class="placeholder-text">Ingrese la función y un intervalo para calcular su raíz aproximada.</p>
+            </div>
+            <div id="bis-plot" class="bis-plot" hidden></div>
+          </div>
+          <div id="bis-table-card" class="card bis-table-card" hidden>
+            <div class="card-header"><h3>Tabla de iteraciones</h3></div>
+            <p class="bis-help">εa = |c actual − c anterior| / |c actual| × 100%. “—” indica que no está definido. La primera iteración no tiene aproximación anterior.</p>
+            <div id="bis-table" class="bis-table-scroll" role="region" aria-label="Iteraciones de bisección, desplazamiento horizontal" tabindex="0"></div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- Modal para Notificaciones y Alertas -->
