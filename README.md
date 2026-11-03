@@ -32,6 +32,7 @@ El presente proyecto integrador implementa un sistema computacional integral par
 4. **Cálculo de la inversa de una matriz $A^{-1}$**: siguiendo el procedimiento analítico formal (matriz aumentada $[A \mid I_n]$, fórmula $2 \times 2$, métodos de Gauss y Gauss-Jordan, detección de matrices singulares y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$).
 5. **Resolución computacional de ecuaciones matriciales** de la forma $Ax = b$ con clasificación completa según el Teorema de Rouché-Capelli e integración directa con el programa de eliminación de renglones desarrollado en la **Semana #3**.
 6. **Cálculo del determinante de matrices cuadradas $|A|$ en la interfaz interactiva**: implementación 100% Python estándar (sin librerías externas) integrada en el servidor web, que permite seleccionar entre **Expansión por Cofactores (Laplace)** y **Descomposición LU ($PA = LU$)**, evaluando e indicando dinámicamente la eficiencia computacional ($O(n!)$ vs $O(n^3)$) antes de la selección.
+7. **Aproximación numérica de raíces reales por método de bisección**: evaluación segura de funciones $f(x)$ con intervalo $[a,b]$ y criterio de convergencia por tolerancia e iteraciones máximas.
 
 ---
 
@@ -319,8 +320,9 @@ Programa Vectores/
 │   ├── solver/                     # Módulo del solucionador y enlace
 │   │   ├── gauss_solver.py         # Motor Gauss / Gauss-Jordan paso a paso
 │   │   └── anterior_programa.py    # Invocación del programa de la Semana #3
-│   ├── ecuaciones/                 # Módulo 5: Ecuaciones matriciales
-│   │   └── ecuacion_matricial.py   # Resolución computacional y residuo de Ax = b
+│   ├── ecuaciones/                 # Módulos 5 y 7: Ax = b y bisección
+│   │   ├── ecuacion_matricial.py   # Resolución computacional y residuo de Ax = b
+│   │   └── biseccion.py            # Aproximación de raíces por intervalo [a, b]
 │   └── ui/                         # Interfaz web de usuario de alta estética
 │       ├── web_server.py           # Servidor local estándar en Python (cero dependencias externas)
 │       └── web/                    # Frontend SPA moderno (HTML5, CSS, JS reactivo, Modo Claro/Oscuro)
@@ -335,7 +337,8 @@ Programa Vectores/
     ├── test_determinante.py        # Tests de determinantes (1x1 a 4x4, singularidad y eficiencia)
     ├── test_combinacion_lineal.py  # Tests de combinación lineal (SCD, SCI, SI)
     ├── test_ecuaciones.py          # Tests de Ax = b y compatibilidad
-    └── test_api_latex.py           # Tests de integración API y formateo matemático
+    ├── test_api_latex.py           # Tests de integración API y formateo matemático
+    └── test_biseccion.py           # Tests del método de bisección (módulo y validaciones)
 ```
 
 ---
@@ -347,7 +350,7 @@ Programa Vectores/
 - **Sin necesidad de instalar paquetes externos vía `pip`**: el programa funciona 100% con la biblioteca estándar (`fractions`, `http.server`, etc.).
 
 ### 1. Ejecutar la Aplicación Web Interactiva
-Inicia la aplicación web SPA con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y todos los 6 módulos integrados (Vectores, Combinación Lineal, Matrices, Inversa, Ax = b y Determinante):
+Inicia la aplicación web SPA con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y todos los 7 módulos integrados (Vectores, Combinación Lineal, Matrices, Inversa, Ax = b, Determinante y Bisección):
 ```bash
 python main.py
 ```

@@ -279,6 +279,20 @@ class TestApiLatexFormatting(unittest.TestCase):
         for paso in res["pasos"]:
             self.assertIn("$", paso["title"])
 
+    def test_biseccion_api(self):
+        res = self.post_json("/api/metodos/biseccion", {
+            "funcion": "x^3 - x - 2",
+            "a": "1",
+            "b": "2",
+            "tolerancia": "1e-8",
+            "max_iteraciones": 100
+        })
+        self.assertTrue(res["convergencia"])
+        self.assertIn("raiz_aproximada", res)
+        self.assertIn("pasos", res)
+        self.assertGreater(len(res["pasos"]), 0)
+        self.assertAlmostEqual(res["raiz_aproximada"], 1.5213797, places=6)
+
     def test_determinante_api_lu_y_cofactores(self):
         # Probar cálculo de determinante 3x3 por LU
         A = [["1", "2", "3"], ["0", "1", "4"], ["5", "6", "0"]]

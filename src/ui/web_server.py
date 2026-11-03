@@ -43,6 +43,7 @@ from src.matrices.determinante import (
     analizar_eficiencia_determinante,
 )
 from src.ecuaciones.ecuacion_matricial import resolver_ecuacion_matricial
+from src.ecuaciones.biseccion import resolver_biseccion
 
 
 def serialize_fraction_or_str(val):
@@ -101,6 +102,8 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 self._handle_matrices_determinante(body)
             elif parsed.path == "/api/matrices/eficiencia-determinante":
                 self._handle_eficiencia_determinante(body)
+            elif parsed.path == "/api/metodos/biseccion":
+                self._handle_metodo_biseccion(body)
             else:
                 self._send_json({"error": f"Ruta API no encontrada: {parsed.path}"}, status=404)
         except Exception as err:
@@ -425,6 +428,56 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             "justificacion": analisis.justificacion,
             "insignia_cofactores": analisis.insignia_cofactores,
             "insignia_lu": analisis.insignia_lu,
+        }
+        self._send_json(data)
+
+    # ==============================================================================
+    # ==============================================================================
+    # APARTADO 7: MÉTODO DE BISECCIÓN PARA APROXIMACIÓN DE RAÍCES f(x)=0
+    # ==============================================================================
+    # ==============================================================================
+    def _handle_metodo_biseccion(self, body):
+        funcion = body.get("funcion", "")
+        a = body.get("a", "-2")
+        b = body.get("b", "2")
+        tolerancia = body.get("tolerancia", "1e-6")
+        max_iteraciones = body.get("max_iteraciones", 100)
+
+        res = resolver_biseccion(
+            funcion=funcion,
+            a_in=a,
+            b_in=b,
+            tolerancia_in=tolerancia,
+            max_iteraciones_in=max_iteraciones,
+        )
+
+        pasos_serializables = []
+        for p in res.pasos:
+            pasos_serializables.append({
+                "iteracion": p.iteracion,
+                "a": p.a,
+                "b": p.b,
+                "c": p.c,
+                "f_a": p.f_a,
+                "f_b": p.f_b,
+                "f_c": p.f_c,
+                "error": p.error,
+            })
+
+        data = {
+            "funcion_original": res.funcion_original,
+            "funcion_normalizada": res.funcion_normalizada,
+            "a_inicial": res.a_inicial,
+            "b_inicial": res.b_inicial,
+            "tolerancia": res.tolerancia,
+            "max_iteraciones": res.max_iteraciones,
+            "convergencia": res.convergencia,
+            "raiz_aproximada": res.raiz_aproximada,
+            "f_raiz": res.f_raiz,
+            "error_estimado": res.error_estimado,
+            "iteraciones_ejecutadas": res.iteraciones_ejecutadas,
+            "mensaje": res.mensaje,
+            "pasos": pasos_serializables,
         }
         self._send_json(data)
 
