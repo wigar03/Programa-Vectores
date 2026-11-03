@@ -42,7 +42,7 @@ def construir_parser_argumentos() -> argparse.ArgumentParser:
     Configura y retorna el analizador de argumentos de línea de comandos.
     """
     parser = argparse.ArgumentParser(
-        description="Calculadora de Álgebra Lineal: Vectores, Matrices, Inversa, Ax = b, Determinantes y Bisección"
+        description="Calculadora de Álgebra Lineal: Vectores, Matrices, Inversa, Ax = b y Determinantes"
     )
     parser.add_argument(
         "--port",
@@ -87,7 +87,6 @@ def main():
     print("    • Módulo 4: Inversa de una Matriz A^(-1) (Gauss y Gauss-Jordan)")
     print("    • Módulo 5: Ecuaciones Matriciales A·x = b")
     print("    • Módulo 6: Determinante |A| (Cofactores vs LU con Análisis de Eficiencia)")
-    print("    • Módulo 7: Método de Bisección para aproximación de raíces f(x)=0")
     print("=" * 76)
 
     # Iniciar el servidor web interactivo

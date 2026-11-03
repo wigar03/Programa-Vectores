@@ -29,7 +29,7 @@
           <span>UAM • FIA</span>
         </div>
         <h1>Calculadora de Álgebra Lineal</h1>
-        <p class="subtitle" id="header-subtitle">Vectores en ℝⁿ, Combinación Lineal, Matrices, Inversa A⁻¹, Ecuaciones Ax = b, Determinante |A| y Método de Bisección</p>
+        <p class="subtitle" id="header-subtitle">Vectores en ℝⁿ, Combinación Lineal, Matrices, Inversa A⁻¹, Ecuaciones Ax = b y Determinante |A|</p>
       </div>
       <div class="header-actions">
         <button id="btn-theme-toggle" class="btn-theme" title="Alternar entre modo claro y modo oscuro">
@@ -64,10 +64,6 @@
       <button class="nav-tab" data-tab="tab-determinante">
         <i data-lucide="scan" class="tab-icon"></i>
         <span class="tab-label">Determinante |A|</span>
-      </button>
-      <button class="nav-tab" data-tab="tab-biseccion">
-        <i data-lucide="activity" class="tab-icon"></i>
-        <span class="tab-label">Método de Bisección</span>
       </button>
     </nav>
 
@@ -649,73 +645,6 @@
             </div>
             <div id="det-result-content" class="result-box">
               <p class="placeholder-text">Configure la matriz cuadrada y presione "Calcular Determinante |A|" para obtener el valor escalar exacto, dictamen de invertibilidad y el procedimiento paso a paso.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- =================================================================== -->
-      <!-- APARTADO 7: MÉTODO DE BISECCIÓN f(x) = 0                            -->
-      <!-- =================================================================== -->
-      <section id="tab-biseccion" class="tab-pane">
-        <div class="pane-grid">
-          <div class="card card-input">
-            <div class="card-header">
-              <h3>Aproximación de Raíces por Bisección</h3>
-              <span class="badge badge-dim">Análisis Numérico</span>
-            </div>
-
-            <div class="selector-row">
-              <label for="bis-funcion" class="field-label">Función f(x):</label>
-              <input type="text" id="bis-funcion" class="cell-input scalar-input" value="x^3 - x - 2" placeholder="Ej: cos(x) - x">
-            </div>
-
-            <div class="selectors-grid-2">
-              <div class="selector-card">
-                <label for="bis-a" class="field-label">Extremo izquierdo (a):</label>
-                <input type="text" id="bis-a" class="cell-input scalar-input" value="1">
-              </div>
-              <div class="selector-card">
-                <label for="bis-b" class="field-label">Extremo derecho (b):</label>
-                <input type="text" id="bis-b" class="cell-input scalar-input" value="2">
-              </div>
-            </div>
-
-            <div class="selectors-grid-2">
-              <div class="selector-card">
-                <label for="bis-tol" class="field-label">Tolerancia:</label>
-                <input type="text" id="bis-tol" class="cell-input scalar-input" value="1e-6">
-              </div>
-              <div class="selector-card">
-                <label for="bis-max-iter" class="field-label">Máx. Iteraciones:</label>
-                <input type="number" id="bis-max-iter" min="1" max="500" value="50" class="cell-input scalar-input">
-              </div>
-            </div>
-
-            <button type="button" class="btn-primary btn-large" onclick="calcularBiseccionUI()">
-              <i data-lucide="play" class="btn-icon"></i>
-              <span>Calcular Raíz por Bisección</span>
-            </button>
-
-            <div class="card-footer-actions">
-              <div class="sample-actions">
-                <button type="button" class="btn-text" onclick="cargarEjemploBiseccion(1)">Ejemplo Polinomial</button>
-                <button type="button" class="btn-text" onclick="cargarEjemploBiseccion(2)">Ejemplo Trigonométrico</button>
-              </div>
-              <button type="button" class="btn-clear" onclick="limpiarModuloBiseccion()" title="Limpiar datos de bisección">
-                <i data-lucide="trash-2" class="btn-icon"></i>
-                <span>Limpiar</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="card card-result">
-            <div class="card-header">
-              <h3>Resultado de la Aproximación</h3>
-              <span id="bis-badge-status" class="badge">Pendiente</span>
-            </div>
-            <div id="bis-result-content" class="result-box">
-              <p class="placeholder-text">Ingrese una función y un intervalo [a, b] con cambio de signo para aproximar una raíz con el método de bisección.</p>
             </div>
           </div>
         </div>
