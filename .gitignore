@@ -19,3 +19,6 @@ dist/
 build/
 *.egg-info/
 scratch/
+
+# Material de referencia local (no publicar en el repositorio)
+/[Dd][Oo][Cc][Ss]/
