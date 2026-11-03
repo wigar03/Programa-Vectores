@@ -305,7 +305,13 @@ Cumpliendo la especificación requerida, la aplicación evalúa e informa **ante
 
 Abra la pestaña **Método de Bisección**. Ingrese una función continua en todo el intervalo $[a,b]$, con $a < b$ y valores $f(a)$ y $f(b)$ de signos opuestos. Si un extremo se evalúa como cero, se informa directamente sin iteraciones. El cambio de signo garantiza existencia de una raíz únicamente bajo la hipótesis de continuidad; no garantiza unicidad. La aplicación no demuestra automáticamente esa hipótesis.
 
+Los módulos se seleccionan desde una **barra lateral izquierda**. En pantallas de hasta 900 px, el botón **Módulos** abre ese menú; puede cerrarlo seleccionando un módulo, haciendo clic fuera o pulsando Escape.
+
+Al escribir la función, la **vista matemática** debajo del campo se actualiza con KaTeX tras una pausa breve de 200 ms. Potencias, fracciones, raíces y funciones se representan a partir del mismo árbol de expresión utilizado para calcular, sin cambiar el texto ni mover el cursor. Una expresión incompleta muestra un aviso mientras continúa escribiendo. La vista no evalúa el dominio ni certifica continuidad. Si KaTeX no carga, se muestra la representación LaTeX y el cálculo sigue disponible.
+
 En cada iteración se evalúa el punto medio $c=(a+b)/2$ y se conserva la mitad del intervalo con signos opuestos. La tabla muestra $a$, $b$, $c$, sus evaluaciones, el signo de $f(a)f(c)$, ancho, cota de error, diferencia absoluta entre aproximaciones, error relativo porcentual y actualización elegida.
+
+La tabla principal mantiene visibles la iteración, $a$, $b$, $c$, $f(c)$ y el error relativo. **Ver detalle** despliega las evaluaciones, medidas de error, decisión y valores completos de esa iteración. En pantallas de hasta 1100 px, las filas se presentan como tarjetas con etiquetas; la información se distribuye verticalmente sin necesitar desplazamiento horizontal. El contenedor conserva desplazamiento vertical para tablas largas.
 
 Seleccione uno de los siguientes criterios; el proceso también termina si $f(c)$ se evalúa como cero:
 
@@ -342,6 +348,8 @@ Se consultaron los materiales locales de `Docs`, especialmente la hoja `Bisecci�
 
 `funcion`, `a` y `b` son obligatorios. Los valores predeterminados restantes son los mostrados. `criterio` admite `intervalo`, `relativo` o `residuo`. La respuesta contiene `raiz`, `f_raiz`, `residuo`, `cota_error`, `intervalo_inicial`, `intervalo_final`, `convergio`, `motivo`, `iteraciones`, `pasos` y `grafica`. Los errores de entrada devuelven HTTP 400 con `error`; una ejecución que llega al límite sin converger devuelve HTTP 200 con `convergio: false` y sus aproximaciones disponibles. Un error relativo indefinido se representa como `null`.
 
+`POST /api/biseccion/preview` recibe `{"funcion": "sqrt(x)+1/x"}` y devuelve `{"latex": "\\sqrt{x} + \\frac{1}{x}"}`. Valida la sintaxis y convierte la expresión a LaTeX sin evaluarla. Una entrada incompleta o no permitida devuelve HTTP 400 con `error`.
+
 ---
 
 ## 4. Estructura del Código
@@ -376,6 +384,7 @@ Programa Vectores/
 │           ├── index.html          # Estructura semántica accesible con iconografía Lucide
 │           ├── styles.css          # Paleta visual minimalista y diseño responsivo
 │           ├── app.js              # Controlador cliente reactivo y renderizado KaTeX
+│           ├── sidebar.js          # Menú lateral y navegación móvil con teclado
 │           ├── biseccion.js        # Formulario, resultados, tabla y gráfica de bisección
 │           ├── biseccion.css       # Estilos limitados a la nueva sección
 │           └── lucide.min.js       # Librería de iconos minimalistas (offline, open source)
@@ -415,7 +424,7 @@ python main.py --no-browser     # Iniciar servidor sin abrir navegador automáti
 ```
 
 ### 2. Ejecutar las Pruebas Unitarias Automatizadas
-El proyecto incluye **83 pruebas de Python**, entre ellas las 62 originales y 21 del nuevo módulo, que validan los algoritmos y sus respuestas HTTP:
+El proyecto incluye **89 pruebas de Python**, entre ellas las 62 originales y 27 del nuevo módulo, que validan los algoritmos, las conversiones a LaTeX y sus respuestas HTTP:
 ```bash
 python -m unittest discover tests -v
 ```
@@ -426,7 +435,7 @@ Las 4 pruebas de las utilidades de bisección en JavaScript usan el runner está
 node --test tests/test_biseccion_ui.cjs
 ```
 
-Para una revisión manual, abra **Método de Bisección**, cargue el ejemplo de referencia y compruebe las 15 iteraciones. Pruebe después una función sin cambio de signo (`x^2+1`), un máximo de una iteración con `cos(x)-x`, una raíz en un extremo (`x` en `[0,1]`) y el botón **Limpiar**. La tabla admite desplazamiento horizontal y la sección hereda el tema claro u oscuro de la calculadora.
+Para una revisión manual, seleccione **Método de Bisección** en la barra lateral, cargue el ejemplo de referencia y compruebe las 15 iteraciones. Pruebe después una función sin cambio de signo (`x^2+1`), un máximo de una iteración con `cos(x)-x`, una raíz en un extremo (`x` en `[0,1]`) y el botón **Limpiar**. Escriba `sqrt(x)+1/(x-1)` para revisar la vista matemática y abra **Ver detalle** en una iteración. Reduzca el ancho de la ventana para comprobar el menú desplegable y las tarjetas. La sección hereda el tema claro u oscuro de la calculadora.
 
 ---
 

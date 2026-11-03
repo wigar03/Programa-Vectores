@@ -119,7 +119,9 @@
     tabla.append(crear("caption", `Procedimiento de bisección: ${res.iteraciones} iteraciones.`));
     const cabecera = crear("thead");
     const fila = crear("tr");
-    for (const texto of ["i", "a", "b", "c", "f(a)", "f(b)", "f(c)", "Signo f(a)·f(c)", "b − a", "Cota error", "|c − c anterior|", "εa (%)", "Acción"]) {
+    const columnas = [["numero", "i"], ["a", "a"], ["b", "b"], ["c", "c"],
+      ["fc", "f(c)"], ["error_relativo", "εa (%)"]];
+    for (const texto of [...columnas.map(([, etiqueta]) => etiqueta), "Detalle"]) {
       const celda = crear("th", texto);
       celda.scope = "col";
       fila.append(celda);
@@ -128,13 +130,47 @@
     const cuerpo = crear("tbody");
     for (const paso of res.pasos) {
       const fila = crear("tr");
-      for (const clave of ["numero", "a", "b", "c", "fa", "fb", "fc", "signo_ac", "ancho", "cota_error", "error_absoluto", "error_relativo", "decision"]) {
+      for (const [clave, etiqueta] of columnas) {
         const valor = paso[clave];
-        const celda = crear("td", typeof valor === "string" ? valor : formatear(valor));
+        const celda = crear("td", undefined, "bis-cell");
+        celda.dataset.label = etiqueta === "i" ? "Iteración" : etiqueta;
+        celda.append(crear("span", formatear(valor)));
         if (typeof valor === "number") celda.title = String(valor);
         fila.append(celda);
       }
+      const celdaDetalle = crear("td", undefined, "bis-detail-cell");
+      const detalle = crear("details", undefined, "bis-iteration-detail");
+      const botonDetalle = crear("summary", "Ver detalle");
+      botonDetalle.setAttribute("aria-label", `Ver detalle de la iteración ${paso.numero}`);
+      detalle.append(botonDetalle);
+      celdaDetalle.append(detalle);
+      fila.append(celdaDetalle);
       cuerpo.append(fila);
+
+      const filaDetalle = crear("tr", undefined, "bis-detail-row");
+      filaDetalle.id = `bis-iteration-${paso.numero}`;
+      botonDetalle.setAttribute("aria-controls", filaDetalle.id);
+      filaDetalle.hidden = true;
+      const contenidoDetalle = crear("td");
+      contenidoDetalle.colSpan = columnas.length + 1;
+      const medidas = crear("dl", undefined, "bis-iteration-values");
+      for (const [clave, etiqueta] of [["a", "a"], ["b", "b"], ["c", "c"],
+        ["fa", "f(a)"], ["fb", "f(b)"], ["fc", "f(c)"], ["signo_ac", "Signo f(a)·f(c)"],
+        ["ancho", "Ancho b − a"], ["cota_error", "Cota del error"],
+        ["error_absoluto", "|c − c anterior|"], ["error_relativo", "εa (%)"], ["decision", "Acción"]]) {
+        const grupo = crear("div");
+        const valor = paso[clave];
+        grupo.append(crear("dt", etiqueta), crear("dd", valor === null ? "—" : String(valor)));
+        medidas.append(grupo);
+      }
+      contenidoDetalle.append(crear("p", `Detalle de la iteración ${paso.numero} · valores completos`, "bis-detail-title"), medidas);
+      filaDetalle.append(contenidoDetalle);
+      cuerpo.append(filaDetalle);
+      detalle.addEventListener("toggle", () => {
+        filaDetalle.hidden = !detalle.open;
+        botonDetalle.textContent = detalle.open ? "Ocultar" : "Ver detalle";
+        botonDetalle.setAttribute("aria-label", `${detalle.open ? "Ocultar" : "Ver"} detalle de la iteración ${paso.numero}`);
+      });
     }
     tabla.append(cabecera, cuerpo);
     contenedor.replaceChildren(tabla);
