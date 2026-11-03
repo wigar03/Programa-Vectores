@@ -149,8 +149,46 @@
     const tabla = document.getElementById("bis-table");
     const tarjetaTabla = document.getElementById("bis-table-card");
     const boton = document.getElementById("bis-submit");
+    const preview = document.getElementById("bis-preview-math");
+    const previewEstado = document.getElementById("bis-preview-status");
     let controlador = null;
     let version = 0;
+    let previewControlador = null;
+    let previewVersion = 0;
+    let previewTemporizador;
+
+    function actualizarPreview() {
+      clearTimeout(previewTemporizador);
+      previewControlador?.abort();
+      const actual = ++previewVersion;
+      const funcion = form.elements.funcion.value.trim();
+      preview.replaceChildren();
+      if (!funcion) {
+        previewEstado.textContent = "Escriba una función para ver su representación matemática.";
+        return;
+      }
+      previewEstado.textContent = "Actualizando vista matemática…";
+      previewTemporizador = setTimeout(async () => {
+        previewControlador = new AbortController();
+        try {
+          const respuesta = await fetch("/api/biseccion/preview", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ funcion }), signal: previewControlador.signal,
+          });
+          const datos = await respuesta.json();
+          if (actual !== previewVersion) return;
+          if (!respuesta.ok || datos.error) {
+            previewEstado.textContent = "Complete la expresión para actualizar la vista matemática.";
+            return;
+          }
+          renderLatexElement(preview, `f(x) = ${datos.latex}`, true);
+          previewEstado.textContent = window.katex ? "Vista de la función escrita; no verifica su dominio ni su continuidad." : "Representación LaTeX. KaTeX no está disponible; la función puede calcularse igualmente.";
+        } catch (error) {
+          if (actual !== previewVersion || error.name === "AbortError") return;
+          previewEstado.textContent = "Vista matemática no disponible en este momento. Puede seguir escribiendo o calcular.";
+        }
+      }, 200);
+    }
 
     function ayuda() {
       document.getElementById("bis-criterion-help").textContent = AYUDA[form.elements.criterio.value];
@@ -173,11 +211,13 @@
     }
 
     form.addEventListener("input", () => { limpiarResultado("Parámetros modificados. Calcule para actualizar el resultado."); ayuda(); });
+    form.elements.funcion.addEventListener("input", actualizarPreview);
     document.getElementById("bis-clear").addEventListener("click", () => {
       form.reset();
       for (const nombre of ["funcion", "a", "b"]) form.elements[nombre].value = "";
       limpiarResultado();
       ayuda();
+      actualizarPreview();
       form.elements.funcion.focus();
     });
     document.querySelectorAll("[data-bis-example]").forEach(botonEjemplo => {
@@ -186,6 +226,7 @@
         form.elements.max_iteraciones.value = "100";
         limpiarResultado("Ejemplo cargado. Presione Calcular raíz por bisección.");
         ayuda();
+        actualizarPreview();
       });
     });
     form.addEventListener("submit", async evento => {
@@ -227,5 +268,6 @@
       }
     });
     ayuda();
+    actualizarPreview();
   });
 })();

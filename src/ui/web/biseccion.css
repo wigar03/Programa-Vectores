@@ -14,6 +14,13 @@
   font: inherit;
 }
 .biseccion-pane .bis-expression { font-family: 'JetBrains Mono', monospace; font-size: .88rem; }
+.biseccion-pane .bis-preview { padding: .85rem; border: 1px solid var(--card-highlight-border); border-radius: 8px; background: var(--card-highlight-bg); margin: .7rem 0; }
+.biseccion-pane .bis-preview-heading { font-size: .75rem; color: var(--text-muted); }
+.biseccion-pane .bis-preview-math { min-height: 2.5rem; padding: .4rem 0; overflow-wrap: anywhere; }
+.biseccion-pane .bis-preview .bis-help { margin: .3rem 0 0; font-size: .75rem; }
+.biseccion-pane .bis-preview .katex-display { margin: .4rem 0; text-align: left; }
+.biseccion-pane .bis-preview .katex-display > .katex { white-space: normal; }
+.biseccion-pane .bis-preview .katex-display > .katex > .katex-html { white-space: normal; }
 .biseccion-pane .bis-input:focus-visible,
 .biseccion-pane .bis-table-scroll:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
 .biseccion-pane .bis-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }

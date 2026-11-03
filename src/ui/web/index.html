@@ -669,6 +669,11 @@
               <input id="bis-funcion" name="funcion" class="bis-input bis-expression" type="text"
                 value="x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10" required maxlength="500"
                 autocomplete="off" spellcheck="false" aria-describedby="bis-syntax">
+              <div class="bis-preview" aria-label="Vista matemática de la función">
+                <div class="bis-preview-heading">Vista matemática</div>
+                <div id="bis-preview-math" class="bis-preview-math" aria-live="polite" aria-atomic="true"></div>
+                <p id="bis-preview-status" class="bis-help" role="status">La ecuación se actualiza mientras escribe.</p>
+              </div>
               <p id="bis-syntax" class="bis-help">Use * para multiplicar y ^ o ** para potencias. Funciones: sin, cos, tan, exp, ln (natural), log (base 10), sqrt y abs. Constantes: pi y e. Ángulos en radianes.</p>
               <div class="bis-fields">
                 <div>
