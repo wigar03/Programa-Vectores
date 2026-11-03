@@ -43,6 +43,7 @@ from src.matrices.determinante import (
     analizar_eficiencia_determinante,
 )
 from src.ecuaciones.ecuacion_matricial import resolver_ecuacion_matricial
+from src.biseccion.metodo import resolver_biseccion, muestrear_funcion
 
 
 def serialize_fraction_or_str(val):
@@ -101,6 +102,8 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 self._handle_matrices_determinante(body)
             elif parsed.path == "/api/matrices/eficiencia-determinante":
                 self._handle_eficiencia_determinante(body)
+            elif parsed.path == "/api/biseccion/resolver":
+                self._handle_biseccion(body)
             else:
                 self._send_json({"error": f"Ruta API no encontrada: {parsed.path}"}, status=404)
         except Exception as err:
@@ -408,6 +411,19 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             "pasos": pasos_serializables,
         }
         self._send_json(data)
+
+    def _handle_biseccion(self, body):
+        """Ruta independiente para el módulo de búsqueda numérica de raíces."""
+        if not isinstance(body, dict):
+            raise ValueError("Envíe un objeto JSON con función, a y b.")
+        res = resolver_biseccion(
+            funcion=body.get("funcion"), a=body.get("a"), b=body.get("b"),
+            tolerancia=body.get("tolerancia", 0.0001),
+            max_iteraciones=body.get("max_iteraciones", 100),
+            criterio=body.get("criterio", "intervalo"),
+        )
+        res["grafica"] = muestrear_funcion(res["funcion"], *res["intervalo_inicial"])
+        self._send_json(res)
 
     def _handle_eficiencia_determinante(self, body):
         n = int(body.get("n", 3))

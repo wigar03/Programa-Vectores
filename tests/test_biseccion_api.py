@@ -1,0 +1,68 @@
+"""Pruebas HTTP reales del nuevo contrato de bisección."""
+
+import json
+import threading
+import unittest
+from http.server import HTTPServer
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+
+from src.ui.web_server import AlgebraLinearHandler
+
+
+class TestBiseccionApi(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.servidor = HTTPServer(("127.0.0.1", 0), AlgebraLinearHandler)
+        cls.hilo = threading.Thread(target=cls.servidor.serve_forever, daemon=True)
+        cls.hilo.start()
+        cls.url = f"http://127.0.0.1:{cls.servidor.server_port}"
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.servidor.shutdown()
+        cls.servidor.server_close()
+        cls.hilo.join()
+
+    def enviar(self, datos):
+        req = Request(self.url + "/api/biseccion/resolver", json.dumps(datos).encode(),
+                      {"Content-Type": "application/json"})
+        try:
+            respuesta = urlopen(req, timeout=5)
+        except HTTPError as exc:
+            respuesta = exc
+        with respuesta:
+            return respuesta.status, json.loads(respuesta.read())
+
+    def test_resolucion_y_grafica(self):
+        estado, res = self.enviar(dict(funcion="cos(x)-x", a="0", b="1",
+                                      tolerancia="1e-8", max_iteraciones="100"))
+        self.assertEqual(estado, 200)
+        self.assertTrue(res["convergio"])
+        self.assertAlmostEqual(res["raiz"], .7390851332, places=7)
+        self.assertEqual(len(res["grafica"]), 201)
+        self.assertEqual(res["pasos"][0]["c"], .5)
+        json.dumps(res, allow_nan=False)
+
+    def test_no_convergencia_es_resultado_valido(self):
+        estado, res = self.enviar(dict(funcion="x^2-2", a=1, b=2, max_iteraciones=1))
+        self.assertEqual(estado, 200)
+        self.assertFalse(res["convergio"])
+        self.assertEqual(res["motivo"], "max_iteraciones")
+
+    def test_errores_son_json_400(self):
+        casos = [{}, [], None, {"funcion": "x^2+1", "a": 0, "b": 1},
+                 {"funcion": "__import__('os')", "a": 0, "b": 1},
+                 {"funcion": "1/x", "a": -1, "b": 1},
+                 {"funcion": "x", "a": "nan", "b": 1}]
+        for caso in casos:
+            with self.subTest(caso=caso):
+                estado, res = self.enviar(caso)
+                self.assertEqual(estado, 400)
+                self.assertIsInstance(res["error"], str)
+
+    def test_extremo_y_fracciones(self):
+        estado, res = self.enviar(dict(funcion="x-0.5", a="1/2", b=1))
+        self.assertEqual(estado, 200)
+        self.assertEqual(res["iteraciones"], 0)
+        self.assertEqual(res["raiz"], .5)
