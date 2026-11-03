@@ -134,11 +134,13 @@ body {
 }
 
 .app-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem;
-  width: 100%;
+  margin: 0 0 0 248px;
+  padding: 1.5rem;
+  width: calc(100% - 248px);
 }
+
+.content-area { min-width: 0; }
+.header-actions { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
 
 /* ==========================================================================
    Iconografía Minimalista (Lucide Icons)
@@ -281,21 +283,39 @@ input[type="number"] {
 }
 
 /* ==========================================================================
-   Navegación por Pestañas
+   Navegación Lateral por Módulos
    ========================================================================== */
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+  width: 248px;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  background: var(--bg-card);
+  border-right: 1px solid var(--bg-card-border);
+}
+.sidebar-heading { display: flex; justify-content: space-between; align-items: center; padding: 0 .6rem 1.5rem; }
+.sidebar-heading h2 { font-size: 1.35rem; font-weight: 600; letter-spacing: -.02em; }
+.sidebar-eyebrow, .sidebar-section-label { font-size: .7rem; color: var(--text-muted); letter-spacing: .1em; text-transform: uppercase; }
+.sidebar-section-label { margin: 0 .65rem .8rem; }
+.sidebar-footer { margin: auto .6rem 0; padding-top: 1.5rem; color: var(--text-muted); font-size: .75rem; }
+.sidebar-toggle, .sidebar-close, .sidebar-backdrop { display: none; }
 .module-nav {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
+  overflow-y: auto;
+  min-height: 0;
+  padding: .2rem;
 }
 
 .nav-tab {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.15rem;
+  padding: 0.8rem .7rem;
   background: var(--bg-card);
   border: 1px solid var(--bg-card-border);
   border-radius: 10px;
@@ -304,7 +324,9 @@ input[type="number"] {
   font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: left;
+  width: 100%;
   box-shadow: var(--shadow-sm);
   transition: all 0.15s ease;
 }
@@ -326,6 +348,20 @@ input[type="number"] {
   background: rgba(255, 255, 255, 0.07);
   border-color: rgba(255, 255, 255, 0.25);
   color: #ffffff;
+}
+
+@media (max-width: 900px) {
+  .app-container { width: 100%; margin: 0; padding: 1rem; }
+  .main-header { align-items: flex-start; gap: 1rem; flex-direction: column; padding: 1rem; }
+  .header-actions { flex-wrap: wrap; }
+  .sidebar { visibility: hidden; transform: translateX(-100%); width: min(280px, 85vw); transition: transform .2s ease, visibility .2s; }
+  .sidebar-open .sidebar { visibility: visible; transform: translateX(0); }
+  .sidebar-toggle, .sidebar-close { display: inline-flex; }
+  .sidebar-backdrop:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 40; border: 0; background: rgba(0, 0, 0, .45); }
+  body.sidebar-open { overflow: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar { transition: none; }
 }
 
 /* ==========================================================================

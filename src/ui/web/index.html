@@ -33,6 +33,9 @@
         <p class="subtitle" id="header-subtitle">Vectores en ℝⁿ, Combinación Lineal, Matrices, Inversa A⁻¹, Ecuaciones Ax = b y Determinante |A|</p>
       </div>
       <div class="header-actions">
+        <button id="btn-nav-toggle" class="btn-theme sidebar-toggle" type="button" aria-controls="module-sidebar" aria-expanded="false">
+          <i data-lucide="menu"></i><span>Módulos</span>
+        </button>
         <button id="btn-theme-toggle" class="btn-theme" title="Alternar entre modo claro y modo oscuro">
           <span class="icon"><i data-lucide="moon"></i></span>
           <span id="theme-btn-text">Modo Oscuro</span>
@@ -40,8 +43,14 @@
       </div>
     </header>
 
-    <!-- Barra de Navegación por Módulos -->
-    <nav class="module-nav">
+    <!-- Navegación lateral compartida; los cálculos de cada módulo son independientes. -->
+    <aside id="module-sidebar" class="sidebar" aria-label="Barra lateral de módulos">
+      <div class="sidebar-heading">
+        <div><span class="sidebar-eyebrow">UAM · FIA</span><h2>Calculadora</h2></div>
+        <button id="btn-nav-close" class="btn-theme sidebar-close" type="button" aria-label="Cerrar menú de módulos"><i data-lucide="x"></i></button>
+      </div>
+      <p class="sidebar-section-label">Módulos</p>
+    <nav class="module-nav" aria-label="Seleccionar módulo">
       <button class="nav-tab active" data-tab="tab-vectores">
         <i data-lucide="move" class="tab-icon"></i>
         <span class="tab-label">Operaciones con Vectores</span>
@@ -71,6 +80,9 @@
         <span class="tab-label">Método de Bisección</span>
       </button>
     </nav>
+      <p class="sidebar-footer">Álgebra lineal y métodos numéricos</p>
+    </aside>
+    <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Cerrar menú de módulos" hidden tabindex="-1"></button>
 
     <!-- Contenedor Principal de Módulos -->
     <main class="content-area">
@@ -749,6 +761,7 @@
   </div>
 
   <script src="app.js"></script>
+  <script src="sidebar.js"></script>
   <script src="biseccion.js"></script>
 </body>
 </html>

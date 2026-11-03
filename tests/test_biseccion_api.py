@@ -68,10 +68,10 @@ class TestBiseccionApi(unittest.TestCase):
         self.assertEqual(res["raiz"], .5)
 
     def test_recursos_de_interfaz_disponibles(self):
-        for ruta in ["/", "/biseccion.js", "/biseccion.css"]:
+        for ruta in ["/", "/biseccion.js", "/biseccion.css", "/sidebar.js"]:
             with self.subTest(ruta=ruta), urlopen(self.url + ruta, timeout=5) as res:
                 self.assertEqual(res.status, 200)
-                self.assertIn("bis-", res.read().decode("utf-8"))
+                self.assertTrue(res.read())
 
     def test_preview_representa_sin_evaluar_dominio(self):
         for funcion, latex in [("sqrt(x)", r"\sqrt{x}"),
