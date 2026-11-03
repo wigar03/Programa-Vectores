@@ -32,6 +32,7 @@ El presente proyecto integrador implementa un sistema computacional integral par
 4. **Cálculo de la inversa de una matriz $A^{-1}$**: siguiendo el procedimiento analítico formal (matriz aumentada $[A \mid I_n]$, fórmula $2 \times 2$, métodos de Gauss y Gauss-Jordan, detección de matrices singulares y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$).
 5. **Resolución computacional de ecuaciones matriciales** de la forma $Ax = b$ con clasificación completa según el Teorema de Rouché-Capelli e integración directa con el programa de eliminación de renglones desarrollado en la **Semana #3**.
 6. **Cálculo del determinante de matrices cuadradas $|A|$ en la interfaz interactiva**: implementación 100% Python estándar (sin librerías externas) integrada en el servidor web, que permite seleccionar entre **Expansión por Cofactores (Laplace)** y **Descomposición LU ($PA = LU$)**, evaluando e indicando dinámicamente la eficiencia computacional ($O(n!)$ vs $O(n^3)$) antes de la selección.
+7. **Búsqueda numérica de raíces por bisección**: sección independiente con función editable, intervalo inicial, criterios de parada, tabla de iteraciones, verificación del residuo y gráfica.
 
 ---
 
@@ -43,6 +44,8 @@ El presente proyecto integrador implementa un sistema computacional integral par
 > - **100% Python Estándar**: Implementado utilizando únicamente listas, bucles `for` / `while`, condicionales `if` / `else` y funciones modulares.
 > - **Aritmética Exacta en $\mathbb{Q}$**: Para prevenir imprecisiones por redondeo binario de coma flotante (IEEE-754) en el cálculo de rangos e independencia lineal, se utiliza la librería estándar `fractions.Fraction`.
 > - **Comentarios en el Código**: Cada función cuenta con documentación teórica exhaustiva que explica el procedimiento algebraico equivalente.
+
+Estas restricciones didácticas corresponden a los módulos originales de álgebra lineal (1 a 6). El módulo 7 de **bisección puede utilizar cualquier librería**; esta implementación utiliza `ast` y `math` de Python y SVG en el navegador, por lo que no añade dependencias de ejecución. Sus cálculos usan punto flotante y no alteran la aritmética fraccionaria de los otros módulos.
 
 ---
 
@@ -298,6 +301,49 @@ Cumpliendo la especificación requerida, la aplicación evalúa e informa **ante
 
 ---
 
+### Módulo 7: Método de Bisección
+
+Abra la pestaña **Método de Bisección**. Ingrese una función continua en todo el intervalo $[a,b]$, con $a < b$ y valores $f(a)$ y $f(b)$ de signos opuestos. Si un extremo se evalúa como cero, se informa directamente sin iteraciones. El cambio de signo garantiza existencia de una raíz únicamente bajo la hipótesis de continuidad; no garantiza unicidad. La aplicación no demuestra automáticamente esa hipótesis.
+
+En cada iteración se evalúa el punto medio $c=(a+b)/2$ y se conserva la mitad del intervalo con signos opuestos. La tabla muestra $a$, $b$, $c$, sus evaluaciones, el signo de $f(a)f(c)$, ancho, cota de error, diferencia absoluta entre aproximaciones, error relativo porcentual y actualización elegida.
+
+Seleccione uno de los siguientes criterios; el proceso también termina si $f(c)$ se evalúa como cero:
+
+| Criterio | Condición de parada | Interpretación de la tolerancia |
+| --- | --- | --- |
+| Ancho del intervalo | $b-a \leq \varepsilon$ | Unidades de $x$; la cota de error del punto medio es $(b-a)/2$ en aritmética exacta. |
+| Error relativo aproximado | $\left\lvert(c_i-c_{i-1})/c_i\right\rvert\cdot100 \leq \varepsilon$ | Porcentaje: `1` significa 1 %. No se define en la primera iteración ni con $c_i=0$. |
+| Residuo | $\lvert f(c)\rvert \leq \varepsilon$ | Unidades de $f(x)$; un residuo pequeño no garantiza por sí solo un error pequeño en $x$. |
+
+La diferencia absoluta de la tabla mide el cambio entre dos aproximaciones, no el error verdadero respecto de una raíz desconocida. El resultado incluye la sustitución en la función original, el intervalo final y la cota obtenida a partir de sus extremos. La gráfica toma 201 muestras del intervalo inicial y es orientativa; no demuestra continuidad ni permite descartar singularidades entre muestras.
+
+**Entradas admitidas:** use `x` como variable, multiplicación explícita (`2*x`), operadores `+`, `-`, `*`, `/`, potencias con `^` o `**`, paréntesis, constantes `pi` y `e`, y funciones `sin`, `cos`, `tan`, `exp`, `ln` (natural), `log` (base 10), `sqrt` y `abs`. Los ángulos están en radianes. Los extremos y la tolerancia aceptan decimales con punto, fracciones como `1/2` y notación científica como `1e-4`.
+
+**Límites y diagnósticos:** tolerancia finita mayor que cero, máximo entero de 1 a 1000 iteraciones, función de hasta 500 caracteres y 120 nodos de expresión, y exponentes de magnitud máxima 1000. Se rechazan sintaxis no permitida, entradas no finitas, intervalos sin cambio de signo y errores de dominio detectados durante la evaluación. Alcanzar el máximo de iteraciones o agotar la precisión se informa sin declarar que se alcanzó la tolerancia. Las evaluaciones usan punto flotante: un cero calculado puede deberse al redondeo o al subdesbordamiento, y la cota del intervalo no incluye los errores de evaluación de la función. Solo se redondea la presentación; el cursor sobre las cifras permite consultar el valor completo.
+
+**Ejemplo de referencia:** el botón correspondiente carga `x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10`, intervalo `[0.6, 1]`, criterio **Residuo** y tolerancia `0.0001`. Produce 15 iteraciones, $c \approx 0.76392822265625$ y $|f(c)| \approx 0.00006538248$. También hay ejemplos de `cos(x)-x` y `x^10-1`.
+
+Se consultaron los materiales locales de `Docs`, especialmente la hoja `Bisección.xlsx`, la presentación `MÉTODOS NUMERICOS.pptx` y `guia-busqueda-raices.pdf`, para el algoritmo, las columnas y las medidas de error. Las evaluaciones se recalculan desde la función ingresada, pues algunas tablas de los materiales contienen discrepancias numéricas. La carpeta de referencias queda excluida mediante `.gitignore`, tanto si se llama `Docs` como `docs`; los materiales no son necesarios para ejecutar la calculadora.
+
+#### API de bisección
+
+`POST /api/biseccion/resolver` con `Content-Type: application/json`:
+
+```json
+{
+  "funcion": "cos(x)-x",
+  "a": "0",
+  "b": "1",
+  "criterio": "intervalo",
+  "tolerancia": "0.0001",
+  "max_iteraciones": 100
+}
+```
+
+`funcion`, `a` y `b` son obligatorios. Los valores predeterminados restantes son los mostrados. `criterio` admite `intervalo`, `relativo` o `residuo`. La respuesta contiene `raiz`, `f_raiz`, `residuo`, `cota_error`, `intervalo_inicial`, `intervalo_final`, `convergio`, `motivo`, `iteraciones`, `pasos` y `grafica`. Los errores de entrada devuelven HTTP 400 con `error`; una ejecución que llega al límite sin converger devuelve HTTP 200 con `convergio: false` y sus aproximaciones disponibles. Un error relativo indefinido se representa como `null`.
+
+---
+
 ## 4. Estructura del Código
 
 ```text
@@ -321,12 +367,17 @@ Programa Vectores/
 │   │   └── anterior_programa.py    # Invocación del programa de la Semana #3
 │   ├── ecuaciones/                 # Módulo 5: Ecuaciones matriciales
 │   │   └── ecuacion_matricial.py   # Resolución computacional y residuo de Ax = b
+│   ├── biseccion/                  # Módulo 7: Búsqueda numérica de raíces
+│   │   ├── expresiones.py         # Evaluación controlada de funciones reales
+│   │   └── metodo.py              # Algoritmo, historial, errores y muestreo gráfico
 │   └── ui/                         # Interfaz web de usuario de alta estética
 │       ├── web_server.py           # Servidor local estándar en Python (cero dependencias externas)
 │       └── web/                    # Frontend SPA moderno (HTML5, CSS, JS reactivo, Modo Claro/Oscuro)
 │           ├── index.html          # Estructura semántica accesible con iconografía Lucide
 │           ├── styles.css          # Paleta visual minimalista y diseño responsivo
 │           ├── app.js              # Controlador cliente reactivo y renderizado KaTeX
+│           ├── biseccion.js        # Formulario, resultados, tabla y gráfica de bisección
+│           ├── biseccion.css       # Estilos limitados a la nueva sección
 │           └── lucide.min.js       # Librería de iconos minimalistas (offline, open source)
 └── tests/                          # Suite completa de pruebas unitarias automatizadas
     ├── test_vectores.py            # Tests de operaciones vectoriales
@@ -335,7 +386,11 @@ Programa Vectores/
     ├── test_determinante.py        # Tests de determinantes (1x1 a 4x4, singularidad y eficiencia)
     ├── test_combinacion_lineal.py  # Tests de combinación lineal (SCD, SCI, SI)
     ├── test_ecuaciones.py          # Tests de Ax = b y compatibilidad
-    └── test_api_latex.py           # Tests de integración API y formateo matemático
+    ├── test_api_latex.py           # Tests de integración API y formateo matemático
+    ├── test_biseccion.py           # Convergencia, errores y precisión
+    ├── test_biseccion_expresiones.py # Sintaxis, dominio y entradas del evaluador
+    ├── test_biseccion_api.py       # API HTTP de bisección y recursos de interfaz
+    └── test_biseccion_ui.cjs       # Utilidades de gráfica y formato (Node.js)
 ```
 
 ---
@@ -347,7 +402,7 @@ Programa Vectores/
 - **Sin necesidad de instalar paquetes externos vía `pip`**: el programa funciona 100% con la biblioteca estándar (`fractions`, `http.server`, etc.).
 
 ### 1. Ejecutar la Aplicación Web Interactiva
-Inicia la aplicación web SPA con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y todos los 6 módulos integrados (Vectores, Combinación Lineal, Matrices, Inversa, Ax = b y Determinante):
+Inicia la aplicación web SPA con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y los 7 módulos integrados (Vectores, Combinación Lineal, Matrices, Inversa, Ax = b, Determinante y Bisección):
 ```bash
 python main.py
 ```
@@ -360,10 +415,18 @@ python main.py --no-browser     # Iniciar servidor sin abrir navegador automáti
 ```
 
 ### 2. Ejecutar las Pruebas Unitarias Automatizadas
-El proyecto incluye una suite completa de **62 pruebas unitarias y de integración** que validan la exactitud de cada algoritmo y la fidelidad matemática de las respuestas:
+El proyecto incluye **83 pruebas de Python**, entre ellas las 62 originales y 21 del nuevo módulo, que validan los algoritmos y sus respuestas HTTP:
 ```bash
 python -m unittest discover tests -v
 ```
+
+Las 4 pruebas de las utilidades de bisección en JavaScript usan el runner estándar de Node.js (18 o superior), sin instalar paquetes. Node.js es opcional para ejecutar estas pruebas y no se necesita para usar la calculadora:
+
+```bash
+node --test tests/test_biseccion_ui.cjs
+```
+
+Para una revisión manual, abra **Método de Bisección**, cargue el ejemplo de referencia y compruebe las 15 iteraciones. Pruebe después una función sin cambio de signo (`x^2+1`), un máximo de una iteración con `cos(x)-x`, una raíz en un extremo (`x` en `[0,1]`) y el botón **Limpiar**. La tabla admite desplazamiento horizontal y la sección hereda el tema claro u oscuro de la calculadora.
 
 ---
 
