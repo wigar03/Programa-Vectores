@@ -428,6 +428,7 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             criterio=body.get("criterio", "intervalo"),
         )
         res["grafica"] = muestrear_funcion(res["funcion"], *res["intervalo_inicial"])
+        res["funcion_latex"] = Expresion(res["funcion"]).latex()
         self._send_json(res)
 
     def _handle_eficiencia_determinante(self, body):

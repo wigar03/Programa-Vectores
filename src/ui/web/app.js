@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarModuloInversa();
   inicializarModuloEcuaciones();
   inicializarModuloDeterminante();
+  renderizarEtiquetasMatematicas();
   refrescarIconosLucide();
 });
 
@@ -172,6 +173,15 @@ function renderMixedLatex(element, text) {
   element.innerText = text;
 }
 
+/** Renderiza únicamente etiquetas declaradas, sin interpretar entradas ni opciones nativas. */
+function renderizarEtiquetasMatematicas(root = document) {
+  root.querySelectorAll("[data-math]").forEach(element => {
+    const texto = element.dataset.math || element.textContent;
+    element.dataset.math = texto;
+    renderMixedLatex(element, texto);
+  });
+}
+
 /* ==========================================================================
    2. Control de Tema (Modo Claro por Defecto con Toggle a Modo Oscuro)
    ========================================================================== */
@@ -231,7 +241,8 @@ function mostrarToast(mensaje, duracion = 3000) {
   const toast = document.getElementById("notification-toast");
   const msgEl = document.getElementById("toast-message");
   if (!toast || !msgEl) return;
-  msgEl.innerHTML = `<i data-lucide="check-circle-2" class="toast-icon"></i> <span>${mensaje}</span>`;
+  msgEl.innerHTML = '<i data-lucide="check-circle-2" class="toast-icon"></i> <span></span>';
+  renderMixedLatex(msgEl.querySelector("span"), mensaje);
   refrescarIconosLucide();
   toast.classList.remove("hidden");
   setTimeout(() => {
@@ -276,7 +287,7 @@ function actualizarEntradasVectores() {
     wrapU.className = "cell-wrapper";
     const subU = document.createElement("span");
     subU.className = "cell-sublabel";
-    subU.innerText = `u${i + 1}`;
+    renderLatexElement(subU, `u_{${i + 1}}`, false);
     const inpU = document.createElement("input");
     inpU.type = "text";
     inpU.className = "cell-input";
@@ -291,7 +302,7 @@ function actualizarEntradasVectores() {
     wrapV.className = "cell-wrapper";
     const subV = document.createElement("span");
     subV.className = "cell-sublabel";
-    subV.innerText = `v${i + 1}`;
+    renderLatexElement(subV, `v_{${i + 1}}`, false);
     const inpV = document.createElement("input");
     inpV.type = "text";
     inpV.className = "cell-input";
@@ -424,13 +435,16 @@ function renderizarResultadoVectorUI(calc) {
 
   resultBox.innerHTML = `
     <div class="latex-equation-card">
-      <div class="latex-header">${data.titulo_operacion}</div>
+      <div class="latex-header" id="vec-operation-title"></div>
       <div id="vec-latex-target" class="latex-display-box"></div>
       <div class="result-explanation" id="vec-explanation" style="white-space: pre-line; margin-top: 0.5rem;"></div>
     </div>
   `;
 
   const targetEl = document.getElementById("vec-latex-target");
+  const titulos = { suma: "Suma Vectorial $u+v$", resta: "Resta Vectorial $u-v$",
+    escalar_u: "Multiplicación por Escalar $c\\cdot u$", producto_punto: "Producto Punto $u\\cdot v$" };
+  renderMixedLatex(document.getElementById("vec-operation-title"), titulos[operacion] || data.titulo_operacion);
   renderLatexElement(targetEl, latexStr);
 
   const expEl = document.getElementById("vec-explanation");
@@ -498,9 +512,11 @@ function actualizarEntradasCombinacion() {
     block.style.marginBottom = "0.75rem";
     block.innerHTML = `
       <div class="vec-label-row">
-        <span class="vec-label">Vector v_${j + 1} en R^${combN}:</span>
+        <span class="vec-label"></span>
       </div>
     `;
+
+    renderMixedLatex(block.querySelector(".vec-label"), `Vector $v_{${j + 1}}$ en $\\mathbb{R}^{${combN}}$:`);
 
     const row = document.createElement("div");
     row.className = "cells-row cells-wrap";
@@ -509,7 +525,7 @@ function actualizarEntradasCombinacion() {
       wrap.className = "cell-wrapper";
       const sub = document.createElement("span");
       sub.className = "cell-sublabel";
-      sub.innerText = `c_${i + 1}`;
+      renderLatexElement(sub, `c_{${i + 1}}`, false);
       const inp = document.createElement("input");
       inp.type = "text";
       inp.className = "cell-input";
@@ -530,7 +546,7 @@ function actualizarEntradasCombinacion() {
     wrap.className = "cell-wrapper";
     const sub = document.createElement("span");
     sub.className = "cell-sublabel";
-    sub.innerText = `b_${i + 1}`;
+    renderLatexElement(sub, `b_{${i + 1}}`, false);
     const inp = document.createElement("input");
     inp.type = "text";
     inp.className = "cell-input";
@@ -972,7 +988,7 @@ async function operarMatrices(operacion) {
 
     resultBox.innerHTML = `
       <div class="latex-equation-card">
-        <div class="latex-header">${data.titulo_operacion}</div>
+        <div class="latex-header" id="mat-operation-title"></div>
         <div id="mat-latex-target" class="latex-display-box"></div>
         <div class="latex-header" style="margin-top: 0.85rem;">Matriz Resultante:</div>
         <pre class="result-formula" style="font-size: 0.95rem; color: var(--text-main); font-family: 'JetBrains Mono', monospace; overflow-x: auto;">${data.matriz_formateada}</pre>
@@ -981,6 +997,10 @@ async function operarMatrices(operacion) {
     `;
 
     const targetEl = document.getElementById("mat-latex-target");
+    const titulos = { suma: "Suma de Matrices $A+B$", resta: "Resta de Matrices $A-B$",
+      multiplicacion: "Producto de Matrices $A\\cdot B$", escalar_a: "Producto por Escalar $k\\cdot A$",
+      transpuesta_a: "Transpuesta $A^T$", transpuesta_b: "Transpuesta $B^T$" };
+    renderMixedLatex(document.getElementById("mat-operation-title"), titulos[operacion] || data.titulo_operacion);
     renderLatexElement(targetEl, latexMat);
 
     const expEl = document.getElementById("mat-explanation");
@@ -1129,7 +1149,8 @@ function limpiarModuloInversa() {
     badge.innerText = "Casillas limpias";
   }
   if (resultBox) {
-    resultBox.innerHTML = '<p class="placeholder-text">Ingrese una matriz cuadrada y presione "Calcular Inversa A⁻¹".</p>';
+    resultBox.innerHTML = '<p class="placeholder-text" data-math>Ingrese una matriz cuadrada y presione "Calcular Inversa $A^{-1}$".</p>';
+    renderizarEtiquetasMatematicas(resultBox);
   }
   mostrarToast("Matriz A limpiada.");
 }
@@ -1242,7 +1263,7 @@ async function calcularInversaUI() {
 
     let htmlContenido = `
       <div class="latex-equation-card">
-        <div class="latex-header">${data.es_invertible ? "Matriz Inversa Calculada A⁻¹ (No Singular):" : "Dictamen de Matriz Singular (No Invertible):"}</div>
+        <div class="latex-header" data-math>${data.es_invertible ? "Matriz Inversa Calculada $A^{-1}$ (No Singular):" : "Dictamen de Matriz Singular (No Invertible):"}</div>
         <div id="inv-latex-target" class="latex-display-box"></div>
     `;
 
@@ -1250,7 +1271,7 @@ async function calcularInversaUI() {
     if (data.orden_n === 2 && data.determinante_2x2 !== null) {
       htmlContenido += `
         <div class="verification-box" style="margin-top: 0.85rem; background: rgba(2, 132, 199, 0.05); border-color: rgba(2, 132, 199, 0.25);">
-          <h4 style="color: var(--accent-cyan);">Teorema de la Matriz Invertible 2 × 2:</h4>
+          <h4 style="color: var(--accent-cyan);" data-math>Teorema de la Matriz Invertible $2\\times2$:</h4>
           <div id="inv-latex-teorema-2x2"></div>
         </div>
       `;
@@ -1268,6 +1289,7 @@ async function calcularInversaUI() {
 
     // Render KaTeX principal
     renderLatexElement(document.getElementById("inv-latex-target"), latexPrincipal);
+    renderizarEtiquetasMatematicas(resultBox);
 
     // Render Teorema 2x2 si aplica
     if (data.orden_n === 2 && data.determinante_2x2 !== null) {
@@ -1483,7 +1505,7 @@ function limpiarModuloEcuaciones() {
   if (resultBox) {
     resultBox.innerHTML = '<p class="placeholder-text">Ingrese los coeficientes del sistema y presione "Resolver Ecuación Matricial".</p>';
   }
-  mostrarToast("Sistema Ax = b limpiado.");
+  mostrarToast("Sistema $Ax=b$ limpiado.");
 }
 
 function cargarEjemploEcuacion(caso) {
@@ -1759,10 +1781,10 @@ function actualizarEficienciaDeterminanteUI() {
   const radioLuText = document.getElementById("label-method-lu");
   const radioCofText = document.getElementById("label-method-cof");
 
-  if (compLu) compLu.innerText = `O(n³) = O(${n}³)`;
+  if (compLu) renderLatexElement(compLu, `\\mathcal{O}(n^3) = \\mathcal{O}(${n}^3)`, false);
   if (opsLuEl) opsLuEl.innerText = `~${opsLu.toLocaleString()} operaciones elementales`;
 
-  if (compCof) compCof.innerText = `O(n!) = O(${n}!)`;
+  if (compCof) renderLatexElement(compCof, `\\mathcal{O}(n!) = \\mathcal{O}(${n}!)`, false);
   if (opsCofEl) opsCofEl.innerText = `~${opsCof.toLocaleString()} operaciones factoriales`;
 
   if (n <= 2) {
@@ -1773,15 +1795,15 @@ function actualizarEficienciaDeterminanteUI() {
     }
     if (badgeCof) {
       badgeCof.className = "stat-badge stat-badge-best";
-      badgeCof.innerText = "Directo (ad - bc)";
+      renderMixedLatex(badgeCof, "Directo ($ad-bc$)");
     }
     if (cardLu) cardLu.className = "efficiency-stat-card active-recommended";
     if (cardCof) cardCof.className = "efficiency-stat-card active-recommended";
     if (verdictEl) {
-      verdictEl.innerText = `Para orden n = ${n}, el número de operaciones es mínimo e idéntico. Cofactores aplica la fórmula directa inmediata (ad - bc) y LU realiza una reducción elemental equivalente.`;
+      renderMixedLatex(verdictEl, `Para orden $n=${n}$, el número de operaciones es mínimo e idéntico. Cofactores aplica la fórmula directa inmediata $ad-bc$ y LU realiza una reducción elemental equivalente.`);
     }
-    if (radioLuText) radioLuText.innerHTML = `<strong>Descomposición LU (PA = LU)</strong> — Triangulación Gaussiana [O(n³)]`;
-    if (radioCofText) radioCofText.innerHTML = `<strong>Expansión por Cofactores (Laplace)</strong> — Fórmula directa analítica [O(n!)]`;
+    if (radioLuText) radioLuText.innerHTML = `<strong data-math>Descomposición LU ($PA=LU$)</strong> — Triangulación Gaussiana <span data-math>$\\mathcal{O}(n^3)$</span>`;
+    if (radioCofText) radioCofText.innerHTML = `<strong>Expansión por Cofactores (Laplace)</strong> — Fórmula directa analítica <span data-math>$\\mathcal{O}(n!)$</span>`;
   } else if (n === 3) {
     if (badgeRec) badgeRec.innerText = "LU Recomendado (Leve Ventaja)";
     if (badgeLu) {
@@ -1795,10 +1817,10 @@ function actualizarEficienciaDeterminanteUI() {
     if (cardLu) cardLu.className = "efficiency-stat-card active-recommended";
     if (cardCof) cardCof.className = "efficiency-stat-card";
     if (verdictEl) {
-      verdictEl.innerText = `Para n = 3, ambos métodos son rápidos y exactos. LU requiere ~${opsLu} operaciones elementales, mientras que Cofactores realiza ~${opsCof} operaciones pero permite visualizar el desarrollo por menores y Sarrus.`;
+      renderMixedLatex(verdictEl, `Para $n=3$, ambos métodos son rápidos y exactos. LU requiere ~${opsLu} operaciones elementales, mientras que Cofactores realiza ~${opsCof} operaciones pero permite visualizar el desarrollo por menores y Sarrus.`);
     }
-    if (radioLuText) radioLuText.innerHTML = `<strong>Descomposición LU (PA = LU)</strong> — Triangulación [O(3³) ≈ ${opsLu} ops] <span class="badge badge-success" style="font-size:0.65rem; padding:0.1rem 0.4rem;">Más Rápido</span>`;
-    if (radioCofText) radioCofText.innerHTML = `<strong>Expansión por Cofactores (Laplace)</strong> — Menores y Sarrus [O(3!) ≈ ${opsCof} ops]`;
+    if (radioLuText) radioLuText.innerHTML = `<strong data-math>Descomposición LU ($PA=LU$)</strong> — Triangulación <span data-math>$\\mathcal{O}(3^3) \\approx ${opsLu}$</span> ops <span class="badge badge-success" style="font-size:0.65rem; padding:0.1rem 0.4rem;">Más Rápido</span>`;
+    if (radioCofText) radioCofText.innerHTML = `<strong>Expansión por Cofactores (Laplace)</strong> — Menores y Sarrus <span data-math>$\\mathcal{O}(3!) \\approx ${opsCof}$</span> ops`;
   } else {
     // n >= 4: LU drásticamente más eficiente
     const factorRatio = Math.max(1, Math.round(opsCof / Math.max(1, opsLu)));
@@ -1814,11 +1836,14 @@ function actualizarEficienciaDeterminanteUI() {
     if (cardLu) cardLu.className = "efficiency-stat-card active-recommended";
     if (cardCof) cardCof.className = "efficiency-stat-card";
     if (verdictEl) {
-      verdictEl.innerHTML = `<strong>¡Para n = ${n}, la Descomposición LU es drásticamente más eficiente!</strong> Cofactores requiere un orden factorial de ~${opsCof.toLocaleString()} operaciones, mientras que LU resuelve la triangulación en únicamente ~${opsLu.toLocaleString()} operaciones (O(n³)). ¡LU es <strong>${factorRatio.toLocaleString()} veces</strong> más eficiente!`;
+      verdictEl.innerHTML = `<strong>¡Para <span data-math>$n=${n}$</span>, la Descomposición LU es drásticamente más eficiente!</strong> Cofactores requiere un orden factorial de ~${opsCof.toLocaleString()} operaciones, mientras que LU resuelve la triangulación en únicamente ~${opsLu.toLocaleString()} operaciones (<span data-math>$\\mathcal{O}(n^3)$</span>). ¡LU es <strong>${factorRatio.toLocaleString()} veces</strong> más eficiente!`;
     }
-    if (radioLuText) radioLuText.innerHTML = `<strong>Descomposición LU (PA = LU)</strong> — [O(${n}³) ≈ ${opsLu.toLocaleString()} ops] <span class="badge badge-success" style="font-size:0.65rem; padding:0.1rem 0.4rem;">⭐ RECOMENDADO</span>`;
-    if (radioCofText) radioCofText.innerHTML = `<strong>Expansión por Cofactores (Laplace)</strong> — [O(${n}!) ≈ ${opsCof.toLocaleString()} ops] <span class="badge badge-error" style="font-size:0.65rem; padding:0.1rem 0.4rem;">⚠️ Alto Costo Factorial</span>`;
+    if (radioLuText) radioLuText.innerHTML = `<strong data-math>Descomposición LU ($PA=LU$)</strong> — <span data-math>$\\mathcal{O}(${n}^3) \\approx ${opsLu}$</span> ops <span class="badge badge-success" style="font-size:0.65rem; padding:0.1rem 0.4rem;">⭐ RECOMENDADO</span>`;
+    if (radioCofText) radioCofText.innerHTML = `<strong>Expansión por Cofactores (Laplace)</strong> — <span data-math>$\\mathcal{O}(${n}!) \\approx ${opsCof}$</span> ops <span class="badge badge-error" style="font-size:0.65rem; padding:0.1rem 0.4rem;">⚠️ Alto Costo Factorial</span>`;
   }
+  [radioLuText, radioCofText, verdictEl].forEach(element => {
+    if (element) renderizarEtiquetasMatematicas(element);
+  });
 }
 
 function actualizarPreferenciaMetodo() {
@@ -1826,7 +1851,7 @@ function actualizarPreferenciaMetodo() {
   const n = input ? parseInt(input.value) || 3 : 3;
   const radio = document.querySelector('input[name="det-method"]:checked');
   if (radio && radio.value === "cofactores" && n >= 5) {
-    mostrarToast(`Aviso: Para matrices ${n}×${n}, Cofactores tiene orden factorial O(${n}!). Se recomienda usar Descomposición LU.`);
+    mostrarToast(`Aviso: Para matrices $${n}\\times${n}$, Cofactores tiene orden factorial $\\mathcal{O}(${n}!)$. Se recomienda usar Descomposición LU.`);
   }
 }
 
@@ -1924,7 +1949,7 @@ async function calcularDeterminanteUI() {
       badge.innerText = "Invertible (No Singular)";
     } else {
       badge.className = "badge badge-error";
-      badge.innerText = "Matriz Singular (|A| = 0)";
+      renderMixedLatex(badge, "Matriz Singular ($|A|=0$)");
     }
 
     const detVal = data.determinante;
@@ -1941,7 +1966,7 @@ async function calcularDeterminanteUI() {
 
     let htmlContenido = `
       <div class="latex-equation-card">
-        <div class="latex-header">Valor Escalar del Determinante |A|:</div>
+        <div class="latex-header" data-math>Valor Escalar del Determinante $|A|$:</div>
         <div id="det-latex-target" class="latex-display-box"></div>
         <div id="det-dictamen-box"></div>
       </div>
@@ -1961,6 +1986,7 @@ async function calcularDeterminanteUI() {
 
     // Renderizar KaTeX principal
     renderLatexElement(document.getElementById("det-latex-target"), latexPrincipal);
+    renderizarEtiquetasMatematicas(resultBox);
 
     // Renderizar dictamen teórico de invertibilidad con KaTeX
     const dictamenBox = document.getElementById("det-dictamen-box");
@@ -2063,7 +2089,7 @@ async function calcularDeterminanteUI() {
     }
 
     refrescarIconosLucide();
-    mostrarToast(`Determinante calculado: |A| = ${detVal}`);
+    mostrarToast(`Determinante calculado: $|A|=${detFmtLatex}$`);
   } catch (err) {
     badge.className = "badge badge-error";
     badge.innerText = "Error";

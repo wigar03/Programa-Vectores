@@ -1,13 +1,22 @@
 /* Ejecutar: node --test tests/test_biseccion_ui.cjs (sin paquetes externos). */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { datosGrafica, formatear, EJEMPLOS } = require('../src/ui/web/biseccion.js');
+const { datosGrafica, formatear, numeroLatex, EJEMPLOS } = require('../src/ui/web/biseccion.js');
 
 test('formato distingue error indefinido, cero y valores pequeños', () => {
   assert.equal(formatear(null), '—');
   assert.equal(formatear(0), '0');
   assert.equal(formatear(1e-15), '1e-15');
   assert.equal(formatear(0.76392822265625), '0.7639282227');
+});
+
+test('notación científica en LaTeX conserva signo, exponente y precisión solicitada', () => {
+  assert.equal(numeroLatex(-1e-15), String.raw`-1 \times 10^{-15}`);
+  assert.equal(numeroLatex(1e21), String.raw`1 \times 10^{21}`);
+  assert.equal(numeroLatex(0.76392822265625), '0.7639282227');
+  assert.equal(numeroLatex(0.76392822265625, true), '0.76392822265625');
+  assert.equal(numeroLatex(0), '0');
+  assert.equal(numeroLatex(null), String.raw`\text{—}`);
 });
 
 test('gráfica separa segmentos fuera del dominio sin unirlos', () => {

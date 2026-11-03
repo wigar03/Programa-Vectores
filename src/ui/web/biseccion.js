@@ -8,20 +8,27 @@
     potencia: { funcion: "x^10 - 1", a: "0", b: "1.3", criterio: "relativo", tolerancia: "0.01" },
   };
   const AYUDA = {
-    intervalo: "Detiene cuando b − a ≤ tolerancia. La cota del error en el punto medio es (b − a)/2.",
-    relativo: "Detiene cuando |c actual − c anterior| / |c actual| × 100% ≤ tolerancia. Por ejemplo, 1 significa 1%. No se define en la primera iteración ni cuando c = 0.",
-    residuo: "Detiene cuando |f(c)| ≤ tolerancia. Un residuo pequeño no garantiza por sí solo un error pequeño en x; consulte también la cota del intervalo.",
+    intervalo: String.raw`Detiene cuando $b-a \leq \varepsilon$. La cota del error en el punto medio es $\frac{b-a}{2}$. Aquí, $\varepsilon$ es la tolerancia.`,
+    relativo: String.raw`Detiene cuando $\varepsilon_a = \left|\frac{c_i-c_{i-1}}{c_i}\right|\cdot 100\% \leq \varepsilon$. Aquí, $\varepsilon$ es la tolerancia porcentual: $1$ significa $1\%$. No se define en la primera iteración ni cuando $c_i=0$.`,
+    residuo: String.raw`Detiene cuando $|f(c)| \leq \varepsilon$, donde $\varepsilon$ es la tolerancia. Un residuo pequeño no garantiza por sí solo un error pequeño en $x$; consulte también la cota del intervalo.`,
   };
   const MOTIVOS = {
     tolerancia: "Se alcanzó la tolerancia del criterio seleccionado.",
     raiz_en_extremo: "La función se evaluó como cero en un extremo del intervalo; no se requieren iteraciones.",
-    raiz_evaluada: "f(c) se evaluó como cero con la precisión de punto flotante utilizada.",
+    raiz_evaluada: "$f(c)$ se evaluó como cero con la precisión de punto flotante utilizada.",
     max_iteraciones: "Se alcanzó el máximo de iteraciones sin cumplir la tolerancia. Puede aumentar el límite o revisar la tolerancia.",
     precision_agotada: "La precisión de punto flotante impide seguir reduciendo el intervalo. Revise la tolerancia o la escala de la función.",
   };
 
   function formatear(valor) {
     return valor === null || valor === undefined ? "—" : Number(valor.toPrecision(10)).toString();
+  }
+
+  function numeroLatex(valor, completo = false) {
+    if (valor === null || valor === undefined) return String.raw`\text{—}`;
+    const texto = completo ? String(valor) : formatear(valor);
+    const partes = texto.toLowerCase().split("e");
+    return partes.length === 2 ? `${partes[0]} \\times 10^{${Number(partes[1])}}` : texto;
   }
 
   function datosGrafica(res) {
@@ -50,7 +57,7 @@
 
   // Exporta solo las utilidades puras para verificarlas con el runner estándar de Node.
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { formatear, datosGrafica, EJEMPLOS };
+    module.exports = { formatear, numeroLatex, datosGrafica, EJEMPLOS };
   }
   if (typeof document === "undefined") return;
 
@@ -58,6 +65,12 @@
     const nodo = document.createElement(tag);
     if (texto !== undefined) nodo.textContent = texto;
     if (clase) nodo.className = clase;
+    return nodo;
+  }
+
+  function crearMixto(tag, texto, clase) {
+    const nodo = crear(tag, undefined, clase);
+    renderMixedLatex(nodo, texto);
     return nodo;
   }
 
@@ -88,30 +101,35 @@
     agregar("text", { ...texto, x: 580, y: 270 }, "x");
     agregar("text", { ...texto, x: 60, y: 12 }, "f(x)");
     contenedor.replaceChildren(svg,
-      crear("p", "Azul: f(x). Verde: aproximación y franja del intervalo final. Muestra orientativa de 201 puntos; la gráfica no certifica continuidad.", "bis-help"));
+      crearMixto("p", "Azul: $f(x)$. Verde: aproximación y franja del intervalo final. Muestra orientativa de 201 puntos; la gráfica no certifica continuidad.", "bis-help"));
     contenedor.hidden = false;
   }
 
   function renderizarResultado(contenedor, res) {
     const funcion = crear("p", `f(x) = ${res.funcion}`, "bis-function");
-    const mensaje = crear("p", MOTIVOS[res.motivo], "bis-message");
+    if (res.funcion_latex) renderLatexElement(funcion, `f(x) = ${res.funcion_latex}`, true);
+    const mensaje = crearMixto("p", MOTIVOS[res.motivo], "bis-message");
     const resumen = crear("dl", undefined, "bis-summary");
     for (const [etiqueta, valor] of [
-      [res.convergio ? "Raíz aproximada (c)" : "Última aproximación (c)", res.raiz],
-      ["Residuo |f(c)|", res.residuo], ["Cota del error en x*", res.cota_error],
+      [res.convergio ? "Raíz aproximada ($c$)" : "Última aproximación ($c$)", res.raiz],
+      ["Residuo $|f(c)|$", res.residuo], ["Cota del error en $x$", res.cota_error],
       ["Iteraciones", res.iteraciones],
     ]) {
       const grupo = crear("div", undefined, "bis-stat");
       const cifra = crear("dd", formatear(valor));
       cifra.title = String(valor);
-      grupo.append(crear("dt", etiqueta), cifra);
+      if (etiqueta !== "Iteraciones") renderLatexElement(cifra, numeroLatex(valor), false);
+      const titulo = crearMixto("dt", etiqueta);
+      if (etiqueta.startsWith("Cota")) titulo.append(crear("sup", "*"));
+      grupo.append(titulo, cifra);
       resumen.append(grupo);
     }
     const [a, b] = res.intervalo_final;
-    const verificacion = crear("p", `Verificación: f(${formatear(res.raiz)}) = ${formatear(res.f_raiz)}. Intervalo final: [${formatear(a)}, ${formatear(b)}].`, "bis-message");
-    const criterio = crear("p", `Criterio: ${res.criterio}. Tolerancia: ${res.tolerancia}${res.criterio === "relativo" ? "%" : ""}.`, "bis-help");
-    contenedor.replaceChildren(funcion, mensaje, resumen, verificacion, criterio,
-      crear("p", "*La cota del intervalo supone continuidad en [a, b]. Un cambio de signo no garantiza una raíz si la función es discontinua. Los valores se calculan en punto flotante y se redondean solo para mostrarlos; sitúe el cursor sobre una cifra para ver su valor completo.", "bis-help"));
+    const verificacion = crearMixto("p", `Verificación: $f(${numeroLatex(res.raiz)}) = ${numeroLatex(res.f_raiz)}$.`, "bis-message");
+    const intervalo = crearMixto("p", `Intervalo final: $[${numeroLatex(a)},\\; ${numeroLatex(b)}]$.`, "bis-message");
+    const criterio = crearMixto("p", `Criterio: ${res.criterio}. Tolerancia: $${numeroLatex(res.tolerancia)}${res.criterio === "relativo" ? "\\%" : ""}$.`, "bis-help");
+    contenedor.replaceChildren(funcion, mensaje, resumen, verificacion, intervalo, criterio,
+      crearMixto("p", "*La cota del intervalo supone continuidad en $[a,b]$. Un cambio de signo no garantiza una raíz si la función es discontinua. Los valores se calculan en punto flotante y se redondean solo para mostrarlos; sitúe el cursor sobre una cifra para ver su valor completo.", "bis-help"));
   }
 
   function renderizarTabla(contenedor, res) {
@@ -121,8 +139,8 @@
     const fila = crear("tr");
     const columnas = [["numero", "i"], ["a", "a"], ["b", "b"], ["c", "c"],
       ["fc", "f(c)"], ["error_relativo", "εa (%)"]];
-    for (const texto of [...columnas.map(([, etiqueta]) => etiqueta), "Detalle"]) {
-      const celda = crear("th", texto);
+    for (const texto of ["$i$", "$a$", "$b$", "$c$", "$f(c)$", "$\\varepsilon_a\\;(\\%)$", "Detalle"]) {
+      const celda = crearMixto("th", texto);
       celda.scope = "col";
       fila.append(celda);
     }
@@ -134,7 +152,10 @@
         const valor = paso[clave];
         const celda = crear("td", undefined, "bis-cell");
         celda.dataset.label = etiqueta === "i" ? "Iteración" : etiqueta;
-        celda.append(crear("span", formatear(valor)));
+        const etiquetaMovil = crearMixto("span", clave === "numero" ? "Iteración" : clave === "error_relativo" ? "$\\varepsilon_a\\;(\\%)$" : `$${etiqueta}$`, "bis-cell-label");
+        const cifra = crear("span", formatear(valor));
+        if (typeof valor === "number" && /e/i.test(formatear(valor))) renderLatexElement(cifra, numeroLatex(valor), false);
+        celda.append(etiquetaMovil, cifra);
         if (typeof valor === "number") celda.title = String(valor);
         fila.append(celda);
       }
@@ -154,13 +175,16 @@
       const contenidoDetalle = crear("td");
       contenidoDetalle.colSpan = columnas.length + 1;
       const medidas = crear("dl", undefined, "bis-iteration-values");
-      for (const [clave, etiqueta] of [["a", "a"], ["b", "b"], ["c", "c"],
-        ["fa", "f(a)"], ["fb", "f(b)"], ["fc", "f(c)"], ["signo_ac", "Signo f(a)·f(c)"],
-        ["ancho", "Ancho b − a"], ["cota_error", "Cota del error"],
-        ["error_absoluto", "|c − c anterior|"], ["error_relativo", "εa (%)"], ["decision", "Acción"]]) {
+      for (const [clave, etiqueta] of [["a", "$a$"], ["b", "$b$"], ["c", "$c$"],
+        ["fa", "$f(a)$"], ["fb", "$f(b)$"], ["fc", "$f(c)$"], ["signo_ac", "Signo $f(a)\\,f(c)$"],
+        ["ancho", "Ancho $b-a$"], ["cota_error", "Cota del error"],
+        ["error_absoluto", "$|c_i-c_{i-1}|$"], ["error_relativo", "$\\varepsilon_a\\;(\\%)$"], ["decision", "Acción"]]) {
         const grupo = crear("div");
         const valor = paso[clave];
-        grupo.append(crear("dt", etiqueta), crear("dd", valor === null ? "—" : String(valor)));
+        const cifra = crear("dd", valor === null ? "—" : String(valor));
+        if (clave === "decision" && valor !== "Finalizar") renderLatexElement(cifra, valor === "b ← c" ? "b \\leftarrow c" : "a \\leftarrow c", false);
+        else if (typeof valor === "number" && /e/i.test(String(valor))) renderLatexElement(cifra, numeroLatex(valor, true), false);
+        grupo.append(crearMixto("dt", etiqueta), cifra);
         medidas.append(grupo);
       }
       contenidoDetalle.append(crear("p", `Detalle de la iteración ${paso.numero} · valores completos`, "bis-detail-title"), medidas);
@@ -227,7 +251,7 @@
     }
 
     function ayuda() {
-      document.getElementById("bis-criterion-help").textContent = AYUDA[form.elements.criterio.value];
+      renderMixedLatex(document.getElementById("bis-criterion-help"), AYUDA[form.elements.criterio.value]);
       document.getElementById("bis-tolerance-label").textContent = form.elements.criterio.value === "relativo" ? "Tolerancia (%)" : "Tolerancia";
     }
 

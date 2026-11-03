@@ -30,7 +30,7 @@
           <span>UAM • FIA</span>
         </div>
         <h1>Calculadora de Álgebra Lineal</h1>
-        <p class="subtitle" id="header-subtitle">Vectores en ℝⁿ, Combinación Lineal, Matrices, Inversa A⁻¹, Ecuaciones Ax = b y Determinante |A|</p>
+        <p class="subtitle" id="header-subtitle" data-math>Vectores en $\mathbb{R}^n$, Combinación Lineal, Matrices, Inversa $A^{-1}$, Ecuaciones $Ax=b$ y Determinante $|A|$</p>
       </div>
       <div class="header-actions">
         <button id="btn-nav-toggle" class="btn-theme sidebar-toggle" type="button" aria-controls="module-sidebar" aria-expanded="false">
@@ -65,15 +65,15 @@
       </button>
       <button class="nav-tab" data-tab="tab-inversa">
         <i data-lucide="rotate-ccw" class="tab-icon"></i>
-        <span class="tab-label">Inversa de una Matriz A⁻¹</span>
+        <span class="tab-label" data-math>Inversa de una Matriz $A^{-1}$</span>
       </button>
       <button class="nav-tab" data-tab="tab-ecuaciones">
         <i data-lucide="equal" class="tab-icon"></i>
-        <span class="tab-label">Ecuaciones Matriciales Ax = b</span>
+        <span class="tab-label" data-math>Ecuaciones Matriciales $Ax=b$</span>
       </button>
       <button class="nav-tab" data-tab="tab-determinante">
         <i data-lucide="scan" class="tab-icon"></i>
-        <span class="tab-label">Determinante |A|</span>
+        <span class="tab-label" data-math>Determinante $|A|$</span>
       </button>
       <button class="nav-tab" data-tab="tab-biseccion">
         <i data-lucide="split" class="tab-icon"></i>
@@ -96,11 +96,11 @@
           <div class="card card-input">
             <div class="card-header">
               <h3>Configuración de Vectores</h3>
-              <span class="badge badge-dim">Dimensión arbitraria n</span>
+              <span class="badge badge-dim" data-math>Dimensión arbitraria $n$</span>
             </div>
 
             <div class="selector-row">
-              <label for="vec-dim" class="field-label">Dimensión del Espacio (n):</label>
+              <label for="vec-dim" class="field-label" data-math>Dimensión del Espacio ($n$):</label>
               <div class="stepper-box">
                 <button type="button" class="btn-step" onclick="cambiarDimVector(-1)" title="Disminuir dimensión">
                   <i data-lucide="minus"></i>
@@ -116,20 +116,20 @@
             <div class="vector-input-group">
               <div class="vec-block">
                 <div class="vec-label-row">
-                  <span class="vec-label">Vector u:</span>
-                  <span class="vec-hint">Componentes u₁ a uₙ</span>
+                  <span class="vec-label" data-math>Vector $u$:</span>
+                  <span class="vec-hint" data-math>Componentes $u_1$ a $u_n$</span>
                 </div>
                 <div id="vec-u-inputs" class="cells-row cells-wrap"></div>
               </div>
               <div class="vec-block">
                 <div class="vec-label-row">
-                  <span class="vec-label">Vector v:</span>
-                  <span class="vec-hint">Componentes v₁ a vₙ</span>
+                  <span class="vec-label" data-math>Vector $v$:</span>
+                  <span class="vec-hint" data-math>Componentes $v_1$ a $v_n$</span>
                 </div>
                 <div id="vec-v-inputs" class="cells-row cells-wrap"></div>
               </div>
               <div class="vec-block">
-                <span class="vec-label">Escalar c:</span>
+                <span class="vec-label" data-math>Escalar $c$:</span>
                 <input type="text" id="vec-scalar-c" class="cell-input scalar-input" value="3" placeholder="Ej: -2, 1/2">
               </div>
             </div>
@@ -138,28 +138,28 @@
             <div class="action-grid">
               <button type="button" class="btn-primary" onclick="calcularOperacionVector('suma')">
                 <i data-lucide="plus" class="btn-icon"></i>
-                <span>Suma (u + v)</span>
+                <span data-math>Suma ($u+v$)</span>
               </button>
               <button type="button" class="btn-primary" onclick="calcularOperacionVector('resta')">
                 <i data-lucide="minus" class="btn-icon"></i>
-                <span>Resta (u − v)</span>
+                <span data-math>Resta ($u-v$)</span>
               </button>
               <button type="button" class="btn-secondary" onclick="calcularOperacionVector('escalar_u')">
                 <i data-lucide="x" class="btn-icon"></i>
-                <span>Escalar (c · u)</span>
+                <span data-math>Escalar ($c\cdot u$)</span>
               </button>
               <button type="button" class="btn-secondary" onclick="calcularOperacionVector('producto_punto')">
                 <i data-lucide="circle-dot" class="btn-icon"></i>
-                <span>Producto Punto (u · v)</span>
+                <span data-math>Producto Punto ($u\cdot v$)</span>
               </button>
             </div>
 
             <!-- Barra de Herramientas y Ejemplos -->
             <div class="card-footer-actions">
               <div class="sample-actions">
-                <button type="button" class="btn-text" onclick="cargarEjemploVector(1)">Ejemplo 1 (R³)</button>
-                <button type="button" class="btn-text" onclick="cargarEjemploVector(2)">Ejemplo 2 (R⁴ Fracciones)</button>
-                <button type="button" class="btn-text" onclick="cargarEjemploVector(20)">Prueba R²⁰</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploVector(1)" data-math>Ejemplo 1 ($\mathbb{R}^3$)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploVector(2)" data-math>Ejemplo 2 ($\mathbb{R}^4$, fracciones)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploVector(20)" data-math>Prueba $\mathbb{R}^{20}$</button>
               </div>
               <button type="button" class="btn-clear" onclick="limpiarModuloVectores()" title="Limpiar todas las casillas">
                 <i data-lucide="trash-2" class="btn-icon"></i>
@@ -189,14 +189,14 @@
           <!-- Tarjeta de Configuración de Conjunto y Vector Objetivo -->
           <div class="card card-input">
             <div class="card-header">
-              <h3>Conjunto de Vectores {v₁, ..., vₖ}</h3>
-              <span class="badge badge-dim">Espacio Rⁿ</span>
+              <h3 data-math>Conjunto de Vectores $\{v_1,\ldots,v_k\}$</h3>
+              <span class="badge badge-dim" data-math>Espacio $\mathbb{R}^n$</span>
             </div>
             
             <!-- Selectores Simétricos y Alineados -->
             <div class="selectors-grid-2">
               <div class="selector-card">
-                <label for="comb-dim-n" class="field-label">Dimensión (n):</label>
+                <label for="comb-dim-n" class="field-label" data-math>Dimensión ($n$):</label>
                 <div class="stepper-box">
                   <button type="button" class="btn-step" onclick="cambiarDimCombN(-1)" title="Disminuir dimensión">
                     <i data-lucide="minus"></i>
@@ -208,7 +208,7 @@
                 </div>
               </div>
               <div class="selector-card">
-                <label for="comb-num-k" class="field-label">Cantidad de Vectores (k):</label>
+                <label for="comb-num-k" class="field-label" data-math>Cantidad de Vectores ($k$):</label>
                 <div class="stepper-box">
                   <button type="button" class="btn-step" onclick="cambiarDimCombK(-1)" title="Disminuir cantidad">
                     <i data-lucide="minus"></i>
@@ -229,7 +229,7 @@
 
             <!-- Vector Objetivo b -->
             <div class="target-vector-container">
-              <div class="section-subtitle">Vector Objetivo b a Evaluar:</div>
+              <div class="section-subtitle" data-math>Vector Objetivo $b$ a Evaluar:</div>
               <div id="comb-target-inputs" class="cells-row cells-wrap"></div>
             </div>
 
@@ -280,10 +280,10 @@
             <!-- Controles Matriz A -->
             <div class="matrix-setup-section">
               <div class="matrix-setup-header">
-                <div class="section-subtitle">Matriz A (m × n)</div>
+                <div class="section-subtitle" data-math>Matriz $A$ ($m\times n$)</div>
                 <div class="matrix-dims-steppers">
                   <div class="dim-chip">
-                    <span>Filas (m):</span>
+                    <span data-math>Filas ($m$):</span>
                     <div class="mini-stepper">
                       <button type="button" onclick="cambiarDimMatA(-1, 0)"><i data-lucide="minus"></i></button>
                       <input type="number" id="mat-a-m" min="1" max="8" value="2" onchange="renderizarMatrizA()">
@@ -291,7 +291,7 @@
                     </div>
                   </div>
                   <div class="dim-chip">
-                    <span>Cols (n):</span>
+                    <span data-math>Cols ($n$):</span>
                     <div class="mini-stepper">
                       <button type="button" onclick="cambiarDimMatA(0, -1)"><i data-lucide="minus"></i></button>
                       <input type="number" id="mat-a-n" min="1" max="8" value="3" onchange="renderizarMatrizA()">
@@ -306,10 +306,10 @@
             <!-- Controles Matriz B -->
             <div class="matrix-setup-section">
               <div class="matrix-setup-header">
-                <div class="section-subtitle">Matriz B (r × p)</div>
+                <div class="section-subtitle" data-math>Matriz $B$ ($r\times p$)</div>
                 <div class="matrix-dims-steppers">
                   <div class="dim-chip">
-                    <span>Filas (r):</span>
+                    <span data-math>Filas ($r$):</span>
                     <div class="mini-stepper">
                       <button type="button" onclick="cambiarDimMatB(-1, 0)"><i data-lucide="minus"></i></button>
                       <input type="number" id="mat-b-r" min="1" max="8" value="3" onchange="renderizarMatrizB()">
@@ -317,7 +317,7 @@
                     </div>
                   </div>
                   <div class="dim-chip">
-                    <span>Cols (p):</span>
+                    <span data-math>Cols ($p$):</span>
                     <div class="mini-stepper">
                       <button type="button" onclick="cambiarDimMatB(0, -1)"><i data-lucide="minus"></i></button>
                       <input type="number" id="mat-b-r_col" min="1" max="8" value="2" onchange="renderizarMatrizB()">
@@ -330,7 +330,7 @@
             </div>
 
             <div class="selector-row">
-              <label for="mat-scalar-k" class="field-label">Escalar k para (k · A):</label>
+              <label for="mat-scalar-k" class="field-label" data-math>Escalar $k$ para ($k\cdot A$):</label>
               <input type="text" id="mat-scalar-k" class="cell-input scalar-input" value="2" placeholder="Ej: -3, 1/2">
             </div>
 
@@ -338,38 +338,38 @@
             <div class="action-grid action-grid-3">
               <button type="button" class="btn-primary" onclick="operarMatrices('suma')">
                 <i data-lucide="plus" class="btn-icon"></i>
-                <span>Suma (A + B)</span>
+                <span data-math>Suma ($A+B$)</span>
               </button>
               <button type="button" class="btn-primary" onclick="operarMatrices('resta')">
                 <i data-lucide="minus" class="btn-icon"></i>
-                <span>Resta (A − B)</span>
+                <span data-math>Resta ($A-B$)</span>
               </button>
               <button type="button" class="btn-primary" onclick="operarMatrices('multiplicacion')">
                 <i data-lucide="sparkles" class="btn-icon"></i>
-                <span>Multiplicar (A · B)</span>
+                <span data-math>Multiplicar ($A\cdot B$)</span>
               </button>
               <button type="button" class="btn-secondary" onclick="operarMatrices('escalar_a')">
                 <i data-lucide="x" class="btn-icon"></i>
-                <span>Escalar (k · A)</span>
+                <span data-math>Escalar ($k\cdot A$)</span>
               </button>
               <!-- ----------------------------------------------------------- -->
               <!-- SUB-APARTADO: TRANSPUESTA DE UNA MATRIZ (Aᵀ, Bᵀ)            -->
               <!-- ----------------------------------------------------------- -->
               <button type="button" class="btn-secondary" onclick="operarMatrices('transpuesta_a')">
                 <i data-lucide="refresh-cw" class="btn-icon"></i>
-                <span>Transpuesta (Aᵀ)</span>
+                <span data-math>Transpuesta ($A^T$)</span>
               </button>
               <button type="button" class="btn-secondary" onclick="operarMatrices('transpuesta_b')">
                 <i data-lucide="refresh-cw" class="btn-icon"></i>
-                <span>Transpuesta (Bᵀ)</span>
+                <span data-math>Transpuesta ($B^T$)</span>
               </button>
             </div>
 
             <!-- Barra de Herramientas y Ejemplos -->
             <div class="card-footer-actions">
               <div class="sample-actions">
-                <button type="button" class="btn-text" onclick="cargarEjemploMatrices(1)">Ejemplo 1: Mult. A(2x3) · B(3x2)</button>
-                <button type="button" class="btn-text" onclick="cargarEjemploMatrices(2)">Ejemplo 2: Suma A(3x3) + B(3x3)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploMatrices(1)" data-math>Ejemplo 1: Mult. $A_{2\times3}\cdot B_{3\times2}$</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploMatrices(2)" data-math>Ejemplo 2: Suma $A_{3\times3}+B_{3\times3}$</button>
               </div>
               <button type="button" class="btn-clear" onclick="limpiarModuloMatrices()" title="Limpiar todas las casillas">
                 <i data-lucide="trash-2" class="btn-icon"></i>
@@ -400,11 +400,11 @@
           <div class="card card-input">
             <div class="card-header">
               <h3>Matriz Cuadrada A (n × n)</h3>
-              <span class="badge badge-dim">Inversa A⁻¹</span>
+              <span class="badge badge-dim" data-math>Inversa $A^{-1}$</span>
             </div>
 
             <div class="selector-row">
-              <label for="inv-dim-n" class="field-label">Orden de la Matriz (n):</label>
+              <label for="inv-dim-n" class="field-label" data-math>Orden de la Matriz ($n$):</label>
               <div class="stepper-box">
                 <button type="button" class="btn-step" onclick="cambiarDimInversa(-1)" title="Disminuir orden">
                   <i data-lucide="minus"></i>
@@ -426,7 +426,7 @@
             <div class="solver-method-selector">
               <label class="radio-label">
                 <input type="radio" name="inv-method" value="gauss_jordan" checked>
-                <span>Método Gauss-Jordan: [A │ Iₙ] ~ [Iₙ │ A⁻¹] (Reducción Simultánea)</span>
+                <span data-math>Método Gauss-Jordan: $[A\mid I_n]\sim[I_n\mid A^{-1}]$ (Reducción Simultánea)</span>
               </label>
               <label class="radio-label">
                 <input type="radio" name="inv-method" value="gauss">
@@ -436,7 +436,7 @@
 
             <button type="button" class="btn-primary btn-large" onclick="calcularInversaUI()">
               <i data-lucide="play" class="btn-icon"></i>
-              <span>Calcular Inversa A⁻¹ y Comprobar</span>
+              <span data-math>Calcular Inversa $A^{-1}$ y Comprobar</span>
             </button>
 
             <!-- Barra de Herramientas y Ejemplos -->
@@ -457,11 +457,11 @@
           <!-- Resultado, Reducción de Renglones y Verificación Dual A·A⁻¹ = I -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Matriz Inversa A⁻¹ y Verificación</h3>
+              <h3 data-math>Matriz Inversa $A^{-1}$ y Verificación</h3>
               <span id="inv-badge-status" class="badge">Pendiente</span>
             </div>
             <div id="inv-result-content" class="result-box">
-              <p class="placeholder-text">Ingrese una matriz cuadrada y presione "Calcular Inversa A⁻¹" para obtener la matriz inversa exacta, el desarrollo por operaciones elementales de fila y la verificación dual A·A⁻¹ = Iₙ.</p>
+              <p class="placeholder-text" data-math>Ingrese una matriz cuadrada y presione "Calcular Inversa $A^{-1}$" para obtener la matriz inversa exacta, el desarrollo por operaciones elementales de fila y la verificación dual $A\cdot A^{-1}=I_n$.</p>
             </div>
           </div>
         </div>
@@ -475,14 +475,14 @@
           <!-- Entrada de A y b para Ax = b -->
           <div class="card card-input">
             <div class="card-header">
-              <h3>Sistema A · x = b</h3>
+              <h3 data-math>Sistema $A\cdot x=b$</h3>
               <span class="badge badge-dim">Resolución por Eliminación</span>
             </div>
 
             <!-- Selectores Simétricos y Alineados -->
             <div class="selectors-grid-2">
               <div class="selector-card">
-                <label for="eq-rows-m" class="field-label">Ecuaciones / Filas (m):</label>
+                <label for="eq-rows-m" class="field-label" data-math>Ecuaciones / Filas ($m$):</label>
                 <div class="stepper-box">
                   <button type="button" class="btn-step" onclick="cambiarDimEqM(-1)" title="Disminuir filas">
                     <i data-lucide="minus"></i>
@@ -494,7 +494,7 @@
                 </div>
               </div>
               <div class="selector-card">
-                <label for="eq-cols-n" class="field-label">Incógnitas / Columnas (n):</label>
+                <label for="eq-cols-n" class="field-label" data-math>Incógnitas / Columnas ($n$):</label>
                 <div class="stepper-box">
                   <button type="button" class="btn-step" onclick="cambiarDimEqN(-1)" title="Disminuir columnas">
                     <i data-lucide="minus"></i>
@@ -526,7 +526,7 @@
 
             <button type="button" class="btn-primary btn-large" onclick="resolverEcuacionMatricialUI()">
               <i data-lucide="play" class="btn-icon"></i>
-              <span>Resolver Ecuación Matricial Ax = b</span>
+              <span data-math>Resolver Ecuación Matricial $Ax=b$</span>
             </button>
 
             <!-- Barra de Herramientas y Ejemplos -->
@@ -570,7 +570,7 @@
 
             <!-- Selector de Dimensión n -->
             <div class="selector-row">
-              <label for="det-order-n" class="field-label">Orden de la Matriz (n):</label>
+              <label for="det-order-n" class="field-label" data-math>Orden de la Matriz ($n$):</label>
               <div class="stepper-box">
                 <button type="button" class="btn-step" onclick="cambiarDimDet(-1)" title="Disminuir orden">
                   <i data-lucide="minus"></i>
@@ -602,7 +602,7 @@
               
               <div class="efficiency-comparison-grid">
                 <div class="efficiency-stat-card active-recommended" id="stat-card-lu">
-                  <div class="stat-method">Descomposición LU (PA = LU)</div>
+                  <div class="stat-method" data-math>Descomposición LU ($PA=LU$)</div>
                   <div class="stat-complexity" id="det-complexity-lu">O(n³) = O(3³)</div>
                   <div class="stat-ops" id="det-ops-lu">~14 operaciones elementales</div>
                   <div class="stat-badge stat-badge-best" id="det-badge-lu">Más Eficiente</div>
@@ -635,7 +635,7 @@
 
             <button type="button" class="btn-primary btn-large" onclick="calcularDeterminanteUI()">
               <i data-lucide="play" class="btn-icon"></i>
-              <span>Calcular Determinante |A| y Analizar Invertibilidad</span>
+              <span data-math>Calcular Determinante $|A|$ y Analizar Invertibilidad</span>
             </button>
 
             <!-- Barra de Herramientas y Ejemplos -->
@@ -644,7 +644,7 @@
                 <button type="button" class="btn-text" onclick="cargarEjemploDeterminante(2)">Ej. 2×2</button>
                 <button type="button" class="btn-text" onclick="cargarEjemploDeterminante(3)">Ej. 3×3</button>
                 <button type="button" class="btn-text" onclick="cargarEjemploDeterminante(4)">Ej. 4×4</button>
-                <button type="button" class="btn-text" onclick="cargarEjemploDeterminante('singular')">Singular (|A|=0)</button>
+                <button type="button" class="btn-text" onclick="cargarEjemploDeterminante('singular')" data-math>Singular ($|A|=0$)</button>
                 <button type="button" class="btn-text" onclick="cargarEjemploDeterminante('triangular')">Triangular</button>
               </div>
               <button type="button" class="btn-clear" onclick="limpiarModuloDeterminante()" title="Limpiar todas las casillas">
@@ -661,7 +661,7 @@
               <span id="det-badge-status" class="badge">Pendiente</span>
             </div>
             <div id="det-result-content" class="result-box">
-              <p class="placeholder-text">Configure la matriz cuadrada y presione "Calcular Determinante |A|" para obtener el valor escalar exacto, dictamen de invertibilidad y el procedimiento paso a paso.</p>
+              <p class="placeholder-text" data-math>Configure la matriz cuadrada y presione "Calcular Determinante $|A|$" para obtener el valor escalar exacto, dictamen de invertibilidad y el procedimiento paso a paso.</p>
             </div>
           </div>
         </div>
@@ -673,11 +673,11 @@
           <div class="card card-input">
             <div class="card-header">
               <h3>Método de Bisección</h3>
-              <span class="badge badge-dim">f(x) = 0</span>
+              <span class="badge badge-dim" data-math>$f(x)=0$</span>
             </div>
             <p class="bis-intro">Encuentre una raíz dividiendo un intervalo a la mitad en cada iteración.</p>
             <form id="bis-form">
-              <label class="field-label" for="bis-funcion">Función f(x)</label>
+              <label class="field-label" for="bis-funcion" data-math>Función $f(x)$</label>
               <input id="bis-funcion" name="funcion" class="bis-input bis-expression" type="text"
                 value="x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10" required maxlength="500"
                 autocomplete="off" spellcheck="false" aria-describedby="bis-syntax">
@@ -689,22 +689,22 @@
               <p id="bis-syntax" class="bis-help">Use * para multiplicar y ^ o ** para potencias. Funciones: sin, cos, tan, exp, ln (natural), log (base 10), sqrt y abs. Constantes: pi y e. Ángulos en radianes.</p>
               <div class="bis-fields">
                 <div>
-                  <label class="field-label" for="bis-a">Extremo inferior (a)</label>
+                  <label class="field-label" for="bis-a" data-math>Extremo inferior ($a$)</label>
                   <input id="bis-a" name="a" class="bis-input" type="text" value="0.6" required aria-describedby="bis-numbers">
                 </div>
                 <div>
-                  <label class="field-label" for="bis-b">Extremo superior (b)</label>
+                  <label class="field-label" for="bis-b" data-math>Extremo superior ($b$)</label>
                   <input id="bis-b" name="b" class="bis-input" type="text" value="1" required aria-describedby="bis-numbers">
                 </div>
               </div>
               <p id="bis-numbers" class="bis-help">Admite decimales con punto, fracciones (1/2) y notación científica (1e-4).</p>
               <label class="field-label" for="bis-criterio">Criterio de parada</label>
               <select id="bis-criterio" name="criterio" class="bis-input" aria-describedby="bis-criterion-help">
-                <option value="intervalo">Ancho del intervalo: b − a ≤ tolerancia</option>
-                <option value="relativo">Error relativo aproximado (%) ≤ tolerancia</option>
-                <option value="residuo">Residuo: |f(c)| ≤ tolerancia</option>
+                <option value="intervalo">Ancho del intervalo</option>
+                <option value="relativo">Error relativo aproximado (%)</option>
+                <option value="residuo">Residuo de la función</option>
               </select>
-              <p id="bis-criterion-help" class="bis-help">Detiene cuando b − a ≤ tolerancia. La cota del error en el punto medio es (b − a)/2.</p>
+              <p id="bis-criterion-help" class="bis-help">Aquí se explica la tolerancia del criterio seleccionado.</p>
               <div class="bis-fields">
                 <div>
                   <label id="bis-tolerance-label" class="field-label" for="bis-tolerancia">Tolerancia</label>
@@ -717,8 +717,8 @@
               </div>
               <div class="bis-theory">
                 <strong>Condición de aplicación</strong>
-                <p>La función debe ser continua en todo [a, b] y sus extremos deben tener signos opuestos. Verifique la continuidad antes de calcular; un cambio de signo también puede deberse a una discontinuidad.</p>
-                <p>c = (a + b)/2. Si f(a) y f(c) tienen signos opuestos, b ← c; en caso contrario, a ← c. Si f(c) = 0, el proceso termina.</p>
+                <p data-math>La función debe ser continua en todo $[a,b]$ y sus extremos deben tener signos opuestos. Verifique la continuidad antes de calcular; un cambio de signo también puede deberse a una discontinuidad.</p>
+                <p data-math>$c=\frac{a+b}{2}$. Si $f(a)$ y $f(c)$ tienen signos opuestos, $b\leftarrow c$; en caso contrario, $a\leftarrow c$. Si $f(c)=0$, el proceso termina.</p>
               </div>
               <button id="bis-submit" type="submit" class="btn-primary btn-large">
                 <i data-lucide="play" class="btn-icon"></i><span>Calcular raíz por bisección</span>
@@ -727,8 +727,8 @@
             <div class="card-footer-actions">
               <div class="sample-actions">
                 <button type="button" class="btn-text" data-bis-example="hoja">Ejemplo de referencia</button>
-                <button type="button" class="btn-text" data-bis-example="coseno">cos(x) − x</button>
-                <button type="button" class="btn-text" data-bis-example="potencia">x¹⁰ − 1</button>
+                <button type="button" class="btn-text" data-bis-example="coseno" data-math>$\cos(x)-x$</button>
+                <button type="button" class="btn-text" data-bis-example="potencia" data-math>$x^{10}-1$</button>
               </div>
               <button id="bis-clear" type="button" class="btn-clear">
                 <i data-lucide="trash-2" class="btn-icon"></i><span>Limpiar</span>
@@ -747,7 +747,7 @@
           </div>
           <div id="bis-table-card" class="card bis-table-card" hidden>
             <div class="card-header"><h3>Tabla de iteraciones</h3></div>
-            <p class="bis-help">εa = |c actual − c anterior| / |c actual| × 100%. “—” indica que no está definido. Abra «Ver detalle» para consultar todas las evaluaciones y medidas de error de cada iteración.</p>
+            <p class="bis-help" data-math>$\varepsilon_a=\left|\frac{c_i-c_{i-1}}{c_i}\right|\cdot100\%$. “—” indica que no está definido. Abra «Ver detalle» para consultar todas las evaluaciones y medidas de error de cada iteración.</p>
             <div id="bis-table" class="bis-table-scroll" role="region" aria-label="Iteraciones de bisección y detalles desplegables" tabindex="0"></div>
           </div>
         </div>

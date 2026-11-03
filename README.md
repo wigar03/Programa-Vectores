@@ -309,6 +309,8 @@ Los módulos se seleccionan desde una **barra lateral izquierda**. En pantallas 
 
 Al escribir la función, la **vista matemática** debajo del campo se actualiza con KaTeX tras una pausa breve de 200 ms. Potencias, fracciones, raíces y funciones se representan a partir del mismo árbol de expresión utilizado para calcular, sin cambiar el texto ni mover el cursor. Una expresión incompleta muestra un aviso mientras continúa escribiendo. La vista no evalúa el dominio ni certifica continuidad. Si KaTeX no carga, se muestra la representación LaTeX y el cálculo sigue disponible.
 
+KaTeX también presenta la función del resultado, la sustitución de la raíz, el intervalo final, las condiciones del método, los criterios de parada y las etiquetas matemáticas de la tabla y sus detalles. Las cifras que requieren notación científica se muestran con potencias de diez. Las expresiones matemáticas de etiquetas, títulos y paneles de los demás módulos utilizan el mismo renderizador; los campos de entrada mantienen la sintaxis editable y los selectores nativos usan nombres descriptivos.
+
 En cada iteración se evalúa el punto medio $c=(a+b)/2$ y se conserva la mitad del intervalo con signos opuestos. La tabla muestra $a$, $b$, $c$, sus evaluaciones, el signo de $f(a)f(c)$, ancho, cota de error, diferencia absoluta entre aproximaciones, error relativo porcentual y actualización elegida.
 
 La tabla principal mantiene visibles la iteración, $a$, $b$, $c$, $f(c)$ y el error relativo. **Ver detalle** despliega las evaluaciones, medidas de error, decisión y valores completos de esa iteración. En pantallas de hasta 1100 px, las filas se presentan como tarjetas con etiquetas; la información se distribuye verticalmente sin necesitar desplazamiento horizontal. El contenedor conserva desplazamiento vertical para tablas largas.
@@ -346,7 +348,7 @@ Se consultaron los materiales locales de `Docs`, especialmente la hoja `Bisecci�
 }
 ```
 
-`funcion`, `a` y `b` son obligatorios. Los valores predeterminados restantes son los mostrados. `criterio` admite `intervalo`, `relativo` o `residuo`. La respuesta contiene `raiz`, `f_raiz`, `residuo`, `cota_error`, `intervalo_inicial`, `intervalo_final`, `convergio`, `motivo`, `iteraciones`, `pasos` y `grafica`. Los errores de entrada devuelven HTTP 400 con `error`; una ejecución que llega al límite sin converger devuelve HTTP 200 con `convergio: false` y sus aproximaciones disponibles. Un error relativo indefinido se representa como `null`.
+`funcion`, `a` y `b` son obligatorios. Los valores predeterminados restantes son los mostrados. `criterio` admite `intervalo`, `relativo` o `residuo`. La respuesta contiene `funcion_latex`, `raiz`, `f_raiz`, `residuo`, `cota_error`, `intervalo_inicial`, `intervalo_final`, `convergio`, `motivo`, `iteraciones`, `pasos` y `grafica`. Los errores de entrada devuelven HTTP 400 con `error`; una ejecución que llega al límite sin converger devuelve HTTP 200 con `convergio: false` y sus aproximaciones disponibles. Un error relativo indefinido se representa como `null`.
 
 `POST /api/biseccion/preview` recibe `{"funcion": "sqrt(x)+1/x"}` y devuelve `{"latex": "\\sqrt{x} + \\frac{1}{x}"}`. Valida la sintaxis y convierte la expresión a LaTeX sin evaluarla. Una entrada incompleta o no permitida devuelve HTTP 400 con `error`.
 
@@ -429,7 +431,7 @@ El proyecto incluye **89 pruebas de Python**, entre ellas las 62 originales y 27
 python -m unittest discover tests -v
 ```
 
-Las 4 pruebas de las utilidades de bisección en JavaScript usan el runner estándar de Node.js (18 o superior), sin instalar paquetes. Node.js es opcional para ejecutar estas pruebas y no se necesita para usar la calculadora:
+Las 5 pruebas de las utilidades de bisección en JavaScript usan el runner estándar de Node.js (18 o superior), sin instalar paquetes. Node.js es opcional para ejecutar estas pruebas y no se necesita para usar la calculadora:
 
 ```bash
 node --test tests/test_biseccion_ui.cjs

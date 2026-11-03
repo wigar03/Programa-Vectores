@@ -39,6 +39,7 @@ class TestBiseccionApi(unittest.TestCase):
                                       tolerancia="1e-8", max_iteraciones="100"))
         self.assertEqual(estado, 200)
         self.assertTrue(res["convergio"])
+        self.assertEqual(res["funcion_latex"], r"\cos\left(x\right) - x")
         self.assertAlmostEqual(res["raiz"], .7390851332, places=7)
         self.assertEqual(len(res["grafica"]), 201)
         self.assertEqual(res["pasos"][0]["c"], .5)
