@@ -18,11 +18,12 @@
   <script src="lucide.min.js"></script>
   
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="cuaderno.css">
   <link rel="stylesheet" href="biseccion.css">
 </head>
 <body>
   <div class="app-container">
-    <!-- Header Principal Minimalista -->
+    <!-- Portada del cuaderno de cálculo -->
     <header class="main-header">
       <div class="header-brand">
         <div class="brand-badge">
@@ -49,34 +50,34 @@
         <div><span class="sidebar-eyebrow">UAM · FIA</span><h2>Calculadora</h2></div>
         <button id="btn-nav-close" class="btn-theme sidebar-close" type="button" aria-label="Cerrar menú de módulos"><i data-lucide="x"></i></button>
       </div>
-      <p class="sidebar-section-label">Módulos</p>
+      <p class="sidebar-section-label">Índice del cuaderno</p>
     <nav class="module-nav" aria-label="Seleccionar módulo">
       <button class="nav-tab active" data-tab="tab-vectores">
-        <i data-lucide="move" class="tab-icon"></i>
+        <span class="nav-chapter" aria-hidden="true">01</span>
         <span class="tab-label">Operaciones con Vectores</span>
       </button>
       <button class="nav-tab" data-tab="tab-combinacion">
-        <i data-lucide="layers" class="tab-icon"></i>
+        <span class="nav-chapter" aria-hidden="true">02</span>
         <span class="tab-label">Combinación Lineal</span>
       </button>
       <button class="nav-tab" data-tab="tab-matrices">
-        <i data-lucide="grid-3x3" class="tab-icon"></i>
+        <span class="nav-chapter" aria-hidden="true">03</span>
         <span class="tab-label">Operaciones con Matrices</span>
       </button>
       <button class="nav-tab" data-tab="tab-inversa">
-        <i data-lucide="rotate-ccw" class="tab-icon"></i>
+        <span class="nav-chapter" aria-hidden="true">04</span>
         <span class="tab-label" data-math>Inversa de una Matriz $A^{-1}$</span>
       </button>
       <button class="nav-tab" data-tab="tab-ecuaciones">
-        <i data-lucide="equal" class="tab-icon"></i>
+        <span class="nav-chapter" aria-hidden="true">05</span>
         <span class="tab-label" data-math>Ecuaciones Matriciales $Ax=b$</span>
       </button>
       <button class="nav-tab" data-tab="tab-determinante">
-        <i data-lucide="scan" class="tab-icon"></i>
+        <span class="nav-chapter" aria-hidden="true">06</span>
         <span class="tab-label" data-math>Determinante $|A|$</span>
       </button>
       <button class="nav-tab" data-tab="tab-biseccion">
-        <i data-lucide="split" class="tab-icon"></i>
+        <span class="nav-chapter" aria-hidden="true">07</span>
         <span class="tab-label">Método de Bisección</span>
       </button>
     </nav>
@@ -90,12 +91,20 @@
       <!-- =================================================================== -->
       <!-- APARTADO 1: OPERACIONES CON VECTORES EN R^n                        -->
       <!-- =================================================================== -->
-      <section id="tab-vectores" class="tab-pane active">
+      <section id="tab-vectores" class="tab-pane notebook-pane active">
+        <header class="notebook-heading">
+          <div>
+            <p class="notebook-eyebrow">Álgebra lineal / vectores</p>
+            <h2>Operaciones con vectores</h2>
+            <p class="notebook-intro" data-math>Calcule sumas, restas, productos por escalar y productos punto en $\mathbb{R}^n$, con su desarrollo por componentes.</p>
+          </div>
+          <span class="notebook-chapter" aria-label="Módulo 1">01</span>
+        </header>
         <div class="pane-grid">
           <!-- Tarjeta de Entrada de Parámetros -->
           <div class="card card-input">
             <div class="card-header">
-              <h3>Configuración de Vectores</h3>
+              <h3><span class="notebook-section-number">01</span><span>Configuración de Vectores</span></h3>
               <span class="badge badge-dim" data-math>Dimensión arbitraria $n$</span>
             </div>
 
@@ -171,7 +180,7 @@
           <!-- Tarjeta de Resultados -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Procedimiento y Resultado</h3>
+              <h3><span class="notebook-section-number">02</span><span>Procedimiento y Resultado</span></h3>
               <span id="vec-badge-status" class="badge">Esperando cálculo</span>
             </div>
             <div id="vec-result-content" class="result-box">
@@ -184,12 +193,20 @@
       <!-- =================================================================== -->
       <!-- APARTADO 2: EVALUACIÓN DE COMBINACIÓN LINEAL Y SUBESPACIOS         -->
       <!-- =================================================================== -->
-      <section id="tab-combinacion" class="tab-pane">
+      <section id="tab-combinacion" class="tab-pane notebook-pane">
+        <header class="notebook-heading">
+          <div>
+            <p class="notebook-eyebrow">Álgebra lineal / espacios vectoriales</p>
+            <h2>Combinación lineal</h2>
+            <p class="notebook-intro" data-math>Determine si un vector pertenece al espacio generado por un conjunto y compruebe los coeficientes de la solución.</p>
+          </div>
+          <span class="notebook-chapter" aria-label="Módulo 2">02</span>
+        </header>
         <div class="pane-grid">
           <!-- Tarjeta de Configuración de Conjunto y Vector Objetivo -->
           <div class="card card-input">
             <div class="card-header">
-              <h3 data-math>Conjunto de Vectores $\{v_1,\ldots,v_k\}$</h3>
+              <h3><span class="notebook-section-number">01</span><span data-math>Conjunto de Vectores $\{v_1,\ldots,v_k\}$</span></h3>
               <span class="badge badge-dim" data-math>Espacio $\mathbb{R}^n$</span>
             </div>
             
@@ -255,7 +272,7 @@
           <!-- Tarjeta de Resultados de Combinación Lineal -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Dictamen Teórico y Ecuación Vectorial</h3>
+              <h3><span class="notebook-section-number">02</span><span>Dictamen Teórico y Ecuación Vectorial</span></h3>
               <span id="comb-badge-status" class="badge">Pendiente</span>
             </div>
             <div id="comb-result-content" class="result-box">
@@ -268,12 +285,20 @@
       <!-- =================================================================== -->
       <!-- APARTADO 3: OPERACIONES MATRICIALES BÁSICAS                        -->
       <!-- =================================================================== -->
-      <section id="tab-matrices" class="tab-pane">
+      <section id="tab-matrices" class="tab-pane notebook-pane">
+        <header class="notebook-heading">
+          <div>
+            <p class="notebook-eyebrow">Álgebra lineal / matrices</p>
+            <h2>Operaciones con matrices</h2>
+            <p class="notebook-intro" data-math>Calcule sumas, restas, productos y transpuestas con sus propiedades y procedimiento algebraico.</p>
+          </div>
+          <span class="notebook-chapter" aria-label="Módulo 3">03</span>
+        </header>
         <div class="pane-grid">
           <!-- Entrada de Matrices A y B -->
           <div class="card card-input">
             <div class="card-header">
-              <h3>Matrices A y B</h3>
+              <h3><span class="notebook-section-number">01</span><span>Matrices A y B</span></h3>
               <span class="badge badge-dim">Órdenes dinámicos</span>
             </div>
 
@@ -381,7 +406,7 @@
           <!-- Resultados Matriciales con LaTeX -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Matriz Resultante y Procedimiento</h3>
+              <h3><span class="notebook-section-number">02</span><span>Matriz Resultante y Procedimiento</span></h3>
               <span id="mat-badge-status" class="badge">Esperando operación</span>
             </div>
             <div id="mat-result-content" class="result-box">
@@ -394,12 +419,20 @@
       <!-- =================================================================== -->
       <!-- APARTADO 4: INVERSA DE UNA MATRIZ A⁻¹                              -->
       <!-- =================================================================== -->
-      <section id="tab-inversa" class="tab-pane">
+      <section id="tab-inversa" class="tab-pane notebook-pane">
+        <header class="notebook-heading">
+          <div>
+            <p class="notebook-eyebrow">Álgebra lineal / matrices inversas</p>
+            <h2>Inversa de una matriz</h2>
+            <p class="notebook-intro" data-math>Obtenga $A^{-1}$ por Gauss o Gauss-Jordan y compruebe las identidades $AA^{-1}=I$ y $A^{-1}A=I$.</p>
+          </div>
+          <span class="notebook-chapter" aria-label="Módulo 4">04</span>
+        </header>
         <div class="pane-grid">
           <!-- Entrada de Matriz Cuadrada A -->
           <div class="card card-input">
             <div class="card-header">
-              <h3>Matriz Cuadrada A (n × n)</h3>
+              <h3><span class="notebook-section-number">01</span><span>Matriz Cuadrada A (n × n)</span></h3>
               <span class="badge badge-dim" data-math>Inversa $A^{-1}$</span>
             </div>
 
@@ -457,7 +490,7 @@
           <!-- Resultado, Reducción de Renglones y Verificación Dual A·A⁻¹ = I -->
           <div class="card card-result">
             <div class="card-header">
-              <h3 data-math>Matriz Inversa $A^{-1}$ y Verificación</h3>
+              <h3><span class="notebook-section-number">02</span><span data-math>Matriz Inversa $A^{-1}$ y Verificación</span></h3>
               <span id="inv-badge-status" class="badge">Pendiente</span>
             </div>
             <div id="inv-result-content" class="result-box">
@@ -470,12 +503,20 @@
       <!-- =================================================================== -->
       <!-- APARTADO 5: ECUACIONES MATRICIALES Ax = b                          -->
       <!-- =================================================================== -->
-      <section id="tab-ecuaciones" class="tab-pane">
+      <section id="tab-ecuaciones" class="tab-pane notebook-pane">
+        <header class="notebook-heading">
+          <div>
+            <p class="notebook-eyebrow">Álgebra lineal / sistemas de ecuaciones</p>
+            <h2>Ecuaciones matriciales</h2>
+            <p class="notebook-intro" data-math>Resuelva $Ax=b$, clasifique el sistema y verifique la solución mediante su residuo.</p>
+          </div>
+          <span class="notebook-chapter" aria-label="Módulo 5">05</span>
+        </header>
         <div class="pane-grid">
           <!-- Entrada de A y b para Ax = b -->
           <div class="card card-input">
             <div class="card-header">
-              <h3 data-math>Sistema $A\cdot x=b$</h3>
+              <h3><span class="notebook-section-number">01</span><span data-math>Sistema $A\cdot x=b$</span></h3>
               <span class="badge badge-dim">Resolución por Eliminación</span>
             </div>
 
@@ -546,7 +587,7 @@
           <!-- Resultado y Pasos de Eliminación de Renglones -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Solución y Clasificación del Sistema</h3>
+              <h3><span class="notebook-section-number">02</span><span>Solución y Clasificación del Sistema</span></h3>
               <span id="eq-badge-status" class="badge">Pendiente</span>
             </div>
             <div id="eq-result-content" class="result-box">
@@ -559,12 +600,20 @@
       <!-- =================================================================== -->
       <!-- APARTADO 6: DETERMINANTE DE UNA MATRIZ CUADRADA |A|                -->
       <!-- =================================================================== -->
-      <section id="tab-determinante" class="tab-pane">
+      <section id="tab-determinante" class="tab-pane notebook-pane">
+        <header class="notebook-heading">
+          <div>
+            <p class="notebook-eyebrow">Álgebra lineal / determinantes</p>
+            <h2>Determinante de una matriz</h2>
+            <p class="notebook-intro" data-math>Compare la eficiencia de cofactores y descomposición LU, calcule el determinante y analice la invertibilidad.</p>
+          </div>
+          <span class="notebook-chapter" aria-label="Módulo 6">06</span>
+        </header>
         <div class="pane-grid">
           <!-- Tarjeta de Entrada de Parámetros -->
           <div class="card card-input">
             <div class="card-header">
-              <h3>Configuración de la Matriz Cuadrada</h3>
+              <h3><span class="notebook-section-number">01</span><span>Configuración de la Matriz Cuadrada</span></h3>
               <span class="badge badge-dim">Orden n × n</span>
             </div>
 
@@ -657,7 +706,7 @@
           <!-- Tarjeta de Resultados -->
           <div class="card card-result">
             <div class="card-header">
-              <h3>Determinante, Invertibilidad y Desarrollo</h3>
+              <h3><span class="notebook-section-number">02</span><span>Determinante, Invertibilidad y Desarrollo</span></h3>
               <span id="det-badge-status" class="badge">Pendiente</span>
             </div>
             <div id="det-result-content" class="result-box">
