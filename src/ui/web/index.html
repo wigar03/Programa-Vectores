@@ -669,14 +669,22 @@
 
       <!-- APARTADO 7: BÚSQUEDA NUMÉRICA DE RAÍCES POR BISECCIÓN -->
       <section id="tab-biseccion" class="tab-pane biseccion-pane" aria-label="Método de Bisección">
+        <header class="bis-notebook-heading">
+          <div>
+            <p class="bis-eyebrow">Métodos numéricos / búsqueda de raíces</p>
+            <h2>Método de bisección</h2>
+            <p class="bis-intro">Encuentre una raíz dividiendo un intervalo a la mitad en cada iteración.</p>
+          </div>
+          <span class="bis-chapter" aria-label="Módulo 7">07</span>
+        </header>
         <div class="pane-grid">
           <div class="card card-input">
             <div class="card-header">
-              <h3>Método de Bisección</h3>
+              <h3><span class="bis-section-number">01</span> Planteamiento</h3>
               <span class="badge badge-dim" data-math>$f(x)=0$</span>
             </div>
-            <p class="bis-intro">Encuentre una raíz dividiendo un intervalo a la mitad en cada iteración.</p>
-            <form id="bis-form">
+            <form id="bis-form" class="bis-notebook-form">
+              <div class="bis-function-entry">
               <label class="field-label" for="bis-funcion" data-math>Función $f(x)$</label>
               <input id="bis-funcion" name="funcion" class="bis-input bis-expression" type="text"
                 value="x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10" required maxlength="500"
@@ -687,6 +695,9 @@
                 <p id="bis-preview-status" class="bis-help" role="status">La ecuación se actualiza mientras escribe.</p>
               </div>
               <p id="bis-syntax" class="bis-help">Use * para multiplicar y ^ o ** para potencias. Funciones: sin, cos, tan, exp, ln (natural), log (base 10), sqrt y abs. Constantes: pi y e. Ángulos en radianes.</p>
+              </div>
+              <div class="bis-parameters">
+              <div class="bis-interval-group">
               <div class="bis-fields">
                 <div>
                   <label class="field-label" for="bis-a" data-math>Extremo inferior ($a$)</label>
@@ -698,6 +709,8 @@
                 </div>
               </div>
               <p id="bis-numbers" class="bis-help">Admite decimales con punto, fracciones (1/2) y notación científica (1e-4).</p>
+              </div>
+              <div class="bis-stop-group">
               <label class="field-label" for="bis-criterio">Criterio de parada</label>
               <select id="bis-criterio" name="criterio" class="bis-input" aria-describedby="bis-criterion-help">
                 <option value="intervalo">Ancho del intervalo</option>
@@ -705,6 +718,8 @@
                 <option value="residuo">Residuo de la función</option>
               </select>
               <p id="bis-criterion-help" class="bis-help">Aquí se explica la tolerancia del criterio seleccionado.</p>
+              </div>
+              <div class="bis-precision-group">
               <div class="bis-fields">
                 <div>
                   <label id="bis-tolerance-label" class="field-label" for="bis-tolerancia">Tolerancia</label>
@@ -714,6 +729,8 @@
                   <label class="field-label" for="bis-max">Máximo de iteraciones</label>
                   <input id="bis-max" name="max_iteraciones" class="bis-input" type="number" value="100" min="1" max="1000" step="1" required>
                 </div>
+              </div>
+              </div>
               </div>
               <div class="bis-theory">
                 <strong>Condición de aplicación</strong>
@@ -735,18 +752,26 @@
               </button>
             </div>
           </div>
+          <div class="bis-results-layout">
           <div class="card card-result">
             <div class="card-header">
-              <h3>Raíz y verificación</h3>
+              <h3><span class="bis-section-number">02</span> Raíz y verificación</h3>
               <span id="bis-status" class="badge" role="status" aria-live="polite">Pendiente</span>
             </div>
             <div id="bis-result" class="result-box" aria-live="polite">
               <p class="placeholder-text">Ingrese la función y un intervalo para calcular su raíz aproximada.</p>
             </div>
+          </div>
+          <div class="card bis-graph-card">
+            <div class="card-header">
+              <h3><span class="bis-section-number">03</span> Localización de la raíz</h3>
+            </div>
             <div id="bis-plot" class="bis-plot" hidden></div>
+            <p class="bis-plot-placeholder placeholder-text">La gráfica mostrará la función, la aproximación y el intervalo final después del cálculo.</p>
+          </div>
           </div>
           <div id="bis-table-card" class="card bis-table-card" hidden>
-            <div class="card-header"><h3>Tabla de iteraciones</h3></div>
+            <div class="card-header"><h3><span class="bis-section-number">04</span> Tabla de iteraciones</h3></div>
             <p class="bis-help" data-math>$\varepsilon_a=\left|\frac{c_i-c_{i-1}}{c_i}\right|\cdot100\%$. “—” indica que no está definido. Abra «Ver detalle» para consultar todas las evaluaciones y medidas de error de cada iteración.</p>
             <div id="bis-table" class="bis-table-scroll" role="region" aria-label="Iteraciones de bisección y detalles desplegables" tabindex="0"></div>
           </div>
