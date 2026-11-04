@@ -1,5 +1,43 @@
 /* Teclado de bisección: edita la expresión del formulario sin traducir ni evaluar LaTeX. */
-document.addEventListener("DOMContentLoaded", () => {
+function prepararInsercionFormula(expression, start, end, value, kind) {
+  const selected = expression.slice(start, end);
+  const left = expression.slice(0, start).trimEnd();
+  const right = expression.slice(end).trimStart();
+  const atomBefore = /(?:\d|\)|\bx|\bpi|\be)$/.test(left);
+  const variableBefore = /(?:\)|\bx|\bpi|\be)$/.test(left);
+  const variableAfter = /^(?:x\b|pi\b|e\b|(?:sin|cos|tan|sqrt|abs|ln|log|exp)\s*\(|\()/.test(right);
+  const atomAfter = variableAfter || /^(?:\d|\.\d)/.test(right);
+  const scientificNumber = kind === "digit" && /[\d.]$/.test(expression.slice(0, start)) && /^[eE][+-]?\d/.test(expression.slice(end));
+  let text = value, cursor;
+  if (kind === "function") {
+    text = `${value}(${selected})`;
+    cursor = selected ? text.length : value.length + 1;
+  } else if (value === "fraction") {
+    text = `(${selected})/()`;
+    cursor = selected ? text.length - 1 : 1;
+  } else if (value === "power") {
+    text = selected ? `(${selected})^()` : "^()";
+    cursor = text.length - 1;
+  } else if (value === "square") {
+    text = selected ? `(${selected})^2` : "^2";
+  }
+  // Comprueba ambos lados del cursor: sin(x)*2 y también 2*sin(x).
+  if (((kind === "atom" || kind === "function" || value === "fraction") && atomBefore) || (kind === "digit" && variableBefore)) {
+    text = "*" + text;
+    if (cursor !== undefined) cursor++;
+  }
+  cursor ??= text.length;
+  const endsAtom = kind === "function" || (kind === "atom" && value !== "(") ||
+    ["fraction", "square", "power", ")"].includes(value);
+  // Los dígitos contiguos forman un mismo número. Un símbolo o función requiere *.
+  // El cursor queda antes del * para poder seguir escribiendo el argumento o número.
+  if ((kind === "digit" && variableAfter && !scientificNumber) || (endsAtom && atomAfter)) text += "*";
+  return { text, cursor: start + cursor };
+}
+
+if (typeof module !== "undefined" && module.exports) module.exports = { prepararInsercionFormula };
+
+if (typeof document !== "undefined") document.addEventListener("DOMContentLoaded", () => {
   "use strict";
   const input = document.getElementById("bis-funcion");
   const keyboard = document.getElementById("bis-keyboard");
@@ -49,11 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function press(value, kind) {
     const start = input.selectionStart, end = input.selectionEnd;
-    const selected = input.value.slice(start, end);
-    const left = input.value.slice(0, start).trimEnd();
-    const atomBefore = /(?:\d|\)|\bx|\bpi|\be)$/.test(left);
-    const variableBefore = /(?:\)|\bx|\bpi|\be)$/.test(left);
-    let text = value, cursor;
     if (kind === "action") {
       input.focus({ preventScroll: true });
       if (value === "left" || value === "right") {
@@ -63,24 +96,14 @@ document.addEventListener("DOMContentLoaded", () => {
       else if (value === "backspace") change("", start === end ? Math.max(0, start - 1) : start, end, start === end ? Math.max(0, start - 1) : start);
       return;
     }
-    if (kind === "function") {
-      text = `${value}(${selected})`;
-      cursor = selected ? text.length : value.length + 1;
-    } else if (value === "fraction") {
-      text = `(${selected})/()`;
-      cursor = selected ? text.length - 1 : 1;
-    } else if (value === "power") {
-      text = selected ? `(${selected})^()` : "^()";
-      cursor = text.length - 1;
-    } else if (value === "square") {
-      text = selected ? `(${selected})^2` : "^2";
+    // Las plantillas ya incluyen el cierre: la tecla ) permite salir del argumento.
+    if (value === ")" && start === end && input.value[start] === ")") {
+      input.focus({ preventScroll: true });
+      input.setSelectionRange(start + 1, start + 1);
+      return;
     }
-    // Multiplicación explícita al concatenar átomos: 2×x, 2×sin(x), x×3.
-    if (((kind === "atom" || kind === "function" || value === "fraction") && atomBefore) || (kind === "digit" && variableBefore)) {
-      text = "*" + text;
-      if (cursor !== undefined) cursor++;
-    }
-    change(text, start, end, start + (cursor ?? text.length));
+    const insertion = prepararInsercionFormula(input.value, start, end, value, kind);
+    change(insertion.text, start, end, insertion.cursor);
   }
 
   function group(label, keys, className) {
