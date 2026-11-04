@@ -51,6 +51,33 @@
 .biseccion-pane .bis-preview-heading { font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--bis-muted); }
 .biseccion-pane .bis-preview-math { min-height: 2.6rem; padding: .6rem 0; overflow-wrap: anywhere; font-size: 1.1rem; }
 .biseccion-pane .bis-preview .bis-help { margin: .2rem 0 0; font-size: .75rem; }
+.biseccion-pane .bis-formula-editor { border: 1px solid var(--bis-rule); background: var(--bis-field); margin-top: .4rem; padding: .8rem; min-width: 0; }
+.biseccion-pane .bis-formula-editor .bis-expression { border: 0; border-bottom: 1px solid var(--bis-rule); border-radius: 0; padding: .25rem 0 .65rem; margin: 0; background: transparent; }
+.biseccion-pane .bis-formula-editor .bis-preview { border: 0; margin: 0; padding: .5rem 0 .8rem; }
+.biseccion-pane .bis-formula-editor .bis-preview-math { overflow-x: auto; overflow-wrap: normal; }
+.biseccion-pane .bis-formula-editor .katex-display > .katex,
+.biseccion-pane .bis-formula-editor .katex-display > .katex > .katex-html { white-space: nowrap; }
+.biseccion-pane .bis-keyboard-toolbar { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding-top: .65rem; border-top: 1px solid var(--bis-rule); font-size: .75rem; color: var(--bis-muted); }
+.biseccion-pane .bis-keyboard-toolbar .btn-text { font-size: .73rem; padding: .2rem 0; }
+.biseccion-pane .bis-keyboard { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: .6rem; }
+.biseccion-pane .bis-key-functions,
+.biseccion-pane .bis-key-numbers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .3rem; }
+.biseccion-pane .bis-key-edit { grid-column: 1 / -1; display: flex; gap: .3rem; }
+.biseccion-pane .bis-key { min-width: 0; min-height: 44px; padding: .35rem .2rem; background: var(--bis-soft); color: var(--bis-ink); border: 1px solid var(--bis-rule); border-radius: 2px; font-family: inherit; font-size: .88rem; line-height: 1.3; cursor: pointer; touch-action: manipulation; }
+.biseccion-pane .bis-key .katex { font-size: 1.05em; }
+.biseccion-pane .bis-key-numbers .bis-key { background: var(--bis-paper); }
+.biseccion-pane .bis-key-edit .bis-key { min-width: 44px; font-size: .75rem; padding: .4rem .6rem; background: transparent; }
+.biseccion-pane .bis-key:hover { background: var(--bis-rule); }
+.biseccion-pane .bis-key:active { border-color: var(--bis-accent); }
+.biseccion-pane .bis-key:focus-visible,
+.biseccion-pane .bis-syntax-reference summary:focus-visible { outline: 2px solid var(--bis-accent); outline-offset: 2px; }
+.biseccion-pane .bis-syntax-reference { color: var(--bis-muted); font-size: .77rem; margin-top: .5rem; }
+.biseccion-pane .bis-syntax-reference summary { cursor: pointer; width: fit-content; }
+@media (max-width: 680px) {
+  .biseccion-pane .bis-keyboard { grid-template-columns: minmax(0, 1fr); }
+  .biseccion-pane .bis-key-functions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .biseccion-pane .bis-key-edit { grid-column: 1; }
+}
 .biseccion-pane .katex-display { text-align: left; }
 .biseccion-pane .katex-display > .katex,
 .biseccion-pane .katex-display > .katex > .katex-html { white-space: normal; }

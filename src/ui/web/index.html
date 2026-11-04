@@ -735,15 +735,23 @@
             <form id="bis-form" class="bis-notebook-form">
               <div class="bis-function-entry">
               <label class="field-label" for="bis-funcion" data-math>Función $f(x)$</label>
+              <div class="bis-formula-editor">
               <input id="bis-funcion" name="funcion" class="bis-input bis-expression" type="text"
                 value="x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10" required maxlength="500"
                 autocomplete="off" spellcheck="false" aria-describedby="bis-syntax">
-              <div class="bis-preview" aria-label="Vista matemática de la función">
-                <div class="bis-preview-heading">Vista matemática</div>
+              <div class="bis-preview" aria-label="Representación matemática de la función escrita">
                 <div id="bis-preview-math" class="bis-preview-math" aria-live="polite" aria-atomic="true"></div>
                 <p id="bis-preview-status" class="bis-help" role="status">La ecuación se actualiza mientras escribe.</p>
               </div>
-              <p id="bis-syntax" class="bis-help">Use * para multiplicar y ^ o ** para potencias. Funciones: sin, cos, tan, exp, ln (natural), log (base 10), sqrt y abs. Constantes: pi y e. Ángulos en radianes.</p>
+              <div class="bis-keyboard-toolbar">
+                <span id="bis-keyboard-label">Teclado matemático</span>
+                <button id="bis-keyboard-toggle" class="btn-text" type="button" aria-expanded="true" aria-controls="bis-keyboard">Ocultar teclas</button>
+              </div>
+              <div id="bis-keyboard" class="bis-keyboard" role="group" aria-labelledby="bis-keyboard-label"></div>
+              <p id="bis-keyboard-status" class="sr-only" role="status"></p>
+              </div>
+              <p id="bis-syntax" class="bis-help">Escriba con su teclado o use las teclas en pantalla. Seleccione una parte de la expresión para envolverla en una raíz, fracción o función. Use × para multiplicar. Ángulos en radianes.</p>
+              <details class="bis-syntax-reference"><summary>Consultar sintaxis y funciones disponibles</summary><p class="bis-help">En el campo de escritura, * representa multiplicación; ^ o **, potencias. Funciones: sin, cos, tan, exp, ln (natural), log (base 10), sqrt y abs. Constantes: pi y e. Las fracciones usan / y los decimales, punto.</p></details>
               </div>
               <div class="bis-parameters">
               <div class="bis-interval-group">
@@ -836,6 +844,7 @@
 
   <script src="app.js"></script>
   <script src="sidebar.js"></script>
+  <script src="formula-keyboard.js"></script>
   <script src="biseccion.js"></script>
 </body>
 </html>
