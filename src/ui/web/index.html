@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Álgebra Lineal - Vectores, Matrices y Ecuaciones</title>
+  <title>Calculadora - Álgebra Lineal y Métodos Numéricos</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,12 +26,8 @@
     <!-- Portada del cuaderno de cálculo -->
     <header class="main-header">
       <div class="header-brand">
-        <div class="brand-badge">
-          <i data-lucide="binary" class="brand-icon"></i>
-          <span>UAM • FIA</span>
-        </div>
-        <h1>Calculadora de Álgebra Lineal</h1>
-        <p class="subtitle" id="header-subtitle" data-math>Vectores en $\mathbb{R}^n$, Combinación Lineal, Matrices, Inversa $A^{-1}$, Ecuaciones $Ax=b$ y Determinante $|A|$</p>
+        <h1>Calculadora</h1>
+        <p class="subtitle" id="header-subtitle" data-math>Vectores en $\mathbb{R}^n$, Combinación Lineal, Matrices, Inversa $A^{-1}$, Ecuaciones $Ax=b$, Determinante $|A|$ y Bisección</p>
       </div>
       <div class="header-actions">
         <button id="btn-nav-toggle" class="btn-theme sidebar-toggle" type="button" aria-controls="module-sidebar" aria-expanded="false">
@@ -47,7 +43,11 @@
     <!-- Navegación lateral compartida; los cálculos de cada módulo son independientes. -->
     <aside id="module-sidebar" class="sidebar" aria-label="Barra lateral de módulos">
       <div class="sidebar-heading">
-        <div><span class="sidebar-eyebrow">UAM · FIA</span><h2>Calculadora</h2></div>
+        <div class="sidebar-brand">
+          <img class="university-logo" src="images/uam_facultad_de_ingenieria_y_arquitectura.svg"
+            alt="UAM — Facultad de Ingeniería y Arquitectura" width="287" height="40">
+          <h2>Calculadora</h2>
+        </div>
         <button id="btn-nav-close" class="btn-theme sidebar-close" type="button" aria-label="Cerrar menú de módulos"><i data-lucide="x"></i></button>
       </div>
       <p class="sidebar-section-label">Índice del cuaderno</p>
