@@ -17,9 +17,9 @@
   <!-- Iconos Minimalistas Open Source (Lucide) -->
   <script src="lucide.min.js"></script>
   
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="cuaderno.css">
-  <link rel="stylesheet" href="biseccion.css">
+  <link rel="stylesheet" href="styles.css?v=801b3461110e">
+  <link rel="stylesheet" href="cuaderno.css?v=2a2bb67b3c2a">
+  <link rel="stylesheet" href="biseccion.css?v=5f6326f92448">
 </head>
 <body>
   <div class="app-container">
@@ -52,7 +52,11 @@
       </div>
       <p class="sidebar-section-label">Índice del cuaderno</p>
     <nav class="module-nav" aria-label="Seleccionar módulo">
-      <button class="nav-tab active" data-tab="tab-vectores">
+      <button class="nav-tab active" data-tab="tab-inicio">
+        <span class="nav-chapter" aria-hidden="true">⌂</span>
+        <span class="tab-label">Menú principal</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-vectores">
         <span class="nav-chapter" aria-hidden="true">01</span>
         <span class="tab-label">Operaciones con Vectores</span>
       </button>
@@ -88,10 +92,57 @@
     <!-- Contenedor Principal de Módulos -->
     <main class="content-area">
 
+      <section id="tab-inicio" class="tab-pane notebook-pane home-pane active" aria-labelledby="home-title">
+        <header class="notebook-heading home-heading">
+          <div>
+            <p class="notebook-eyebrow">Álgebra lineal y métodos numéricos</p>
+            <h2 id="home-title">Cada problema tiene<br>su punto de partida.</h2>
+            <p class="notebook-intro">Elija una herramienta para comenzar. En cada módulo encontrará las entradas, el procedimiento y la verificación del resultado.</p>
+          </div>
+          <span class="home-folio" aria-hidden="true">Índice<br><span>01—07</span></span>
+        </header>
+        <div class="home-index">
+          <div class="home-subject">
+            <h3>Álgebra lineal</h3>
+            <p>Vectores, matrices y sistemas de ecuaciones.</p>
+          </div>
+          <div class="home-module-list">
+            <button class="home-module" type="button" data-open-module="tab-vectores">
+              <span class="home-number">01</span><span class="home-module-copy"><strong>Operaciones con vectores</strong><span>Suma, resta, producto por escalar y producto punto.</span></span><span class="home-formula" data-math>$u\cdot v$</span><span aria-hidden="true">↗</span>
+            </button>
+            <button class="home-module" type="button" data-open-module="tab-combinacion">
+              <span class="home-number">02</span><span class="home-module-copy"><strong>Combinación lineal</strong><span>Pertenencia al espacio generado y cálculo de coeficientes.</span></span><span class="home-formula" data-math>$\sum c_i v_i$</span><span aria-hidden="true">↗</span>
+            </button>
+            <button class="home-module" type="button" data-open-module="tab-matrices">
+              <span class="home-number">03</span><span class="home-module-copy"><strong>Operaciones con matrices</strong><span>Suma, resta, multiplicación y transposición.</span></span><span class="home-formula" data-math>$AB$</span><span aria-hidden="true">↗</span>
+            </button>
+            <button class="home-module" type="button" data-open-module="tab-inversa">
+              <span class="home-number">04</span><span class="home-module-copy"><strong>Inversa de una matriz</strong><span>Reducción por filas y comprobación de la inversa.</span></span><span class="home-formula" data-math>$A^{-1}$</span><span aria-hidden="true">↗</span>
+            </button>
+            <button class="home-module" type="button" data-open-module="tab-ecuaciones">
+              <span class="home-number">05</span><span class="home-module-copy"><strong>Ecuaciones matriciales</strong><span>Resolución del sistema y verificación de la solución.</span></span><span class="home-formula" data-math>$Ax=b$</span><span aria-hidden="true">↗</span>
+            </button>
+            <button class="home-module" type="button" data-open-module="tab-determinante">
+              <span class="home-number">06</span><span class="home-module-copy"><strong>Determinante</strong><span>Cofactores, descomposición LU y comparación de métodos.</span></span><span class="home-formula" data-math>$|A|$</span><span aria-hidden="true">↗</span>
+            </button>
+          </div>
+          <div class="home-subject">
+            <h3>Métodos numéricos</h3>
+            <p>Aproximación de raíces y análisis de la convergencia.</p>
+          </div>
+          <div class="home-module-list">
+            <button class="home-module" type="button" data-open-module="tab-biseccion">
+              <span class="home-number">07</span><span class="home-module-copy"><strong>Método de bisección</strong><span>Editor de funciones, gráfica y tabla de iteraciones.</span></span><span class="home-formula" data-math>$f(x)=0$</span><span aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </div>
+        <p class="home-note">Puede volver a este índice desde «Menú principal». Sus entradas se conservan al cambiar de módulo.</p>
+      </section>
+
       <!-- =================================================================== -->
       <!-- APARTADO 1: OPERACIONES CON VECTORES EN R^n                        -->
       <!-- =================================================================== -->
-      <section id="tab-vectores" class="tab-pane notebook-pane active">
+      <section id="tab-vectores" class="tab-pane notebook-pane">
         <header class="notebook-heading">
           <div>
             <p class="notebook-eyebrow">Álgebra lineal / vectores</p>
@@ -842,9 +893,9 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
-  <script src="sidebar.js"></script>
-  <script src="formula-keyboard.js"></script>
-  <script src="biseccion.js"></script>
+  <script src="app.js?v=29da006db57e"></script>
+  <script src="sidebar.js?v=1b48755f71be"></script>
+  <script src="formula-keyboard.js?v=ed329165f3fc"></script>
+  <script src="biseccion.js?v=0d1030e5bbff"></script>
 </body>
 </html>

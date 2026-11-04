@@ -222,18 +222,20 @@ function aplicarTema(theme) {
    ========================================================================== */
 function inicializarNavegacion() {
   const tabs = document.querySelectorAll(".nav-tab");
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-
-      const targetId = tab.getAttribute("data-tab");
-      document.querySelectorAll(".tab-pane").forEach(pane => {
-        pane.classList.remove("active");
-      });
-      document.getElementById(targetId)?.classList.add("active");
-      refrescarIconosLucide();
+  // Delegación: también responde al pulsar títulos, descripciones y fórmulas de KaTeX.
+  document.addEventListener("click", evento => {
+    const enlace = evento.target.closest?.(".nav-tab, [data-open-module]");
+    if (!enlace) return;
+    const targetId = enlace.dataset.tab || enlace.dataset.openModule;
+    const destino = document.getElementById(targetId);
+    if (!destino) return;
+    evento.preventDefault();
+    tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.tab === targetId));
+    document.querySelectorAll(".tab-pane").forEach(pane => {
+      pane.classList.toggle("active", pane === destino);
     });
+    document.dispatchEvent(new CustomEvent("calculator:navigate", { detail: { targetId } }));
+    refrescarIconosLucide();
   });
 }
 

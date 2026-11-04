@@ -138,6 +138,26 @@
 .nav-chapter { flex: 0 0 1.4rem; color: var(--notebook-muted); font: 1rem Georgia, 'Times New Roman', serif; }
 .nav-tab.active .nav-chapter { color: var(--notebook-accent); }
 
+/* El índice abre las herramientas sin descartar sus entradas ni sus resultados. */
+.home-heading { align-items: flex-start; padding-bottom: 2rem; }
+.home-heading h2 { font-size: clamp(2.1rem, 4vw, 3.6rem); line-height: 1.1; }
+.home-heading .notebook-intro { max-width: 39rem; }
+.home-folio { flex-shrink: 0; padding-top: .3rem; text-align: right; text-transform: uppercase; letter-spacing: .12em; color: var(--notebook-muted); font-size: .7rem; }
+.home-folio span { display: block; font: 1.8rem/1.5 Georgia, 'Times New Roman', serif; letter-spacing: -.05em; color: var(--notebook-accent); }
+.home-index { display: grid; grid-template-columns: minmax(140px, .26fr) minmax(0, 1fr); column-gap: 2rem; row-gap: 2.2rem; }
+.home-subject h3 { font: 400 1.25rem/1.4 Georgia, 'Times New Roman', serif; }
+.home-subject p { color: var(--notebook-muted); font-size: .8rem; line-height: 1.65; margin-top: .65rem; max-width: 14rem; }
+.home-module-list { min-width: 0; }
+.home-module { display: grid; grid-template-columns: 1.7rem minmax(0, 1fr) 5rem 1rem; align-items: center; gap: 1rem; width: 100%; text-align: left; font: inherit; color: var(--notebook-ink); background: transparent; border: 0; border-bottom: 1px solid var(--notebook-rule); padding: 1rem .4rem; cursor: pointer; }
+.home-module:first-child { border-top: 1px solid var(--notebook-rule); }
+.home-module:hover, .home-module:focus-visible { background: var(--notebook-soft); }
+.home-number { color: var(--notebook-accent); font: 1.25rem Georgia, 'Times New Roman', serif; }
+.home-module-copy { display: grid; gap: .3rem; }
+.home-module-copy strong { font-weight: 500; font-size: .95rem; }
+.home-module-copy > span { color: var(--notebook-muted); font-size: .78rem; line-height: 1.55; }
+.home-formula { text-align: center; color: var(--notebook-muted); font-size: .95rem; }
+.home-note { font-size: .78rem; color: var(--notebook-muted); line-height: 1.65; border-top: 1px solid var(--notebook-rule); margin-top: 2rem; padding-top: 1rem; }
+
 /* Controles y datos: se conservan las mismas dimensiones, entradas y acciones. */
 .badge, .badge-rec { border: 0; border-radius: 0; background: transparent; padding: 0; font-size: .75rem; font-weight: 500; }
 button .katex, .badge .katex { color: inherit; }
@@ -206,6 +226,9 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--notebook-accen
 @media (max-width: 900px) {
   .app-container { padding: 1rem; }
   .main-header { padding: 0 0 1rem; gap: .8rem; }
+  .home-index { grid-template-columns: minmax(0, 1fr); row-gap: 1rem; }
+  .home-subject:not(:first-child) { margin-top: 1rem; }
+  .home-subject p { max-width: none; margin-top: .25rem; }
 }
 @media (max-width: 680px) {
   .notebook-chapter { font-size: 2rem; }
@@ -220,4 +243,7 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--notebook-accen
   .notebook-pane .selectors-grid-2 { grid-template-columns: minmax(0, 1fr); }
   .notebook-pane .card-header h3 { font-size: 1.15rem; }
   .header-brand h1 { font-size: 1.4rem; }
+  .home-folio { display: none; }
+  .home-module { grid-template-columns: 1.4rem minmax(0, 1fr) 1rem; gap: .65rem; }
+  .home-formula { display: none; }
 }

@@ -27,15 +27,14 @@ document.addEventListener("DOMContentLoaded", () => {
   toggle.addEventListener("click", () => abrir(!document.body.classList.contains("sidebar-open")));
   close.addEventListener("click", () => abrir(false));
   backdrop.addEventListener("click", () => abrir(false));
-  tabs.forEach(tab => tab.addEventListener("click", () => {
+  document.addEventListener("calculator:navigate", evento => {
     seleccionar();
     abrir(false, false);
-    if (mobile.matches) {
-      const destino = document.getElementById(tab.dataset.tab);
-      destino.setAttribute("tabindex", "-1");
-      destino.focus({ preventScroll: true });
-    }
-  }));
+    const destino = document.getElementById(evento.detail.targetId);
+    destino.setAttribute("tabindex", "-1");
+    destino.focus({ preventScroll: true });
+    destino.scrollIntoView?.({ block: "start" });
+  });
   document.addEventListener("keydown", evento => {
     if (!mobile.matches || !document.body.classList.contains("sidebar-open")) return;
     if (evento.key === "Escape") { evento.preventDefault(); abrir(false); }
