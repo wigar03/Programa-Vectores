@@ -873,6 +873,23 @@
           <div class="card bis-graph-card">
             <div class="card-header">
               <h3><span class="bis-section-number">03</span> Localización de la raíz</h3>
+              <div id="bis-graph-controls" class="bis-graph-controls" hidden>
+                <div class="bis-zoom-group" role="group" aria-label="Controles de zoom de la gráfica">
+                  <button type="button" class="btn-bis-zoom" id="bis-zoom-in" title="Acercar (Zoom In)" aria-label="Acercar gráfica">
+                    <i data-lucide="zoom-in"></i>
+                  </button>
+                  <span id="bis-zoom-level" class="bis-zoom-level" aria-live="polite" title="Nivel de zoom actual">100%</span>
+                  <button type="button" class="btn-bis-zoom" id="bis-zoom-out" title="Alejar (Zoom Out)" aria-label="Alejar gráfica">
+                    <i data-lucide="zoom-out"></i>
+                  </button>
+                  <button type="button" class="btn-bis-zoom" id="bis-zoom-focus" title="Enfocar raíz aproximada" aria-label="Enfocar raíz aproximada">
+                    <i data-lucide="target"></i>
+                  </button>
+                  <button type="button" class="btn-bis-zoom" id="bis-zoom-reset" title="Restablecer vista completa (100%)" aria-label="Restablecer vista completa">
+                    <i data-lucide="rotate-ccw"></i>
+                  </button>
+                </div>
+              </div>
             </div>
             <div id="bis-plot" class="bis-plot" hidden></div>
             <p class="bis-plot-placeholder placeholder-text">La gráfica mostrará la función, la aproximación y el intervalo final después del cálculo.</p>

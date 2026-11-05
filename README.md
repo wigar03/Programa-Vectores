@@ -32,7 +32,7 @@ El presente proyecto integrador implementa un sistema computacional integral par
 4. **Cálculo de la inversa de una matriz $A^{-1}$**: siguiendo el procedimiento analítico formal (matriz aumentada $[A \mid I_n]$, fórmula $2 \times 2$, métodos de Gauss y Gauss-Jordan, detección de matrices singulares y doble verificación $A \cdot A^{-1} = I_n$ y $A^{-1} \cdot A = I_n$).
 5. **Resolución computacional de ecuaciones matriciales** de la forma $Ax = b$ con clasificación completa según el Teorema de Rouché-Capelli e integración directa con el programa de eliminación de renglones desarrollado en la **Semana #3**.
 6. **Cálculo del determinante de matrices cuadradas $|A|$ en la interfaz interactiva**: implementación 100% Python estándar (sin librerías externas) integrada en el servidor web, que permite seleccionar entre **Expansión por Cofactores (Laplace)** y **Descomposición LU ($PA = LU$)**, evaluando e indicando dinámicamente la eficiencia computacional ($O(n!)$ vs $O(n^3)$) antes de la selección.
-7. **Búsqueda numérica de raíces por bisección**: sección independiente con función editable, intervalo inicial, criterios de parada, tabla de iteraciones, verificación del residuo y gráfica.
+7. **Búsqueda numérica de raíces por bisección**: sección independiente con función editable, intervalo inicial, criterios de parada, tabla de iteraciones, verificación del residuo y gráfica interactiva con zoom in, zoom out, enfoque en la raíz, restablecimiento y desplazamiento.
 
 ---
 
@@ -323,7 +323,7 @@ Seleccione uno de los siguientes criterios; el proceso también termina si $f(c)
 | Error relativo aproximado | $\left\lvert(c_i-c_{i-1})/c_i\right\rvert\cdot100 \leq \varepsilon$ | Porcentaje: `1` significa 1 %. No se define en la primera iteración ni con $c_i=0$. |
 | Residuo | $\lvert f(c)\rvert \leq \varepsilon$ | Unidades de $f(x)$; un residuo pequeño no garantiza por sí solo un error pequeño en $x$. |
 
-La diferencia absoluta de la tabla mide el cambio entre dos aproximaciones, no el error verdadero respecto de una raíz desconocida. El resultado incluye la sustitución en la función original, el intervalo final y la cota obtenida a partir de sus extremos. La gráfica toma 201 muestras del intervalo inicial y es orientativa; no demuestra continuidad ni permite descartar singularidades entre muestras.
+La diferencia absoluta de la tabla mide el cambio entre dos aproximaciones, no el error verdadero respecto de una raíz desconocida. El resultado incluye la sustitución en la función original, el intervalo final y la cota obtenida a partir de sus extremos. La gráfica interactiva permite realizar zoom in, zoom out, enfocar la raíz aproximada, restablecer la vista completa al 100% y desplazarse (pan) mediante controles en pantalla, rueda del ratón o arrastre táctil; toma muestras orientativas para el intervalo visualizado y no demuestra continuidad ni permite descartar singularidades entre muestras.
 
 **Entradas admitidas:** use `x` como variable, multiplicación explícita (`2*x`), operadores `+`, `-`, `*`, `/`, potencias con `^` o `**`, paréntesis, constantes `pi` y `e`, y funciones `sin`, `cos`, `tan`, `exp`, `ln` (natural), `log` (base 10), `sqrt` y `abs`. Los ángulos están en radianes. Los extremos y la tolerancia aceptan decimales con punto, fracciones como `1/2` y notación científica como `1e-4`.
 
@@ -351,6 +351,8 @@ Se consultaron los materiales locales de `Docs`, especialmente la hoja `Bisecci�
 `funcion`, `a` y `b` son obligatorios. Los valores predeterminados restantes son los mostrados. `criterio` admite `intervalo`, `relativo` o `residuo`. La respuesta contiene `funcion_latex`, `raiz`, `f_raiz`, `residuo`, `cota_error`, `intervalo_inicial`, `intervalo_final`, `convergio`, `motivo`, `iteraciones`, `pasos` y `grafica`. Los errores de entrada devuelven HTTP 400 con `error`; una ejecución que llega al límite sin converger devuelve HTTP 200 con `convergio: false` y sus aproximaciones disponibles. Un error relativo indefinido se representa como `null`.
 
 `POST /api/biseccion/preview` recibe `{"funcion": "sqrt(x)+1/x"}` y devuelve `{"latex": "\\sqrt{x} + \\frac{1}{x}"}`. Valida la sintaxis y convierte la expresión a LaTeX sin evaluarla. Una entrada incompleta o no permitida devuelve HTTP 400 con `error`.
+
+`POST /api/biseccion/muestrear` recibe `{"funcion": "cos(x)-x", "a": -1, "b": 2, "cantidad": 201}` y devuelve `{"grafica": [{"x": ..., "y": ...}]}` con muestreo dinámico adaptativo para mantener la máxima resolución y continuidad al hacer zoom in, zoom out y desplazar la vista en la gráfica.
 
 ---
 

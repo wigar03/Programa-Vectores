@@ -90,3 +90,23 @@ class TestBiseccionApi(unittest.TestCase):
                 estado, res = self.enviar(caso, "/api/biseccion/preview")
                 self.assertEqual(estado, 400)
                 self.assertIn("error", res)
+
+    def test_muestrear_exitoso(self):
+        estado, res = self.enviar(dict(funcion="cos(x)-x", a="-1", b="2", cantidad=51),
+                                  ruta="/api/biseccion/muestrear")
+        self.assertEqual(estado, 200)
+        self.assertEqual(len(res["grafica"]), 51)
+        self.assertAlmostEqual(res["grafica"][0]["x"], -1.0)
+        self.assertAlmostEqual(res["grafica"][-1]["x"], 2.0)
+
+    def test_muestrear_intervalo_invalido(self):
+        for caso in [dict(funcion="x", a="2", b="1"), dict(funcion="1/x", a="-1", b="1", cantidad=5)]:
+            with self.subTest(caso=caso):
+                estado, res = self.enviar(caso, ruta="/api/biseccion/muestrear")
+                if caso.get("a") == "2":
+                    self.assertEqual(estado, 400)
+                    self.assertIn("error", res)
+                else:
+                    # 1/x en -1 a 1: puntos fuera de dominio son válidos como null (200 OK con null en x=0)
+                    self.assertEqual(estado, 200)
+                    self.assertTrue(any(p["y"] is None for p in res["grafica"]))

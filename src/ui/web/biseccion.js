@@ -31,14 +31,16 @@
     return partes.length === 2 ? `${partes[0]} \\times 10^{${Number(partes[1])}}` : texto;
   }
 
-  function datosGrafica(res) {
-    const [a, b] = res.intervalo_inicial;
-    const puntos = res.grafica;
+  function datosGrafica(res, opciones = {}) {
+    const [a, b] = opciones.intervalo || res.intervalo_inicial;
+    const puntos = opciones.puntos || res.grafica;
     const valores = puntos.filter(p => Number.isFinite(p.y)).map(p => p.y);
     valores.push(0, res.f_raiz);
+    if (opciones.yMin !== undefined) valores.push(opciones.yMin);
+    if (opciones.yMax !== undefined) valores.push(opciones.yMax);
     const escala = Math.max(...valores.map(Math.abs)) || 1;
-    const minimo = Math.min(...valores.map(v => v / escala));
-    const maximo = Math.max(...valores.map(v => v / escala));
+    const minimo = opciones.yMin !== undefined ? (opciones.yMin / escala) : Math.min(...valores.map(v => v / escala));
+    const maximo = opciones.yMax !== undefined ? (opciones.yMax / escala) : Math.max(...valores.map(v => v / escala));
     const amplitud = maximo - minimo || 1;
     const x = valor => 60 + ((valor - a) / (b - a)) * 510;
     const y = valor => 28 + (maximo - valor / escala) / amplitud * 220;
@@ -46,13 +48,18 @@
     let continuar = false;
     for (const punto of puntos) {
       if (!Number.isFinite(punto.y)) { continuar = false; continue; }
-      camino += `${continuar ? "L" : "M"}${x(punto.x).toFixed(2)},${y(punto.y).toFixed(2)} `;
+      const cy = y(punto.y);
+      const cyClamped = Math.max(-5000, Math.min(5000, cy));
+      camino += `${continuar ? "L" : "M"}${x(punto.x).toFixed(2)},${cyClamped.toFixed(2)} `;
       continuar = true;
     }
+    const bx1 = x(res.intervalo_final[0]);
+    const bx2 = x(res.intervalo_final[1]);
     return { camino, eje: y(0), raizX: x(res.raiz), raizY: y(res.f_raiz),
-      bandaX: x(res.intervalo_final[0]),
-      bandaAncho: Math.max(2, x(res.intervalo_final[1]) - x(res.intervalo_final[0])),
-      minimo: minimo * escala, maximo: maximo * escala };
+      bandaX: bx1,
+      bandaAncho: Math.max(2, Math.abs(bx2 - bx1)),
+      minimo: minimo * escala, maximo: maximo * escala,
+      xScale: x, yScale: y };
   }
 
   // Exporta solo las utilidades puras para verificarlas con el runner estándar de Node.
@@ -74,34 +81,399 @@
     return nodo;
   }
 
+  let controladorGraficaActual = null;
+
   function dibujarGrafica(contenedor, res) {
-    const datos = datosGrafica(res);
+    if (controladorGraficaActual) {
+      controladorGraficaActual.destruir();
+      controladorGraficaActual = null;
+    }
+
+    const [initA, initB] = res.intervalo_inicial;
+    const datosBase = datosGrafica(res);
+    let initYMin = datosBase.minimo;
+    let initYMax = datosBase.maximo;
+    if (initYMin === initYMax) {
+      initYMin -= 1;
+      initYMax += 1;
+    }
+
+    let xMin = initA;
+    let xMax = initB;
+    let yMin = initYMin;
+    let yMax = initYMax;
+    let zoom = 1.0;
+    let puntosActuales = res.grafica;
+    let muestreoTimer = null;
+    let muestreoAbort = null;
+    let muestreoVersion = 0;
+
+    const controles = document.getElementById("bis-graph-controls");
+    const zoomInBtn = document.getElementById("bis-zoom-in");
+    const zoomOutBtn = document.getElementById("bis-zoom-out");
+    const zoomFocusBtn = document.getElementById("bis-zoom-focus");
+    const zoomResetBtn = document.getElementById("bis-zoom-reset");
+    const zoomLevelEl = document.getElementById("bis-zoom-level");
+
+    if (controles) {
+      controles.hidden = false;
+      if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+      }
+    }
+
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("viewBox", "0 0 600 300");
     svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", `Gráfica de f(x) en el intervalo inicial. Aproximación c = ${res.raiz}.`);
-    function agregar(tag, atributos, texto) {
+    svg.setAttribute("tabindex", "0");
+    svg.setAttribute("aria-label", `Gráfica interactiva de f(x). Intervalo [${formatear(xMin)}, ${formatear(xMax)}]. Raíz aproximada c = ${res.raiz}. Use controles, rueda del ratón o arrastre para hacer zoom.`);
+
+    function crearElemento(tag, atributos, texto) {
       const nodo = document.createElementNS(svg.namespaceURI, tag);
       for (const [clave, valor] of Object.entries(atributos)) nodo.setAttribute(clave, valor);
       if (texto !== undefined) nodo.textContent = texto;
-      svg.append(nodo);
+      return nodo;
     }
-    agregar("title", {}, `f(x) = ${res.funcion}`);
-    agregar("rect", { x: datos.bandaX, y: 28, width: datos.bandaAncho, height: 220, class: "bis-band" });
-    agregar("line", { x1: 60, x2: 570, y1: datos.eje, y2: datos.eje, stroke: "currentColor", "stroke-opacity": ".4" });
-    agregar("line", { x1: 60, x2: 60, y1: 28, y2: 248, stroke: "currentColor", "stroke-opacity": ".4" });
-    agregar("path", { d: datos.camino, fill: "none", "stroke-width": 2, class: "bis-curve" });
-    agregar("line", { x1: datos.raizX, x2: datos.raizX, y1: 28, y2: 248, "stroke-dasharray": "5 4", class: "bis-root" });
-    agregar("circle", { cx: datos.raizX, cy: datos.raizY, r: 4, class: "bis-root" });
-    const texto = { fill: "currentColor", "font-size": 11, "font-family": "sans-serif" };
-    agregar("text", { ...texto, x: 60, y: 270 }, formatear(res.intervalo_inicial[0]));
-    agregar("text", { ...texto, x: 570, y: 270, "text-anchor": "end" }, formatear(res.intervalo_inicial[1]));
-    agregar("text", { ...texto, x: 54, y: 22 }, formatear(datos.maximo));
-    agregar("text", { ...texto, x: 54, y: 287 }, `Mín. f(x): ${formatear(datos.minimo)}`);
-    agregar("text", { ...texto, x: 580, y: 270 }, "x");
-    agregar("text", { ...texto, x: 60, y: 12 }, "f(x)");
+
+    const defs = crearElemento("defs", {});
+    const clip = crearElemento("clipPath", { id: "bis-graph-clip" });
+    const clipRect = crearElemento("rect", { x: "60", y: "28", width: "510", height: "220" });
+    clip.append(clipRect);
+    defs.append(clip);
+    svg.append(defs);
+
+    const hitArea = crearElemento("rect", { x: "60", y: "28", width: "510", height: "220", fill: "transparent" });
+    svg.append(hitArea);
+
+    const titulo = crearElemento("title", {}, `f(x) = ${res.funcion}`);
+    svg.append(titulo);
+
+    const grupoGrafica = crearElemento("g", { "clip-path": "url(#bis-graph-clip)" });
+
+    const bandaRect = crearElemento("rect", { x: datosBase.bandaX, y: 28, width: datosBase.bandaAncho, height: 220, class: "bis-band" });
+    grupoGrafica.append(bandaRect);
+
+    const ejeXZero = crearElemento("line", { x1: 60, x2: 570, y1: datosBase.eje, y2: datosBase.eje, class: "bis-axis-zero", "vector-effect": "non-scaling-stroke" });
+    grupoGrafica.append(ejeXZero);
+
+    const ejeYZero = crearElemento("line", { x1: 60, x2: 60, y1: 28, y2: 248, class: "bis-axis-zero-v", "stroke-dasharray": "3 3", "vector-effect": "non-scaling-stroke" });
+    grupoGrafica.append(ejeYZero);
+
+    const curvaPath = crearElemento("path", { d: datosBase.camino, fill: "none", "stroke-width": "2", class: "bis-curve", "vector-effect": "non-scaling-stroke" });
+    grupoGrafica.append(curvaPath);
+
+    const raizLinea = crearElemento("line", { x1: datosBase.raizX, x2: datosBase.raizX, y1: 28, y2: 248, "stroke-dasharray": "5 4", class: "bis-root", "vector-effect": "non-scaling-stroke" });
+    grupoGrafica.append(raizLinea);
+
+    const raizPunto = crearElemento("circle", { cx: datosBase.raizX, cy: datosBase.raizY, r: "4", class: "bis-root" });
+    grupoGrafica.append(raizPunto);
+
+    svg.append(grupoGrafica);
+
+    const ejeXMarco = crearElemento("line", { x1: 60, x2: 570, y1: 248, y2: 248, stroke: "currentColor", "stroke-opacity": ".4" });
+    const ejeYMarco = crearElemento("line", { x1: 60, x2: 60, y1: 28, y2: 248, stroke: "currentColor", "stroke-opacity": ".4" });
+    svg.append(ejeXMarco, ejeYMarco);
+
+    const estiloTexto = { fill: "currentColor", "font-size": "11", "font-family": "sans-serif" };
+    const lblXMin = crearElemento("text", { ...estiloTexto, x: 60, y: 270 }, formatear(xMin));
+    const lblXMax = crearElemento("text", { ...estiloTexto, x: 570, y: 270, "text-anchor": "end" }, formatear(xMax));
+    const lblXAxis = crearElemento("text", { ...estiloTexto, x: 580, y: 270 }, "x");
+    const lblYMax = crearElemento("text", { ...estiloTexto, x: 54, y: 22, "text-anchor": "end" }, formatear(yMax));
+    const lblYMin = crearElemento("text", { ...estiloTexto, x: 54, y: 287, "text-anchor": "end" }, `Mín. f(x): ${formatear(yMin)}`);
+    const lblYAxis = crearElemento("text", { ...estiloTexto, x: 60, y: 12 }, "f(x)");
+    svg.append(lblXMin, lblXMax, lblXAxis, lblYMax, lblYMin, lblYAxis);
+
+    function actualizarRender() {
+      const spanInicial = initB - initA;
+      const spanActual = xMax - xMin;
+      zoom = spanInicial / spanActual;
+
+      if (zoomLevelEl) {
+        zoomLevelEl.textContent = `${Math.round(zoom * 100)}%`;
+      }
+
+      const datos = datosGrafica(res, { intervalo: [xMin, xMax], yMin, yMax, puntos: puntosActuales });
+      curvaPath.setAttribute("d", datos.camino);
+
+      if (datos.eje >= 28 && datos.eje <= 248) {
+        ejeXZero.setAttribute("y1", datos.eje.toFixed(2));
+        ejeXZero.setAttribute("y2", datos.eje.toFixed(2));
+        ejeXZero.style.display = "";
+      } else {
+        ejeXZero.style.display = "none";
+      }
+
+      const x0 = 60 + ((0 - xMin) / (xMax - xMin)) * 510;
+      if (x0 >= 60 && x0 <= 570) {
+        ejeYZero.setAttribute("x1", x0.toFixed(2));
+        ejeYZero.setAttribute("x2", x0.toFixed(2));
+        ejeYZero.style.display = "";
+      } else {
+        ejeYZero.style.display = "none";
+      }
+
+      const fa = res.intervalo_final[0];
+      const fb = res.intervalo_final[1];
+      const bx1 = 60 + ((Math.min(fa, fb) - xMin) / (xMax - xMin)) * 510;
+      const bx2 = 60 + ((Math.max(fa, fb) - xMin) / (xMax - xMin)) * 510;
+      const bLeft = Math.max(60, bx1);
+      const bRight = Math.min(570, bx2);
+      const bWidth = Math.max(2, bRight - bLeft);
+      if (bx2 >= 60 && bx1 <= 570) {
+        bandaRect.setAttribute("x", bLeft.toFixed(2));
+        bandaRect.setAttribute("width", bWidth.toFixed(2));
+        bandaRect.style.display = "";
+      } else {
+        bandaRect.style.display = "none";
+      }
+
+      if (datos.raizX >= 60 && datos.raizX <= 570) {
+        raizLinea.setAttribute("x1", datos.raizX.toFixed(2));
+        raizLinea.setAttribute("x2", datos.raizX.toFixed(2));
+        raizLinea.style.display = "";
+      } else {
+        raizLinea.style.display = "none";
+      }
+
+      if (datos.raizX >= 56 && datos.raizX <= 574 && datos.raizY >= 24 && datos.raizY <= 252) {
+        raizPunto.setAttribute("cx", datos.raizX.toFixed(2));
+        raizPunto.setAttribute("cy", datos.raizY.toFixed(2));
+        raizPunto.style.display = "";
+      } else {
+        raizPunto.style.display = "none";
+      }
+
+      lblXMin.textContent = formatear(xMin);
+      lblXMax.textContent = formatear(xMax);
+      lblYMax.textContent = formatear(yMax);
+      lblYMin.textContent = `Mín. f(x): ${formatear(yMin)}`;
+    }
+
+    function solicitarMuestreo() {
+      clearTimeout(muestreoTimer);
+      muestreoAbort?.abort();
+      const versionActual = ++muestreoVersion;
+      muestreoTimer = setTimeout(async () => {
+        const controlador = new AbortController();
+        muestreoAbort = controlador;
+        try {
+          const resp = await fetch("/api/biseccion/muestrear", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              funcion: res.funcion,
+              a: xMin,
+              b: xMax,
+              cantidad: 201
+            }),
+            signal: controlador.signal
+          });
+          const datos = await resp.json();
+          if (versionActual !== muestreoVersion) return;
+          if (resp.ok && Array.isArray(datos.grafica)) {
+            puntosActuales = datos.grafica;
+            actualizarRender();
+          }
+        } catch (_) {}
+      }, 120);
+    }
+
+    function hacerZoom(factor, focoPx = 315, focoPy = 138) {
+      const nuevoZoom = zoom * factor;
+      if (nuevoZoom < 0.1 || nuevoZoom > 50000) return;
+
+      const tx = Math.max(0, Math.min(1, (focoPx - 60) / 510));
+      const ty = Math.max(0, Math.min(1, (focoPy - 28) / 220));
+
+      const xFoco = xMin + tx * (xMax - xMin);
+      const yFoco = yMax - ty * (yMax - yMin);
+
+      const nuevoXSpan = (xMax - xMin) / factor;
+      const nuevoYSpan = (yMax - yMin) / factor;
+
+      xMin = xFoco - tx * nuevoXSpan;
+      xMax = xMin + nuevoXSpan;
+      yMax = yFoco + ty * nuevoYSpan;
+      yMin = yMax - nuevoYSpan;
+
+      actualizarRender();
+      solicitarMuestreo();
+    }
+
+    function desplazar(deltaPx, deltaPy) {
+      const dx = -(deltaPx / 510) * (xMax - xMin);
+      const dy = +(deltaPy / 220) * (yMax - yMin);
+      xMin += dx;
+      xMax += dx;
+      yMin += dy;
+      yMax += dy;
+      actualizarRender();
+    }
+
+    function restablecer() {
+      clearTimeout(muestreoTimer);
+      muestreoAbort?.abort();
+      xMin = initA;
+      xMax = initB;
+      yMin = initYMin;
+      yMax = initYMax;
+      puntosActuales = res.grafica;
+      actualizarRender();
+    }
+
+    function enfocarRaiz() {
+      clearTimeout(muestreoTimer);
+      muestreoAbort?.abort();
+      const r = res.raiz;
+      const fr = res.f_raiz;
+      const rSpanX = Math.max((initB - initA) * 0.08, Math.abs(res.cota_error) * 8, 1e-6);
+      const rSpanY = Math.max((initYMax - initYMin) * 0.08, Math.abs(fr) * 8, 1e-6);
+      xMin = r - rSpanX;
+      xMax = r + rSpanX;
+      yMin = fr - rSpanY;
+      yMax = fr + rSpanY;
+      actualizarRender();
+      solicitarMuestreo();
+    }
+
+    const onZoomIn = () => hacerZoom(1.3);
+    const onZoomOut = () => hacerZoom(1 / 1.3);
+    const onZoomFocus = () => enfocarRaiz();
+    const onZoomReset = () => restablecer();
+
+    zoomInBtn?.addEventListener("click", onZoomIn);
+    zoomOutBtn?.addEventListener("click", onZoomOut);
+    zoomFocusBtn?.addEventListener("click", onZoomFocus);
+    zoomResetBtn?.addEventListener("click", onZoomReset);
+
+    function onWheel(e) {
+      e.preventDefault();
+      const rect = svg.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width * 600;
+      const py = (e.clientY - rect.top) / rect.height * 300;
+      const factor = e.deltaY < 0 ? 1.25 : (1 / 1.25);
+      hacerZoom(factor, px, py);
+    }
+    svg.addEventListener("wheel", onWheel, { passive: false });
+
+    let arrastrando = false;
+    let ultX = 0, ultY = 0;
+    const punteros = new Map();
+
+    function onPointerDown(e) {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      punteros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (punteros.size === 1) {
+        arrastrando = true;
+        ultX = e.clientX;
+        ultY = e.clientY;
+        svg.setPointerCapture(e.pointerId);
+        svg.classList.add("bis-panning");
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!punteros.has(e.pointerId)) return;
+      punteros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (punteros.size === 2) {
+        const pts = Array.from(punteros.values());
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (svg._lastDist) {
+          const ratio = dist / svg._lastDist;
+          if (Math.abs(ratio - 1) > 0.01) {
+            const midX = (pts[0].x + pts[1].x) / 2;
+            const midY = (pts[0].y + pts[1].y) / 2;
+            const rect = svg.getBoundingClientRect();
+            const px = (midX - rect.left) / rect.width * 600;
+            const py = (midY - rect.top) / rect.height * 300;
+            hacerZoom(ratio, px, py);
+          }
+        }
+        svg._lastDist = dist;
+        return;
+      }
+
+      if (arrastrando) {
+        const dx = e.clientX - ultX;
+        const dy = e.clientY - ultY;
+        ultX = e.clientX;
+        ultY = e.clientY;
+        desplazar(dx, dy);
+      }
+    }
+
+    function onPointerUp(e) {
+      punteros.delete(e.pointerId);
+      svg._lastDist = null;
+      if (arrastrando && punteros.size === 0) {
+        arrastrando = false;
+        try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+        svg.classList.remove("bis-panning");
+        solicitarMuestreo();
+      }
+    }
+
+    svg.addEventListener("pointerdown", onPointerDown);
+    svg.addEventListener("pointermove", onPointerMove);
+    svg.addEventListener("pointerup", onPointerUp);
+    svg.addEventListener("pointercancel", onPointerUp);
+
+    function onDblClick() {
+      restablecer();
+    }
+    svg.addEventListener("dblclick", onDblClick);
+
+    function onKeyDown(e) {
+      if (e.key === "+" || e.key === "=") {
+        e.preventDefault();
+        hacerZoom(1.25);
+      } else if (e.key === "-" || e.key === "_") {
+        e.preventDefault();
+        hacerZoom(1 / 1.25);
+      } else if (e.key === "0" || e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        restablecer();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        desplazar(25, 0);
+        solicitarMuestreo();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        desplazar(-25, 0);
+        solicitarMuestreo();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        desplazar(0, 25);
+        solicitarMuestreo();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        desplazar(0, -25);
+        solicitarMuestreo();
+      }
+    }
+    svg.addEventListener("keydown", onKeyDown);
+
+    controladorGraficaActual = {
+      destruir() {
+        clearTimeout(muestreoTimer);
+        muestreoAbort?.abort();
+        zoomInBtn?.removeEventListener("click", onZoomIn);
+        zoomOutBtn?.removeEventListener("click", onZoomOut);
+        zoomFocusBtn?.removeEventListener("click", onZoomFocus);
+        zoomResetBtn?.removeEventListener("click", onZoomReset);
+        svg.removeEventListener("wheel", onWheel);
+        svg.removeEventListener("pointerdown", onPointerDown);
+        svg.removeEventListener("pointermove", onPointerMove);
+        svg.removeEventListener("pointerup", onPointerUp);
+        svg.removeEventListener("pointercancel", onPointerUp);
+        svg.removeEventListener("dblclick", onDblClick);
+        svg.removeEventListener("keydown", onKeyDown);
+      }
+    };
+
     contenedor.replaceChildren(svg,
-      crearMixto("p", "Azul: $f(x)$. Verde: aproximación y franja del intervalo final. Muestra orientativa de 201 puntos; la gráfica no certifica continuidad.", "bis-help"));
+      crearMixto("p", "Azul: $f(x)$. Verde: aproximación y franja del intervalo final. Navegación: use los controles (+ / − / ↺ / 🎯), la rueda del ratón o arrastre para hacer zoom y explorar la gráfica.", "bis-help"));
     contenedor.hidden = false;
   }
 
@@ -259,6 +631,12 @@
       version++;
       controlador?.abort();
       controlador = null;
+      if (controladorGraficaActual) {
+        controladorGraficaActual.destruir();
+        controladorGraficaActual = null;
+      }
+      const controles = document.getElementById("bis-graph-controls");
+      if (controles) controles.hidden = true;
       boton.disabled = false;
       form.setAttribute("aria-busy", "false");
       estado.className = "badge";

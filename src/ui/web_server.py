@@ -14,6 +14,7 @@ Utiliza exclusivamente los módulos estándar de Python:
 import os
 import sys
 import json
+import math
 import socket
 import threading
 import webbrowser
@@ -44,7 +45,7 @@ from src.matrices.determinante import (
 )
 from src.ecuaciones.ecuacion_matricial import resolver_ecuacion_matricial
 from src.biseccion.metodo import resolver_biseccion, muestrear_funcion
-from src.biseccion.expresiones import Expresion
+from src.biseccion.expresiones import Expresion, numero_real
 
 
 def serialize_fraction_or_str(val):
@@ -109,6 +110,8 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 if not isinstance(body, dict):
                     raise ValueError("Envíe un objeto JSON con la función.")
                 self._send_json({"latex": Expresion(body.get("funcion")).latex()})
+            elif parsed.path == "/api/biseccion/muestrear":
+                self._handle_biseccion_muestrear(body)
             else:
                 self._send_json({"error": f"Ruta API no encontrada: {parsed.path}"}, status=404)
         except Exception as err:
@@ -430,6 +433,20 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
         res["grafica"] = muestrear_funcion(res["funcion"], *res["intervalo_inicial"])
         res["funcion_latex"] = Expresion(res["funcion"]).latex()
         self._send_json(res)
+
+    def _handle_biseccion_muestrear(self, body):
+        """Muestreo dinámico de puntos para soporte de zoom in, zoom out y desplazamiento."""
+        if not isinstance(body, dict):
+            raise ValueError("Envíe un objeto JSON con función, a y b.")
+        funcion = body.get("funcion")
+        a = numero_real(body.get("a"), "a")
+        b = numero_real(body.get("b"), "b")
+        if a >= b or not math.isfinite(b - a):
+            raise ValueError("El intervalo debe cumplir a < b y tener ancho finito.")
+        cantidad = int(body.get("cantidad", 201))
+        cantidad = max(2, min(2000, cantidad))
+        puntos = muestrear_funcion(funcion, a, b, cantidad)
+        self._send_json({"grafica": puntos})
 
     def _handle_eficiencia_determinante(self, body):
         n = int(body.get("n", 3))

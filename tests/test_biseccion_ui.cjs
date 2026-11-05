@@ -41,3 +41,14 @@ test('ejemplos definen criterio y unidades de tolerancia', () => {
   assert.equal(EJEMPLOS.hoja.a, '0.6');
   assert.equal(EJEMPLOS.potencia.criterio, 'relativo');
 });
+
+test('datosGrafica admite opciones de intervalo y reescalado para zoom interactivo', () => {
+  const caso = { intervalo_inicial: [0, 10], intervalo_final: [4.8, 5.2], raiz: 5, f_raiz: 0,
+    grafica: [{ x: 0, y: 0 }, { x: 5, y: 0 }, { x: 10, y: 10 }] };
+  const base = datosGrafica(caso);
+  const zoomIn = datosGrafica(caso, { intervalo: [4, 6] });
+  assert.equal(base.raizX, 315);
+  assert.equal(zoomIn.raizX, 315);
+  // En zoom in sobre [4, 6], la franja de ancho 0.4 ocupa mayor proporción que en [0, 10]
+  assert.ok(zoomIn.bandaAncho > base.bandaAncho);
+});
