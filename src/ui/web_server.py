@@ -46,6 +46,7 @@ from src.matrices.determinante import (
 from src.ecuaciones.ecuacion_matricial import resolver_ecuacion_matricial
 from src.biseccion.metodo import resolver_biseccion, muestrear_funcion
 from src.biseccion.expresiones import Expresion, numero_real
+from src.regla_falsa.continuidad import analizar_region
 
 
 def serialize_fraction_or_str(val):
@@ -106,12 +107,16 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 self._handle_eficiencia_determinante(body)
             elif parsed.path == "/api/biseccion/resolver":
                 self._handle_biseccion(body)
-            elif parsed.path == "/api/biseccion/preview":
+            elif parsed.path in ("/api/biseccion/preview", "/api/regla-falsa/preview"):
                 if not isinstance(body, dict):
                     raise ValueError("Envíe un objeto JSON con la función.")
                 self._send_json({"latex": Expresion(body.get("funcion")).latex()})
             elif parsed.path == "/api/biseccion/muestrear":
                 self._handle_biseccion_muestrear(body)
+            elif parsed.path == "/api/regla-falsa/graficar":
+                self._handle_regla_falsa_graficar(body)
+            elif parsed.path == "/api/regla-falsa/analizar":
+                self._handle_regla_falsa_analizar(body)
             else:
                 self._send_json({"error": f"Ruta API no encontrada: {parsed.path}"}, status=404)
         except Exception as err:
@@ -447,6 +452,41 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
         cantidad = max(2, min(2000, cantidad))
         puntos = muestrear_funcion(funcion, a, b, cantidad)
         self._send_json({"grafica": puntos})
+
+    # ==============================================================================
+    # ==============================================================================
+    # APARTADO 8: REGLA FALSA (REGULA FALSI), FLUJO PASO A PASO
+    # Paso 1: graficar f(x) · Paso 2: continuidad e intervalos candidatos
+    # Paso 3: validar f(x_l)·f(x_u) < 0 · Paso 4: iterar la falsa posición
+    # ==============================================================================
+    # ==============================================================================
+    @staticmethod
+    def _cuerpo_regla_falsa(body):
+        if not isinstance(body, dict):
+            raise ValueError("Envíe un objeto JSON con la función y los extremos.")
+        return body
+
+    def _handle_regla_falsa_graficar(self, body):
+        """Paso 1: vista matemática y muestreo de f en la región de interés (o en el zoom actual)."""
+        body = self._cuerpo_regla_falsa(body)
+        f = Expresion(body.get("funcion"))
+        a = numero_real(body.get("a"), "El límite inferior de la región")
+        b = numero_real(body.get("b"), "El límite superior de la región")
+        if a >= b or not math.isfinite(b - a):
+            raise ValueError("La región debe cumplir a < b y tener ancho finito.")
+        try:
+            cantidad = max(2, min(2000, int(body.get("cantidad", 401))))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("La cantidad de puntos debe ser un número entero.") from exc
+        self._send_json({
+            "funcion": f.texto, "funcion_latex": f.latex(), "intervalo": [a, b],
+            "grafica": muestrear_funcion(f.texto, a, b, cantidad),
+        })
+
+    def _handle_regla_falsa_analizar(self, body):
+        """Paso 2: discontinuidades detectadas en la región e intervalos con cambio de signo."""
+        body = self._cuerpo_regla_falsa(body)
+        self._send_json(analizar_region(body.get("funcion"), body.get("a"), body.get("b")))
 
     def _handle_eficiencia_determinante(self, body):
         n = int(body.get("n", 3))
