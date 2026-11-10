@@ -1,4 +1,5 @@
-/* Teclado de bisección: edita la expresión del formulario sin traducir ni evaluar LaTeX. */
+/* Teclado matemático de los editores de funciones (bisección y regla falsa):
+   edita la expresión del formulario sin traducir ni evaluar LaTeX. */
 function prepararInsercionFormula(expression, start, end, value, kind) {
   const selected = expression.slice(start, end);
   const left = expression.slice(0, start).trimEnd();
@@ -37,13 +38,15 @@ function prepararInsercionFormula(expression, start, end, value, kind) {
 
 if (typeof module !== "undefined" && module.exports) module.exports = { prepararInsercionFormula };
 
-if (typeof document !== "undefined") document.addEventListener("DOMContentLoaded", () => {
+/* Monta un teclado en cada .bis-formula-editor. Los elementos se localizan dentro
+   del editor, de modo que varios módulos pueden tener el suyo sin compartir ids. */
+function montarTecladoFormula(editor) {
   "use strict";
-  const input = document.getElementById("bis-funcion");
-  const keyboard = document.getElementById("bis-keyboard");
-  const toggle = document.getElementById("bis-keyboard-toggle");
-  const status = document.getElementById("bis-keyboard-status");
-  if (!input || !keyboard || !toggle) return;
+  const input = editor.querySelector("input.bis-expression");
+  const keyboard = editor.querySelector(".bis-keyboard");
+  const toggle = editor.querySelector(".bis-keyboard-toolbar button");
+  const status = editor.querySelector('.sr-only[role="status"]');
+  if (!input || !keyboard || !toggle || !status) return;
 
   // Las plantillas mantienen la sintaxis admitida por el servidor y sitúan el cursor
   // dentro del argumento. Una selección se conserva como argumento de la función.
@@ -140,11 +143,16 @@ if (typeof document !== "undefined") document.addEventListener("DOMContentLoaded
     toggle.textContent = visible ? "Ocultar teclas" : "Mostrar teclas";
   }
   toggle.addEventListener("click", () => show(keyboard.hidden));
-  input.closest(".bis-formula-editor").addEventListener("keydown", event => {
+  show(!keyboard.hidden); // respeta el estado inicial declarado en el HTML
+  editor.addEventListener("keydown", event => {
     if (event.key === "Escape" && !keyboard.hidden) {
       event.preventDefault();
       show(false);
       input.focus({ preventScroll: true });
     }
   });
+}
+
+if (typeof document !== "undefined") document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".bis-formula-editor").forEach(montarTecladoFormula);
 });
