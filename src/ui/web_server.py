@@ -47,6 +47,7 @@ from src.ecuaciones.ecuacion_matricial import resolver_ecuacion_matricial
 from src.biseccion.metodo import resolver_biseccion, muestrear_funcion
 from src.biseccion.expresiones import Expresion, numero_real
 from src.regla_falsa.continuidad import analizar_region
+from src.regla_falsa.metodo import preparar_intervalo, resolver_regla_falsa
 
 
 def serialize_fraction_or_str(val):
@@ -117,6 +118,10 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 self._handle_regla_falsa_graficar(body)
             elif parsed.path == "/api/regla-falsa/analizar":
                 self._handle_regla_falsa_analizar(body)
+            elif parsed.path == "/api/regla-falsa/validar":
+                self._handle_regla_falsa_validar(body)
+            elif parsed.path == "/api/regla-falsa/resolver":
+                self._handle_regla_falsa_resolver(body)
             else:
                 self._send_json({"error": f"Ruta API no encontrada: {parsed.path}"}, status=404)
         except Exception as err:
@@ -487,6 +492,27 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
         """Paso 2: discontinuidades detectadas en la región e intervalos con cambio de signo."""
         body = self._cuerpo_regla_falsa(body)
         self._send_json(analizar_region(body.get("funcion"), body.get("a"), body.get("b")))
+
+    def _handle_regla_falsa_validar(self, body):
+        """Paso 3: recibe [x_l, x_u] y comprueba f(x_l)·f(x_u) < 0 y la continuidad en el intervalo."""
+        body = self._cuerpo_regla_falsa(body)
+        self._send_json(preparar_intervalo(body.get("funcion"), body.get("xl"), body.get("xu")))
+
+    def _handle_regla_falsa_resolver(self, body):
+        """Paso 4: itera la falsa posición solo sobre un intervalo que supera la validación."""
+        body = self._cuerpo_regla_falsa(body)
+        previa = preparar_intervalo(body.get("funcion"), body.get("xl"), body.get("xu"))
+        if previa["estado"] == "discontinua":
+            raise ValueError("Se detectó una discontinuidad dentro de [x_l, x_u]: el Teorema del Valor "
+                             "Intermedio no garantiza una raíz. Elija un intervalo donde f sea continua.")
+        res = resolver_regla_falsa(
+            funcion=previa["funcion"], xl=previa["xl"], xu=previa["xu"],
+            tolerancia=body.get("tolerancia", 0.0001),
+            max_iteraciones=body.get("max_iteraciones", 100),
+        )
+        res["grafica"] = muestrear_funcion(res["funcion"], *res["intervalo_inicial"])
+        res["funcion_latex"] = Expresion(res["funcion"]).latex()
+        self._send_json(res)
 
     def _handle_eficiencia_determinante(self, body):
         n = int(body.get("n", 3))

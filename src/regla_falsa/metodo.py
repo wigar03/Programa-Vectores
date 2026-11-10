@@ -8,6 +8,7 @@ el punto medio de la bisección por el corte con el eje X de la recta que une
 import math
 
 from ..biseccion.expresiones import Expresion, numero_real
+from .continuidad import analizar_continuidad
 
 # Iteraciones consecutivas con el mismo extremo fijo a partir de las cuales se avisa.
 UMBRAL_ESTANCAMIENTO = 10
@@ -59,6 +60,21 @@ def validar_intervalo(funcion, xl, xu):
         "signo_producto": {-1: "negativo", 0: "cero", 1: "positivo"}[signo],
         "cumple": signo < 0, "raiz_en_extremo": raiz_en_extremo, "estado": estado,
     }
+
+
+def preparar_intervalo(funcion, xl, xu):
+    """Validación completa del intervalo que se envía a la calculadora.
+
+    Une la condición de signos con la continuidad detectada en [x_l, x_u]: sin
+    continuidad el cambio de signo no garantiza una raíz y la falsa posición puede
+    acercarse a una asíntota. "valido" indica si el método puede ejecutarse.
+    """
+    res = validar_intervalo(funcion, xl, xu)
+    res["continuidad"] = analizar_continuidad(res["funcion"], res["xl"], res["xu"])
+    if res["estado"] != "sin_cambio_de_signo" and not res["continuidad"]["continua"]:
+        res["estado"] = "discontinua"
+    res["valido"] = res["estado"] in ("valido", "raiz_en_extremo")
+    return res
 
 
 def resolver_regla_falsa(funcion, xl, xu, tolerancia=0.0001, max_iteraciones=100):
