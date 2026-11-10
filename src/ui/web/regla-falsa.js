@@ -5,6 +5,13 @@
 
   // Área de trazado dentro del viewBox 600 × 330 del SVG.
   const MARCO = { x: 58, y: 14, ancho: 528, alto: 270 };
+  const MOTIVOS = {
+    tolerancia: "Se alcanzó la tolerancia: $\\varepsilon_a \\le \\varepsilon_s$.",
+    raiz_en_extremo: "La función se evaluó como cero en un extremo del intervalo; no se requieren iteraciones.",
+    raiz_evaluada: "$f(x_r)$ se evaluó como cero con la precisión de punto flotante utilizada.",
+    max_iteraciones: "Se alcanzó el máximo de iteraciones sin cumplir la tolerancia. Puede aumentar el límite o revisar la tolerancia.",
+    precision_agotada: "La precisión de punto flotante impide seguir acercando $x_r$ a la raíz. Revise la tolerancia o la escala de la función.",
+  };
 
   function formatear(valor, cifras = 10) {
     return valor === null || valor === undefined ? "—" : Number(valor.toPrecision(cifras)).toString();
@@ -254,10 +261,31 @@
       }
       capaFondo.replaceChildren(...fondo);
       curva.setAttribute("d", caminoCurva(g.puntos, e, cortes));
+
+      if (g.resultado) {
+        // Las primeras secantes muestran cómo cada recta corta el eje X en x_r.
+        for (const paso of g.resultado.pasos.slice(0, 8)) {
+          marcasResultado.push(svg("line", { x1: e.x(paso.xl), y1: e.y(paso.f_xl), x2: e.x(paso.xu), y2: e.y(paso.f_xu), class: "rf-secant" }),
+            svg("circle", { cx: e.x(paso.xr), cy: e.y(0), r: 2.5, class: "rf-xr-dot" }));
+        }
+        const px = vertical(g.resultado.raiz, "bis-root", marcasResultado);
+        if (px >= MARCO.x && px <= derecha) {
+          const aLaIzquierda = px > MARCO.x + MARCO.ancho * 0.65;
+          marcasResultado.at(-1).setAttribute("stroke-dasharray", "5 4");
+          marcasResultado.push(svg("circle", { cx: px, cy: e.y(g.resultado.f_raiz), r: 4.5, class: "bis-root" }),
+            svgConSubindice({ x: px + (aLaIzquierda ? -8 : 8), y: abajo - 16, "text-anchor": aLaIzquierda ? "end" : "start", class: "rf-root-label" },
+              "x", "r", ` ≈ ${formatear(g.resultado.raiz, 8)}`));
+        }
+      }
       capaMarcas.replaceChildren(...marcasResultado);
 
       nivelZoom.textContent = `${Math.round((g.base.xMax - g.base.xMin) / (xMax - xMin) * 100)}%`;
       const descripcion = `Gráfica de f(x) = ${g.funcion} para x entre ${formatear(xMin, 6)} y ${formatear(xMax, 6)}.`;
+      if (g.resultado) {
+        titulo.textContent = `${descripcion} Raíz calculada: x ≈ ${formatear(g.resultado.raiz, 8)}.`;
+        lienzo.setAttribute("aria-label", titulo.textContent);
+        return;
+      }
       titulo.textContent = descripcion;
       lienzo.setAttribute("aria-label", descripcion);
     }
@@ -407,6 +435,18 @@
         g.provisional = null;
         lienzo.classList.toggle("rf-marking", activo);
       },
+      /* Paso 4: secantes y raíz; la vista se centra en el intervalo de partida. */
+      fijarResultado(resultado) {
+        g.resultado = resultado;
+        if (resultado && g.vista) {
+          const [xl, xu] = resultado.intervalo_inicial;
+          const margen = (xu - xl) * 0.2;
+          g.vista.xMin = xl - margen;
+          g.vista.xMax = xu + margen;
+          muestrear(true);
+        }
+        dibujar();
+      },
       limpiar() {
         clearTimeout(temporizador);
         aborto?.abort();
@@ -424,6 +464,7 @@
     const el = id => document.getElementById(id);
     const formFuncion = el("rf-form-funcion");
     const formIntervalo = el("rf-form-intervalo");
+    const formMetodo = el("rf-form-metodo");
     const tarjetas = [1, 2, 3, 4].map(n => el(`rf-card-${n}`));
     const estados = [1, 2, 3, 4].map(n => el(`rf-status-${n}`));
     const pasos = [...panel.querySelectorAll(".rf-step")];
@@ -470,6 +511,7 @@
       tarjetaTabla.hidden = true;
       el("rf-table").replaceChildren();
       el("rf-result").replaceChildren();
+      grafica.fijarResultado(null);
       if (paso <= 3) el("rf-validation").replaceChildren();
       if (paso <= 2) {
         estado.funcion = estado.analisis = null;
@@ -669,7 +711,8 @@
         grafica.fijarIntervalo([validacion.xl, validacion.xu]);
         renderizarValidacion(validacion);
         insignia(estados[2], validacion.valido ? "Intervalo válido" : "Intervalo no válido", validacion.valido ? "badge-success" : "badge-error");
-        revelar(tarjetas[2]);
+        if (validacion.valido) fijarPaso(4);
+        revelar(validacion.valido ? tarjetas[3] : tarjetas[2]);
       });
     });
 
@@ -710,6 +753,91 @@
       };
       el("rf-validation").replaceChildren(resumen, comprobaciones,
         crearMixto("p", mensajes[v.estado], `bis-message${v.valido ? "" : " bis-error"}`));
+    }
+
+    /* PASO 4: la calculadora itera la falsa posición y la raíz se muestra sobre la gráfica. */
+    formMetodo.addEventListener("input", () => reiniciarDesde(4, 4));
+    formMetodo.addEventListener("submit", evento => {
+      evento.preventDefault();
+      reiniciarDesde(4, 4);
+      const { xl, xu } = estado.validacion;
+      const datos = { funcion: estado.funcion, xl, xu, ...Object.fromEntries(new FormData(formMetodo)) };
+      ejecutar(4, el("rf-resolver"), "resolver", datos, resultado => {
+        insignia(estados[3], resultado.convergio ? "Raíz calculada" : "Tolerancia no alcanzada", resultado.convergio ? "badge-success" : "badge-warning");
+        renderizarResultado(resultado);
+        grafica.fijarResultado(resultado);
+        if (resultado.pasos.length) {
+          renderizarTabla(resultado);
+          tarjetaTabla.hidden = false;
+        }
+        fijarPaso(4, true);
+        revelar(el("rf-result"));
+      });
+    });
+
+    function renderizarResultado(res) {
+      const funcion = crear("p", `f(x) = ${res.funcion}`, "bis-function");
+      renderLatexElement(funcion, `f(x) = ${res.funcion_latex}`, true);
+      const resumen = crear("dl", undefined, "bis-summary");
+      for (const [etiqueta, valor, entero] of [
+        [res.convergio ? "Raíz aproximada ($x_r$)" : "Última aproximación ($x_r$)", res.raiz],
+        ["Residuo $|f(x_r)|$", res.residuo], ["Error aproximado $\\varepsilon_a$ (%)", res.error_relativo],
+        ["Iteraciones", res.iteraciones, true],
+      ]) {
+        const grupo = crear("div", undefined, "bis-stat");
+        const cifra = crear("dd", formatear(valor));
+        if (valor !== null) cifra.title = String(valor);
+        if (!entero) renderLatexElement(cifra, numeroLatex(valor), false);
+        grupo.append(crearMixto("dt", etiqueta), cifra);
+        resumen.append(grupo);
+      }
+      const [xl, xu] = res.intervalo_final;
+      const nodos = [funcion, crearMixto("p", MOTIVOS[res.motivo], "bis-message"), resumen,
+        crearMixto("p", `Verificación: $f(${numeroLatex(res.raiz)}) = ${numeroLatex(res.f_raiz)}$. Intervalo final: $[${numeroLatex(xl)},\\; ${numeroLatex(xu)}]$.`, "bis-message")];
+      if (res.estancamiento) {
+        const fijo = res.estancamiento.extremo === "xl" ? "x_l" : "x_u";
+        nodos.push(crearMixto("p", `Estancamiento: $${fijo}$ permaneció fijo durante ${res.estancamiento.iteraciones} iteraciones seguidas. La curva es muy convexa o cóncava en el intervalo y la convergencia se vuelve unilateral y lenta.`, "rf-note"));
+      }
+      const enlace = crear("button", "Ver la raíz en la gráfica", "rf-link");
+      enlace.type = "button";
+      enlace.addEventListener("click", () => panel.querySelector(".rf-graph-card").scrollIntoView({ block: "center", behavior: "smooth" }));
+      nodos.push(enlace, crearMixto("p", "La raíz se marca en verde sobre la gráfica junto con las primeras rectas secantes. Los valores se calculan en punto flotante y se redondean solo para mostrarlos.", "bis-help"));
+      el("rf-result").replaceChildren(...nodos);
+    }
+
+    function renderizarTabla(res) {
+      const columnas = [["numero", "$i$", "Iteración"], ["xl", "$x_l$"], ["xu", "$x_u$"], ["f_xl", "$f(x_l)$"],
+        ["f_xu", "$f(x_u)$"], ["xr", "$x_r$"], ["f_xr", "$f(x_r)$"], ["error_relativo", "$\\varepsilon_a\\;(\\%)$"]];
+      const tabla = crear("table");
+      tabla.append(crear("caption", `Procedimiento de la regla falsa: ${res.iteraciones} ${res.iteraciones === 1 ? "iteración" : "iteraciones"}.`));
+      const cabecera = crear("thead"), filaTitulos = crear("tr");
+      for (const texto of [...columnas.map(c => c[1]), "Acción"]) {
+        const celda = crearMixto("th", texto);
+        celda.scope = "col";
+        filaTitulos.append(celda);
+      }
+      cabecera.append(filaTitulos);
+      const cuerpo = crear("tbody");
+      for (const paso of res.pasos) {
+        const fila = crear("tr");
+        for (const [clave, etiqueta, nombre] of columnas) {
+          const valor = paso[clave];
+          const celda = crear("td", undefined, "bis-cell");
+          const cifra = crear("span", formatear(valor, 8));
+          if (typeof valor === "number" && /e/i.test(cifra.textContent)) renderLatexElement(cifra, numeroLatex(valor, 8), false);
+          if (typeof valor === "number") celda.title = String(valor);
+          celda.append(crearMixto("span", nombre || etiqueta, "bis-cell-label"), cifra);
+          fila.append(celda);
+        }
+        const accion = crear("td", undefined, "bis-detail-cell rf-action-cell");
+        if (paso.decision === "Finalizar") accion.textContent = "Finalizar";
+        else renderLatexElement(accion, paso.decision === "x_u ← x_r" ? "x_u \\leftarrow x_r" : "x_l \\leftarrow x_r", false);
+        accion.title = `Signo de f(x_l)·f(x_r): ${paso.signo_producto}`;
+        fila.append(accion);
+        cuerpo.append(fila);
+      }
+      tabla.append(cabecera, cuerpo);
+      el("rf-table").replaceChildren(tabla);
     }
 
     fijarPaso(1);

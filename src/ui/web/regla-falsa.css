@@ -66,7 +66,7 @@
 .regla-falsa-pane .rf-check.is-fail .rf-check-mark { color: var(--rf-break); }
 .regla-falsa-pane .rf-check small { display: block; color: var(--bis-muted); font-size: .8rem; }
 .regla-falsa-pane .rf-note { margin: .2rem 0 0; padding-left: .8rem; border-left: 2px solid var(--rf-candidate); color: var(--bis-muted); font-size: .82rem; line-height: 1.65; }
-.regla-falsa-pane .rf-link { padding: 0; border: 0; background: none; color: var(--bis-accent); font: inherit; font-size: .82rem; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.regla-falsa-pane .rf-link { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--bis-accent); font: inherit; font-size: .82rem; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .regla-falsa-pane #rf-result:empty { display: none; }
 .regla-falsa-pane #rf-result { margin-top: 1.3rem; }
 
