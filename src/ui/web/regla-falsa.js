@@ -113,4 +113,375 @@
     };
   }
   if (typeof document === "undefined") return;
+
+  function crear(tag, texto, clase) {
+    const nodo = document.createElement(tag);
+    if (texto !== undefined) nodo.textContent = texto;
+    if (clase) nodo.className = clase;
+    return nodo;
+  }
+
+  function crearMixto(tag, texto, clase) {
+    const nodo = crear(tag, undefined, clase);
+    renderMixedLatex(nodo, texto);
+    return nodo;
+  }
+
+  function svg(tag, atributos = {}, texto) {
+    const nodo = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [clave, valor] of Object.entries(atributos)) nodo.setAttribute(clave, valor);
+    if (texto !== undefined) nodo.textContent = texto;
+    return nodo;
+  }
+
+  /* Texto SVG "base_sub resto": el subíndice se dibuja con tspan para no depender de la fuente. */
+  function svgConSubindice(atributos, base, sub, resto = "") {
+    const nodo = svg("text", atributos, base);
+    nodo.append(svg("tspan", { dy: 3, "font-size": "75%" }, sub), svg("tspan", { dy: -3 }, resto));
+    return nodo;
+  }
+
+  async function pedir(ruta, datos, signal) {
+    const respuesta = await fetch(`/api/regla-falsa/${ruta}`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(datos), signal,
+    });
+    const cuerpo = await respuesta.json();
+    if (!respuesta.ok || cuerpo.error) throw new Error(cuerpo.error || "No se pudo completar la operación.");
+    return cuerpo;
+  }
+
+  function insignia(nodo, texto, clase = "") {
+    nodo.className = `badge ${clase}`.trim();
+    nodo.textContent = texto;
+  }
+
+  /* Gráfica interactiva compartida por los cuatro pasos. Cada paso añade una capa:
+     la curva (1), discontinuidades e intervalos (2-3) y secantes con la raíz (4). */
+  function crearGrafica({ contenedor, controles, lectura, leyenda, nivelZoom, botones }, avisos = {}) {
+    const lienzo = svg("svg", { viewBox: "0 0 600 330", role: "img", tabindex: "0" });
+    const titulo = svg("title");
+    const defs = svg("defs");
+    const recorte = svg("clipPath", { id: "rf-plot-clip" });
+    recorte.append(svg("rect", { x: MARCO.x, y: MARCO.y, width: MARCO.ancho, height: MARCO.alto }));
+    defs.append(recorte);
+    const capaRejilla = svg("g");
+    const capaFondo = svg("g", { "clip-path": "url(#rf-plot-clip)" });
+    const curva = svg("path", { fill: "none", "stroke-width": "2", class: "bis-curve", "clip-path": "url(#rf-plot-clip)" });
+    const capaMarcas = svg("g", { "clip-path": "url(#rf-plot-clip)" });
+    lienzo.append(titulo, defs, capaRejilla, capaFondo, curva, capaMarcas);
+    contenedor.replaceChildren(lienzo);
+
+    const g = { funcion: null, puntos: [], vista: null, base: null, analisis: null,
+      intervalo: null, resultado: null, marcando: false, provisional: null };
+    const abajo = MARCO.y + MARCO.alto, derecha = MARCO.x + MARCO.ancho;
+    let temporizador = null, aborto = null, turno = 0;
+
+    function dibujar() {
+      if (!g.vista) return;
+      const e = crearEscala(g.vista);
+      const { xMin, xMax, yMin, yMax } = g.vista;
+
+      const rejilla = [];
+      for (const valor of marcas(xMin, xMax, 6)) {
+        const px = e.x(valor);
+        rejilla.push(svg("line", { x1: px, x2: px, y1: MARCO.y, y2: abajo, class: "rf-grid" }),
+          svg("text", { x: px, y: abajo + 16, "text-anchor": "middle", class: "rf-tick" }, formatear(valor, 6)));
+      }
+      for (const valor of marcas(yMin, yMax, 5)) {
+        const py = e.y(valor);
+        rejilla.push(svg("line", { x1: MARCO.x, x2: derecha, y1: py, y2: py, class: "rf-grid" }),
+          svg("text", { x: MARCO.x - 6, y: py + 3.5, "text-anchor": "end", class: "rf-tick" }, formatear(valor, 4)));
+      }
+      if (yMin <= 0 && yMax >= 0) {
+        rejilla.push(svg("line", { x1: MARCO.x, x2: derecha, y1: e.y(0), y2: e.y(0), class: "bis-axis-zero" }));
+      }
+      if (xMin <= 0 && xMax >= 0) {
+        rejilla.push(svg("line", { x1: e.x(0), x2: e.x(0), y1: MARCO.y, y2: abajo, class: "bis-axis-zero" }));
+      }
+      rejilla.push(svg("rect", { x: MARCO.x, y: MARCO.y, width: MARCO.ancho, height: MARCO.alto, fill: "none", stroke: "currentColor", "stroke-opacity": ".4" }),
+        svg("text", { x: derecha, y: abajo + 34, "text-anchor": "end", class: "rf-tick" }, "x"),
+        svg("text", { x: MARCO.x, y: 9, "text-anchor": "end", class: "rf-tick" }, "f(x)"));
+      capaRejilla.replaceChildren(...rejilla);
+
+      const fondo = [], marcasResultado = [];
+      const banda = (desde, hasta, clase, alto = MARCO.alto) => {
+        const x1 = Math.max(MARCO.x, e.x(desde)), x2 = Math.min(derecha, e.x(hasta));
+        if (x2 > x1) fondo.push(svg("rect", { x: x1, y: abajo - alto, width: x2 - x1, height: alto, class: clase }));
+      };
+      const vertical = (x, clase, destino = fondo) => {
+        const px = e.x(x);
+        if (px >= MARCO.x && px <= derecha) destino.push(svg("line", { x1: px, x2: px, y1: MARCO.y, y2: abajo, class: clase }));
+        return px;
+      };
+      capaFondo.replaceChildren(...fondo);
+      curva.setAttribute("d", caminoCurva(g.puntos, e));
+      capaMarcas.replaceChildren(...marcasResultado);
+
+      nivelZoom.textContent = `${Math.round((g.base.xMax - g.base.xMin) / (xMax - xMin) * 100)}%`;
+      const descripcion = `Gráfica de f(x) = ${g.funcion} para x entre ${formatear(xMin, 6)} y ${formatear(xMax, 6)}.`;
+      titulo.textContent = descripcion;
+      lienzo.setAttribute("aria-label", descripcion);
+    }
+
+    /* Pide al servidor las muestras de la vista actual tras un zoom o un desplazamiento. */
+    function muestrear(ajustarVertical = false) {
+      clearTimeout(temporizador);
+      aborto?.abort();
+      const actual = ++turno;
+      temporizador = setTimeout(async () => {
+        aborto = new AbortController();
+        try {
+          const datos = await pedir("graficar", { funcion: g.funcion, a: g.vista.xMin, b: g.vista.xMax, cantidad: 401 }, aborto.signal);
+          if (actual !== turno || !g.vista) return;
+          g.puntos = datos.grafica;
+          if (ajustarVertical) [g.vista.yMin, g.vista.yMax] = rangoVertical(g.puntos);
+          dibujar();
+        } catch (_) { /* se conserva el trazo anterior */ }
+      }, 120);
+    }
+
+    function posicion(evento) {
+      const caja = lienzo.getBoundingClientRect();
+      return [(evento.clientX - caja.left) / caja.width * 600, (evento.clientY - caja.top) / caja.height * 330];
+    }
+
+    function acercar(factor, px = MARCO.x + MARCO.ancho / 2, py = MARCO.y + MARCO.alto / 2) {
+      if (!g.vista) return;
+      const ampliacion = (g.base.xMax - g.base.xMin) / (g.vista.xMax - g.vista.xMin) * factor;
+      if (ampliacion < 0.05 || ampliacion > 1e6) return;
+      const e = crearEscala(g.vista);
+      const tx = Math.max(0, Math.min(1, (px - MARCO.x) / MARCO.ancho));
+      const ty = Math.max(0, Math.min(1, (py - MARCO.y) / MARCO.alto));
+      const fx = e.xInversa(MARCO.x + tx * MARCO.ancho), fy = e.yInversa(MARCO.y + ty * MARCO.alto);
+      const anchoX = (g.vista.xMax - g.vista.xMin) / factor, anchoY = (g.vista.yMax - g.vista.yMin) / factor;
+      g.vista.xMin = fx - tx * anchoX;
+      g.vista.xMax = g.vista.xMin + anchoX;
+      g.vista.yMax = fy + ty * anchoY;
+      g.vista.yMin = g.vista.yMax - anchoY;
+      dibujar();
+      muestrear();
+    }
+
+    function desplazar(dx, dy) {
+      const mx = -(dx / MARCO.ancho) * (g.vista.xMax - g.vista.xMin);
+      const my = (dy / MARCO.alto) * (g.vista.yMax - g.vista.yMin);
+      g.vista.xMin += mx; g.vista.xMax += mx; g.vista.yMin += my; g.vista.yMax += my;
+      dibujar();
+    }
+
+    function restablecer() {
+      if (!g.base) return;
+      g.vista = { ...g.base };
+      dibujar();
+      muestrear(true);
+    }
+
+    let arrastre = null;
+    lienzo.addEventListener("pointerdown", evento => {
+      if (!g.vista || (evento.pointerType === "mouse" && evento.button !== 0)) return;
+      const [px, py] = posicion(evento);
+      arrastre = { px, py, inicioX: px, movido: false };
+      try { lienzo.setPointerCapture(evento.pointerId); } catch (_) { /* puntero sin captura */ }
+      if (!g.marcando) lienzo.classList.add("bis-panning");
+    });
+    lienzo.addEventListener("pointermove", evento => {
+      if (!g.vista) return;
+      const [px, py] = posicion(evento);
+      const e = crearEscala(g.vista);
+      const x = e.xInversa(Math.max(MARCO.x, Math.min(derecha, px)));
+      const y = interpolar(g.puntos, x);
+      lectura.textContent = `x = ${formatear(x, 6)} · f(x) ≈ ${y === null ? "—" : formatear(y, 6)}`;
+      if (!arrastre) return;
+      if (Math.abs(px - arrastre.inicioX) > 3) arrastre.movido = true;
+      desplazar(px - arrastre.px, py - arrastre.py);
+      arrastre.px = px; arrastre.py = py;
+    });
+    function soltar(evento) {
+      if (!arrastre) return;
+      const { movido } = arrastre;
+      arrastre = null;
+      lienzo.classList.remove("bis-panning");
+      try { lienzo.releasePointerCapture(evento.pointerId); } catch (_) { /* ya liberado */ }
+      if (movido) muestrear();
+    }
+    lienzo.addEventListener("pointerup", soltar);
+    lienzo.addEventListener("pointercancel", soltar);
+    lienzo.addEventListener("pointerleave", () => { if (!arrastre) lectura.textContent = ""; });
+    lienzo.addEventListener("wheel", evento => {
+      if (!g.vista) return;
+      evento.preventDefault();
+      acercar(evento.deltaY < 0 ? 1.25 : 1 / 1.25, ...posicion(evento));
+    }, { passive: false });
+    lienzo.addEventListener("dblclick", restablecer);
+    lienzo.addEventListener("keydown", evento => {
+      if (!g.vista) return;
+      const teclas = {
+        "+": () => acercar(1.25), "=": () => acercar(1.25), "-": () => acercar(1 / 1.25),
+        "0": restablecer,
+        ArrowLeft: () => { desplazar(25, 0); muestrear(); }, ArrowRight: () => { desplazar(-25, 0); muestrear(); },
+        ArrowUp: () => { desplazar(0, 25); muestrear(); }, ArrowDown: () => { desplazar(0, -25); muestrear(); },
+      };
+      if (teclas[evento.key]) { evento.preventDefault(); teclas[evento.key](); }
+    });
+    botones.acercar.addEventListener("click", () => acercar(1.3));
+    botones.alejar.addEventListener("click", () => acercar(1 / 1.3));
+    botones.restablecer.addEventListener("click", restablecer);
+
+    return {
+      /* Paso 1: muestra la curva en la región de interés. */
+      mostrar(datos) {
+        const [a, b] = datos.intervalo;
+        const [yMin, yMax] = rangoVertical(datos.grafica);
+        Object.assign(g, { funcion: datos.funcion, puntos: datos.grafica, analisis: null, intervalo: null,
+          resultado: null, provisional: null, base: { xMin: a, xMax: b, yMin, yMax } });
+        g.vista = { ...g.base };
+        contenedor.hidden = controles.hidden = leyenda.hidden = false;
+        dibujar();
+      },
+      limpiar() {
+        clearTimeout(temporizador);
+        aborto?.abort();
+        turno++;
+        g.vista = null;
+        lectura.textContent = "";
+        contenedor.hidden = controles.hidden = leyenda.hidden = true;
+      },
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const panel = document.getElementById("tab-regla-falsa");
+    if (!panel) return;
+    const el = id => document.getElementById(id);
+    const formFuncion = el("rf-form-funcion");
+    const tarjetas = [1, 2, 3, 4].map(n => el(`rf-card-${n}`));
+    const estados = [1, 2, 3, 4].map(n => el(`rf-status-${n}`));
+    const pasos = [...panel.querySelectorAll(".rf-step")];
+    const tarjetaTabla = el("rf-table-card");
+    const preview = el("rf-preview-math"), previewEstado = el("rf-preview-status");
+    const estado = { version: 0, funcion: null, analisis: null, aborto: null };
+    // Los errores del paso 1 tienen su propio aviso: la vista previa reescribe su texto de estado.
+    const errorFuncion = crear("p", undefined, "bis-message bis-error");
+    errorFuncion.setAttribute("role", "alert");
+    errorFuncion.hidden = true;
+    formFuncion.append(errorFuncion);
+    let previewTemporizador = null, previewAborto = null, previewVersion = 0;
+
+    const grafica = crearGrafica({
+      contenedor: el("rf-plot"), controles: el("rf-graph-controls"), lectura: el("rf-readout"),
+      leyenda: el("rf-legend"), nivelZoom: el("rf-zoom-level"),
+      botones: { acercar: el("rf-zoom-in"), alejar: el("rf-zoom-out"), restablecer: el("rf-zoom-reset") },
+    });
+
+    /* Muestra las tarjetas hasta el paso alcanzado y actualiza el indicador de progreso.
+       "completo" marca también el último paso como terminado. */
+    function fijarPaso(alcanzado, completo = false) {
+      tarjetas.forEach((tarjeta, i) => { tarjeta.hidden = i + 1 > alcanzado; });
+      pasos.forEach((paso, i) => {
+        const numero = i + 1;
+        paso.classList.toggle("is-done", numero < alcanzado || (completo && numero === alcanzado));
+        if (numero === alcanzado && !completo) paso.setAttribute("aria-current", "step");
+        else paso.removeAttribute("aria-current");
+        paso.querySelector("button").disabled = numero > alcanzado;
+      });
+    }
+
+    /* Cualquier cambio en un paso invalida los posteriores: se ocultan y se cancela lo pendiente.
+       "visible" es el último paso que sigue a la vista (por defecto, el anterior al reiniciado). */
+    function reiniciarDesde(paso, visible = Math.max(1, paso - 1)) {
+      estado.version++;
+      estado.aborto?.abort();
+      estado.aborto = null;
+      panel.querySelectorAll(".rf-action").forEach(boton => { boton.disabled = false; });
+      for (let n = paso; n <= 4; n++) insignia(estados[n - 1], "Pendiente");
+      tarjetaTabla.hidden = true;
+      el("rf-table").replaceChildren();
+      el("rf-result").replaceChildren();
+      if (paso <= 2) {
+        estado.funcion = estado.analisis = null;
+        errorFuncion.hidden = true;
+        grafica.limpiar();
+        insignia(estados[0], "Pendiente");
+      }
+      fijarPaso(visible);
+    }
+
+    /* Ejecuta la petición de un paso con su botón deshabilitado; descarta respuestas obsoletas. */
+    async function ejecutar(numero, boton, ruta, datos, alTerminar) {
+      const version = estado.version;
+      estado.aborto = new AbortController();
+      boton.disabled = true;
+      insignia(estados[numero - 1], "Calculando…");
+      try {
+        const respuesta = await pedir(ruta, datos, estado.aborto.signal);
+        if (version !== estado.version) return;
+        alTerminar(respuesta);
+      } catch (error) {
+        if (version !== estado.version || error.name === "AbortError") return;
+        insignia(estados[numero - 1], "Revise los datos", "badge-error");
+        mostrarError(numero, error.message);
+      } finally {
+        if (version === estado.version) boton.disabled = false;
+      }
+    }
+
+    function mostrarError(numero, mensaje) {
+      if (numero === 1) {
+        errorFuncion.textContent = mensaje;
+        errorFuncion.hidden = false;
+        return;
+      }
+      const destino = { 2: el("rf-continuity"), 3: el("rf-validation"), 4: el("rf-result") }[numero];
+      destino.replaceChildren(crear("p", mensaje, "bis-message bis-error"));
+    }
+
+    function revelar(nodo) {
+      requestAnimationFrame(() => nodo.scrollIntoView?.({ block: "nearest", behavior: "smooth" }));
+    }
+
+    function actualizarPreview() {
+      clearTimeout(previewTemporizador);
+      previewAborto?.abort();
+      const actual = ++previewVersion;
+      const funcion = formFuncion.elements.funcion.value.trim();
+      preview.replaceChildren();
+      if (!funcion) {
+        previewEstado.textContent = "Escriba una función para ver su representación matemática.";
+        return;
+      }
+      previewEstado.textContent = "Actualizando vista matemática…";
+      previewTemporizador = setTimeout(async () => {
+        previewAborto = new AbortController();
+        try {
+          const datos = await pedir("preview", { funcion }, previewAborto.signal);
+          if (actual !== previewVersion) return;
+          renderLatexElement(preview, `f(x) = ${datos.latex}`, true);
+          previewEstado.textContent = "Vista de la función escrita. Presione «Graficar función» para estudiarla en la región.";
+        } catch (error) {
+          if (actual !== previewVersion || error.name === "AbortError") return;
+          previewEstado.textContent = "Complete la expresión para actualizar la vista matemática.";
+        }
+      }, 200);
+    }
+
+    /* PASO 1: la función se grafica en la región de interés. */
+    formFuncion.addEventListener("input", () => reiniciarDesde(2));
+    formFuncion.elements.funcion.addEventListener("input", actualizarPreview);
+    formFuncion.addEventListener("submit", evento => {
+      evento.preventDefault();
+      reiniciarDesde(2);
+      const datos = Object.fromEntries(new FormData(formFuncion));
+      ejecutar(1, el("rf-graficar"), "graficar", datos, respuesta => {
+        estado.funcion = respuesta.funcion;
+        estado.region = respuesta.intervalo;
+        grafica.mostrar(respuesta);
+        insignia(estados[0], "Gráfica lista", "badge-success");
+        previewEstado.textContent = `Gráfica de la función en la región [${formatear(respuesta.intervalo[0], 6)}, ${formatear(respuesta.intervalo[1], 6)}].`;
+      });
+    });
+
+    fijarPaso(1);
+    actualizarPreview();
+  });
 })();
