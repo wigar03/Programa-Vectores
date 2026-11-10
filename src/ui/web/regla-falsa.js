@@ -470,6 +470,7 @@
       tarjetaTabla.hidden = true;
       el("rf-table").replaceChildren();
       el("rf-result").replaceChildren();
+      if (paso <= 3) el("rf-validation").replaceChildren();
       if (paso <= 2) {
         estado.funcion = estado.analisis = null;
         errorFuncion.hidden = true;
@@ -654,7 +655,62 @@
 
     el("rf-mark").addEventListener("click", () => activarMarcado(el("rf-mark").getAttribute("aria-pressed") !== "true"));
     formIntervalo.addEventListener("input", () => { reiniciarDesde(3); sincronizarIntervalo(); });
-    formIntervalo.addEventListener("submit", evento => evento.preventDefault()); // el envío se conecta en el paso 3
+
+    /* PASO 3: el intervalo se envía a la calculadora, que comprueba f(x_l)·f(x_u) < 0 y la continuidad. */
+    formIntervalo.addEventListener("submit", evento => {
+      evento.preventDefault();
+      reiniciarDesde(3);
+      sincronizarIntervalo();
+      fijarPaso(3);
+      el("rf-validation").replaceChildren(crear("p", "Comprobando el intervalo…", "placeholder-text"));
+      const datos = { funcion: estado.funcion, ...Object.fromEntries(new FormData(formIntervalo)) };
+      ejecutar(3, el("rf-enviar"), "validar", datos, validacion => {
+        estado.validacion = validacion;
+        grafica.fijarIntervalo([validacion.xl, validacion.xu]);
+        renderizarValidacion(validacion);
+        insignia(estados[2], validacion.valido ? "Intervalo válido" : "Intervalo no válido", validacion.valido ? "badge-success" : "badge-error");
+        revelar(tarjetas[2]);
+      });
+    });
+
+    function renderizarValidacion(v) {
+      const resumen = crear("dl", undefined, "bis-summary");
+      for (const [etiqueta, valor] of [["$x_l$", v.xl], ["$x_u$", v.xu], ["$f(x_l)$", v.f_xl], ["$f(x_u)$", v.f_xu]]) {
+        const grupo = crear("div", undefined, "bis-stat");
+        const cifra = crear("dd");
+        cifra.title = String(valor);
+        renderLatexElement(cifra, numeroLatex(valor), false);
+        grupo.append(crearMixto("dt", etiqueta), cifra);
+        resumen.append(grupo);
+      }
+
+      const comprobaciones = crear("ul", undefined, "rf-checks");
+      const comprobar = (cumple, texto, detalle) => {
+        const fila = crear("li", undefined, `rf-check${cumple ? "" : " is-fail"}`);
+        const contenido = crearMixto("div", texto);
+        if (detalle) contenido.append(crearMixto("small", detalle));
+        fila.append(crear("span", cumple ? "✓" : "✗", "rf-check-mark"), contenido);
+        comprobaciones.append(fila);
+      };
+      const producto = v.producto === null ? "" : ` = ${numeroLatex(v.producto, 6)}`;
+      const signo = { negativo: "< 0", positivo: "> 0", cero: "= 0" }[v.signo_producto];
+      comprobar(v.cumple, `Cambio de signo: $f(x_l)\\cdot f(x_u)${producto} ${signo}$.`,
+        v.cumple ? "Los extremos tienen signos opuestos." : (v.raiz_en_extremo
+          ? "Un extremo ya anula la función: el producto es cero."
+          : "Los extremos tienen el mismo signo: el intervalo no encierra una raíz de forma garantizada."));
+      const discontinuidades = v.continuidad.discontinuidades;
+      comprobar(v.continuidad.continua, `Continuidad en $[${numeroLatex(v.xl, 8)},\\; ${numeroLatex(v.xu, 8)}]$: ${v.continuidad.continua ? "sin discontinuidades detectadas" : "se detectó una discontinuidad"}.`,
+        discontinuidades.slice(0, 3).map(describirDiscontinuidad).join(" "));
+
+      const mensajes = {
+        valido: "El intervalo cumple las condiciones del Teorema del Valor Intermedio: contiene al menos una raíz. Ya puede ejecutar la regla falsa.",
+        raiz_en_extremo: `$f(${v.raiz_en_extremo === "xl" ? "x_l" : "x_u"}) = 0$: ese extremo ya es una raíz. El método lo informará sin iterar.`,
+        sin_cambio_de_signo: "El intervalo no cumple la condición obligatoria $f(x_l)\\cdot f(x_u) < 0$. Elija otro intervalo en el paso 2.",
+        discontinua: "Hay cambio de signo, pero lo provoca una discontinuidad y no una raíz: el teorema no aplica. Elija en el paso 2 un intervalo donde $f$ sea continua.",
+      };
+      el("rf-validation").replaceChildren(resumen, comprobaciones,
+        crearMixto("p", mensajes[v.estado], `bis-message${v.valido ? "" : " bis-error"}`));
+    }
 
     fijarPaso(1);
     actualizarPreview();
