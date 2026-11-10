@@ -9,6 +9,9 @@ import math
 
 from ..biseccion.expresiones import Expresion, numero_real
 
+# Iteraciones consecutivas con el mismo extremo fijo a partir de las cuales se avisa.
+UMBRAL_ESTANCAMIENTO = 10
+
 
 def falsa_posicion(xl, xu, f_xl, f_xu):
     """x_r = x_u − f(x_u)·(x_l − x_u) / (f(x_l) − f(x_u)), por triángulos semejantes."""
@@ -64,6 +67,10 @@ def resolver_regla_falsa(funcion, xl, xu, tolerancia=0.0001, max_iteraciones=100
     ε_a = |x_r − x_r_anterior| / |x_r| · 100 %; la tolerancia se expresa en %.
     Reemplazo: si f(x_l)·f(x_r) < 0, x_u ← x_r; si es > 0, x_l ← x_r; si es 0, x_r es raíz.
     No se redondean los valores usados en las iteraciones.
+
+    Estancamiento: en curvas muy convexas o cóncavas un extremo queda fijo y la
+    convergencia se vuelve unilateral y lenta. Se informa el extremo retenido durante
+    la racha más larga cuando alcanza UMBRAL_ESTANCAMIENTO iteraciones seguidas.
     """
     f = Expresion(funcion)
     tolerancia = numero_real(tolerancia, "La tolerancia")
@@ -76,13 +83,18 @@ def resolver_regla_falsa(funcion, xl, xu, tolerancia=0.0001, max_iteraciones=100
     xl, xu, f_xl, f_xu = previa["xl"], previa["xu"], previa["f_xl"], previa["f_xu"]
     inicial = [xl, xu]
     pasos = []
+    racha = {"extremo": None, "actual": 0, "mayor": 0, "extremo_mayor": None}
 
     def resultado(xr, f_xr, motivo, convergio, error):
+        estancamiento = None
+        if racha["mayor"] >= UMBRAL_ESTANCAMIENTO:
+            estancamiento = {"extremo": racha["extremo_mayor"], "iteraciones": racha["mayor"]}
         return {
             "funcion": f.texto, "intervalo_inicial": inicial,
             "intervalo_final": [xl, xu], "raiz": xr, "f_raiz": f_xr,
             "residuo": abs(f_xr), "error_relativo": error,
             "tolerancia": tolerancia, "convergio": convergio, "motivo": motivo,
+            "estancamiento": estancamiento,
             "iteraciones": len(pasos), "pasos": pasos,
         }
 
@@ -130,6 +142,12 @@ def resolver_regla_falsa(funcion, xl, xu, tolerancia=0.0001, max_iteraciones=100
             xu, f_xu = xr, f_xr
         elif reemplazo == "xl":
             xl, f_xl = xr, f_xr
+        if reemplazo:
+            fijo = "xl" if reemplazo == "xu" else "xu"
+            racha["actual"] = racha["actual"] + 1 if fijo == racha["extremo"] else 1
+            racha["extremo"] = fijo
+            if racha["actual"] > racha["mayor"]:
+                racha["mayor"], racha["extremo_mayor"] = racha["actual"], fijo
         if motivo:
             return resultado(xr, f_xr, motivo, convergio, error_rel)
         anterior = xr
