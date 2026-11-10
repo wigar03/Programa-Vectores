@@ -27,7 +27,7 @@
     <header class="main-header">
       <div class="header-brand">
         <h1>Calculadora</h1>
-        <p class="subtitle" id="header-subtitle" data-math>Vectores en $\mathbb{R}^n$, Combinación Lineal, Matrices, Inversa $A^{-1}$, Ecuaciones $Ax=b$, Determinante $|A|$ y Bisección</p>
+        <p class="subtitle" id="header-subtitle" data-math>Vectores en $\mathbb{R}^n$, Combinación Lineal, Matrices, Inversa $A^{-1}$, Ecuaciones $Ax=b$, Determinante $|A|$, Bisección y Regla Falsa</p>
       </div>
       <div class="header-actions">
         <button id="btn-nav-toggle" class="btn-theme sidebar-toggle" type="button" aria-controls="module-sidebar" aria-expanded="false">
@@ -84,6 +84,10 @@
         <span class="nav-chapter" aria-hidden="true">07</span>
         <span class="tab-label">Método de Bisección</span>
       </button>
+      <button class="nav-tab" data-tab="tab-regla-falsa">
+        <span class="nav-chapter" aria-hidden="true">08</span>
+        <span class="tab-label">Método de Regla Falsa</span>
+      </button>
     </nav>
       <p class="sidebar-footer">Álgebra lineal y métodos numéricos</p>
     </aside>
@@ -99,7 +103,7 @@
             <h2 id="home-title">Cada problema tiene<br>su punto de partida.</h2>
             <p class="notebook-intro">Elija una herramienta para comenzar. En cada módulo encontrará las entradas, el procedimiento y la verificación del resultado.</p>
           </div>
-          <span class="home-folio" aria-hidden="true">Índice<br><span>01—07</span></span>
+          <span class="home-folio" aria-hidden="true">Índice<br><span>01—08</span></span>
         </header>
         <div class="home-index">
           <div class="home-subject">
@@ -133,6 +137,9 @@
           <div class="home-module-list">
             <button class="home-module" type="button" data-open-module="tab-biseccion">
               <span class="home-number">07</span><span class="home-module-copy"><strong>Método de bisección</strong><span>Editor de funciones, gráfica y tabla de iteraciones.</span></span><span class="home-formula" data-math>$f(x)=0$</span><span aria-hidden="true">↗</span>
+            </button>
+            <button class="home-module" type="button" data-open-module="tab-regla-falsa">
+              <span class="home-number">08</span><span class="home-module-copy"><strong>Método de la regla falsa</strong><span>Gráfica, continuidad, intervalos e iteraciones paso a paso.</span></span><span class="home-formula" data-math>$x_r$</span><span aria-hidden="true">↗</span>
             </button>
           </div>
         </div>
@@ -900,6 +907,208 @@
             <p class="bis-help" data-math>$\varepsilon_a=\left|\frac{c_i-c_{i-1}}{c_i}\right|\cdot100\%$. “—” indica que no está definido. Abra «Ver detalle» para consultar todas las evaluaciones y medidas de error de cada iteración.</p>
             <div id="bis-table" class="bis-table-scroll" role="region" aria-label="Iteraciones de bisección y detalles desplegables" tabindex="0"></div>
           </div>
+        </div>
+      </section>
+
+      <!-- APARTADO 8: REGLA FALSA (REGULA FALSI), FLUJO PASO A PASO -->
+      <!-- Comparte el cuaderno de bisección (.biseccion-pane); lo propio vive en regla-falsa.css. -->
+      <section id="tab-regla-falsa" class="tab-pane biseccion-pane regla-falsa-pane" aria-label="Método de la Regla Falsa">
+        <header class="bis-notebook-heading">
+          <div>
+            <p class="bis-eyebrow">Métodos numéricos / búsqueda de raíces</p>
+            <h2>Método de la regla falsa</h2>
+            <p class="bis-intro">Grafique la función, compruebe su continuidad, elija un intervalo con cambio de signo y aproxime la raíz con la recta secante.</p>
+          </div>
+          <span class="bis-chapter" aria-label="Módulo 8">08</span>
+        </header>
+
+        <!-- Progreso del flujo: cada paso se habilita al completar el anterior. -->
+        <ol id="rf-steps" class="rf-steps" aria-label="Pasos del método de la regla falsa">
+          <li class="rf-step" data-rf-step="1" aria-current="step">
+            <button type="button" data-rf-goto="rf-card-1"><span class="rf-step-number">1</span><span class="rf-step-text">Función y gráfica</span></button>
+          </li>
+          <li class="rf-step" data-rf-step="2">
+            <button type="button" data-rf-goto="rf-card-2" disabled><span class="rf-step-number">2</span><span class="rf-step-text">Continuidad e intervalos</span></button>
+          </li>
+          <li class="rf-step" data-rf-step="3">
+            <button type="button" data-rf-goto="rf-card-3" disabled><span class="rf-step-number">3</span><span class="rf-step-text">Validación del intervalo</span></button>
+          </li>
+          <li class="rf-step" data-rf-step="4">
+            <button type="button" data-rf-goto="rf-card-4" disabled><span class="rf-step-number">4</span><span class="rf-step-text">Regla falsa</span></button>
+          </li>
+        </ol>
+
+        <div class="rf-layout">
+          <div class="rf-column">
+            <!-- PASO 1: ENTRADA DE LA ECUACIÓN Y GRÁFICA -->
+            <div id="rf-card-1" class="card rf-card">
+              <div class="card-header">
+                <h3><span class="bis-section-number">01</span> Función y gráfica</h3>
+                <span id="rf-status-1" class="badge" role="status" aria-live="polite">Pendiente</span>
+              </div>
+              <form id="rf-form-funcion" class="rf-form">
+                <div>
+                  <label class="field-label" for="rf-funcion" data-math>Función $f(x)$</label>
+                  <div class="bis-formula-editor">
+                    <input id="rf-funcion" name="funcion" class="bis-input bis-expression" type="text"
+                      value="x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10" required maxlength="500"
+                      autocomplete="off" spellcheck="false" aria-describedby="rf-syntax">
+                    <div class="bis-preview" aria-label="Representación matemática de la función escrita">
+                      <div id="rf-preview-math" class="bis-preview-math" aria-live="polite" aria-atomic="true"></div>
+                      <p id="rf-preview-status" class="bis-help" role="status">La ecuación se actualiza mientras escribe.</p>
+                    </div>
+                    <div class="bis-keyboard-toolbar">
+                      <span id="rf-keyboard-label">Teclado matemático</span>
+                      <button id="rf-keyboard-toggle" class="btn-text" type="button" aria-expanded="false" aria-controls="rf-keyboard">Mostrar teclas</button>
+                    </div>
+                    <div id="rf-keyboard" class="bis-keyboard" role="group" aria-labelledby="rf-keyboard-label" hidden></div>
+                    <p id="rf-keyboard-status" class="sr-only" role="status"></p>
+                  </div>
+                  <p id="rf-syntax" class="bis-help">Use * para multiplicar y ^ para potencias. Funciones: sin, cos, tan, exp, ln (natural), log (base 10), sqrt y abs. Constantes: pi y e. Ángulos en radianes.</p>
+                </div>
+                <fieldset class="rf-region">
+                  <legend class="field-label">Región de interés</legend>
+                  <div class="bis-fields">
+                    <div>
+                      <label class="field-label" for="rf-a" data-math>Desde $x=$</label>
+                      <input id="rf-a" name="a" class="bis-input" type="text" value="0" required aria-describedby="rf-region-help">
+                    </div>
+                    <div>
+                      <label class="field-label" for="rf-b" data-math>Hasta $x=$</label>
+                      <input id="rf-b" name="b" class="bis-input" type="text" value="6" required aria-describedby="rf-region-help">
+                    </div>
+                  </div>
+                  <p id="rf-region-help" class="bis-help">La gráfica, la continuidad y los intervalos se estudian dentro de esta región. Admite decimales con punto, fracciones (1/2) y notación científica (1e-4).</p>
+                </fieldset>
+                <button id="rf-graficar" type="submit" class="btn-primary rf-action">
+                  <i data-lucide="line-chart" class="btn-icon"></i><span>Graficar función</span>
+                </button>
+              </form>
+              <div class="card-footer-actions">
+                <div class="sample-actions">
+                  <button type="button" class="btn-text" data-rf-example="referencia">Ejemplo de referencia</button>
+                  <button type="button" class="btn-text" data-rf-example="potencia" data-math>$x^{10}-1$ (estancamiento)</button>
+                  <button type="button" class="btn-text" data-rf-example="tangente" data-math>$\tan(x)$ (discontinua)</button>
+                </div>
+                <button id="rf-clear" type="button" class="btn-clear">
+                  <i data-lucide="trash-2" class="btn-icon"></i><span>Limpiar</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- PASO 2: ANÁLISIS DE CONTINUIDAD Y SELECCIÓN DE INTERVALOS -->
+            <div id="rf-card-2" class="card rf-card" hidden>
+              <div class="card-header">
+                <h3><span class="bis-section-number">02</span> Continuidad e intervalos</h3>
+                <span id="rf-status-2" class="badge" role="status" aria-live="polite">Pendiente</span>
+              </div>
+              <div id="rf-continuity" class="rf-continuity" aria-live="polite"></div>
+              <div class="rf-candidates-block">
+                <p class="field-label" id="rf-candidates-label">Intervalos con cambio de signo</p>
+                <div id="rf-candidates" class="rf-candidates" role="group" aria-labelledby="rf-candidates-label"></div>
+              </div>
+              <form id="rf-form-intervalo" class="rf-form">
+                <div class="bis-fields">
+                  <div>
+                    <label class="field-label" for="rf-xl" data-math>Límite inferior ($x_l$)</label>
+                    <input id="rf-xl" name="xl" class="bis-input" type="text" required autocomplete="off" aria-describedby="rf-interval-help">
+                  </div>
+                  <div>
+                    <label class="field-label" for="rf-xu" data-math>Límite superior ($x_u$)</label>
+                    <input id="rf-xu" name="xu" class="bis-input" type="text" required autocomplete="off" aria-describedby="rf-interval-help">
+                  </div>
+                </div>
+                <p id="rf-interval-help" class="bis-help">Elija un intervalo sugerido, escriba los límites que observe en la gráfica o active «Marcar intervalo» y arrastre sobre el tramo que encierra la raíz.</p>
+                <button id="rf-enviar" type="submit" class="btn-primary rf-action">
+                  <i data-lucide="send" class="btn-icon"></i><span>Enviar intervalo a la calculadora</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- PASO 3: ENVÍO DE DATOS A LA CALCULADORA Y VALIDACIÓN -->
+            <div id="rf-card-3" class="card rf-card" hidden>
+              <div class="card-header">
+                <h3><span class="bis-section-number">03</span> Validación del intervalo</h3>
+                <span id="rf-status-3" class="badge" role="status" aria-live="polite">Pendiente</span>
+              </div>
+              <div class="bis-theory">
+                <strong>Teorema del Valor Intermedio</strong>
+                <p data-math>Si $f$ es continua en $[x_l, x_u]$ y $f(x_l)\cdot f(x_u) &lt; 0$, el intervalo contiene al menos una raíz real.</p>
+              </div>
+              <div id="rf-validation" class="rf-validation" aria-live="polite"></div>
+            </div>
+
+            <!-- PASO 4: EJECUCIÓN DEL MÉTODO -->
+            <div id="rf-card-4" class="card rf-card" hidden>
+              <div class="card-header">
+                <h3><span class="bis-section-number">04</span> Regla falsa</h3>
+                <span id="rf-status-4" class="badge" role="status" aria-live="polite">Pendiente</span>
+              </div>
+              <div class="bis-theory">
+                <strong>Falsa posición</strong>
+                <p data-math>$x_r = x_u - \dfrac{f(x_u)\,(x_l - x_u)}{f(x_l) - f(x_u)}$</p>
+                <p data-math>Si $f(x_l)\cdot f(x_r) &lt; 0$, $x_u \leftarrow x_r$; si es $&gt; 0$, $x_l \leftarrow x_r$; si es $0$, $x_r$ es la raíz.</p>
+              </div>
+              <form id="rf-form-metodo" class="rf-form">
+                <div class="bis-fields">
+                  <div>
+                    <label class="field-label" for="rf-tolerancia" data-math>Tolerancia $\varepsilon_s$ (%)</label>
+                    <input id="rf-tolerancia" name="tolerancia" class="bis-input" type="text" value="0.0001" required aria-describedby="rf-stop-help">
+                  </div>
+                  <div>
+                    <label class="field-label" for="rf-max">Máximo de iteraciones</label>
+                    <input id="rf-max" name="max_iteraciones" class="bis-input" type="number" value="100" min="1" max="1000" step="1" required>
+                  </div>
+                </div>
+                <p id="rf-stop-help" class="bis-help" data-math>Se detiene cuando $\varepsilon_a = \left|\dfrac{x_r^{\text{nuevo}} - x_r^{\text{anterior}}}{x_r^{\text{nuevo}}}\right|\cdot 100\% \le \varepsilon_s$ o al alcanzar el máximo de iteraciones.</p>
+                <button id="rf-resolver" type="submit" class="btn-primary rf-action">
+                  <i data-lucide="play" class="btn-icon"></i><span>Calcular raíz por regla falsa</span>
+                </button>
+              </form>
+              <div id="rf-result" class="result-box" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <!-- Gráfica: acompaña a los cuatro pasos y muestra al final la raíz calculada. -->
+          <div class="card bis-graph-card rf-graph-card">
+            <div class="card-header">
+              <h3>Gráfica de la función</h3>
+              <div id="rf-graph-controls" class="bis-graph-controls" hidden>
+                <button type="button" id="rf-mark" class="rf-mark-toggle" aria-pressed="false" title="Arrastre sobre la gráfica para definir el intervalo">
+                  <i data-lucide="move-horizontal"></i><span>Marcar intervalo</span>
+                </button>
+                <div class="bis-zoom-group" role="group" aria-label="Controles de zoom de la gráfica">
+                  <button type="button" class="btn-bis-zoom" id="rf-zoom-in" title="Acercar" aria-label="Acercar gráfica">
+                    <i data-lucide="zoom-in"></i>
+                  </button>
+                  <span id="rf-zoom-level" class="bis-zoom-level" aria-live="polite" title="Nivel de zoom actual">100%</span>
+                  <button type="button" class="btn-bis-zoom" id="rf-zoom-out" title="Alejar" aria-label="Alejar gráfica">
+                    <i data-lucide="zoom-out"></i>
+                  </button>
+                  <button type="button" class="btn-bis-zoom" id="rf-zoom-reset" title="Restablecer la región completa" aria-label="Restablecer la región completa">
+                    <i data-lucide="rotate-ccw"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div id="rf-plot" class="bis-plot rf-plot" hidden></div>
+            <p class="bis-plot-placeholder placeholder-text">Escriba la función y presione «Graficar función» para verla en el plano cartesiano.</p>
+            <p id="rf-readout" class="rf-readout" aria-hidden="true"></p>
+            <ul id="rf-legend" class="rf-legend" hidden>
+              <li><span class="rf-swatch rf-swatch-curve"></span><span data-math>$f(x)$</span></li>
+              <li><span class="rf-swatch rf-swatch-break"></span>Discontinuidad</li>
+              <li><span class="rf-swatch rf-swatch-candidate"></span>Intervalo sugerido</li>
+              <li><span class="rf-swatch rf-swatch-interval"></span><span data-math>$[x_l, x_u]$ elegido</span></li>
+              <li><span class="rf-swatch rf-swatch-secant"></span>Rectas secantes</li>
+              <li><span class="rf-swatch rf-swatch-root"></span>Raíz calculada</li>
+            </ul>
+          </div>
+        </div>
+
+        <div id="rf-table-card" class="card bis-table-card rf-table-card" hidden>
+          <div class="card-header"><h3><span class="bis-section-number">05</span> Tabla de iteraciones</h3></div>
+          <p class="bis-help" data-math>En cada fila, $x_r$ es el corte con el eje $X$ de la recta que une $(x_l, f(x_l))$ y $(x_u, f(x_u))$. “—” indica que $\varepsilon_a$ aún no está definido. Sitúe el cursor sobre una cifra para ver su valor completo.</p>
+          <div id="rf-table" class="bis-table-scroll" role="region" aria-label="Iteraciones de la regla falsa" tabindex="0"></div>
         </div>
       </section>
     </main>
