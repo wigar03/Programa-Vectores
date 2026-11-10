@@ -56,3 +56,80 @@ def validar_intervalo(funcion, xl, xu):
         "signo_producto": {-1: "negativo", 0: "cero", 1: "positivo"}[signo],
         "cumple": signo < 0, "raiz_en_extremo": raiz_en_extremo, "estado": estado,
     }
+
+
+def resolver_regla_falsa(funcion, xl, xu, tolerancia=0.0001, max_iteraciones=100):
+    """Itera la falsa posición hasta que ε_a ≤ tolerancia o se agota el límite.
+
+    ε_a = |x_r − x_r_anterior| / |x_r| · 100 %; la tolerancia se expresa en %.
+    Reemplazo: si f(x_l)·f(x_r) < 0, x_u ← x_r; si es > 0, x_l ← x_r; si es 0, x_r es raíz.
+    No se redondean los valores usados en las iteraciones.
+    """
+    f = Expresion(funcion)
+    tolerancia = numero_real(tolerancia, "La tolerancia")
+    limite = numero_real(max_iteraciones, "El máximo de iteraciones")
+    if tolerancia <= 0:
+        raise ValueError("La tolerancia debe ser mayor que cero.")
+    if not limite.is_integer() or not 1 <= limite <= 1000:
+        raise ValueError("El máximo de iteraciones debe ser un entero entre 1 y 1000.")
+    previa = validar_intervalo(f, xl, xu)
+    xl, xu, f_xl, f_xu = previa["xl"], previa["xu"], previa["f_xl"], previa["f_xu"]
+    inicial = [xl, xu]
+    pasos = []
+
+    def resultado(xr, f_xr, motivo, convergio, error):
+        return {
+            "funcion": f.texto, "intervalo_inicial": inicial,
+            "intervalo_final": [xl, xu], "raiz": xr, "f_raiz": f_xr,
+            "residuo": abs(f_xr), "error_relativo": error,
+            "tolerancia": tolerancia, "convergio": convergio, "motivo": motivo,
+            "iteraciones": len(pasos), "pasos": pasos,
+        }
+
+    if previa["raiz_en_extremo"]:
+        xr, f_xr = (xl, f_xl) if previa["raiz_en_extremo"] == "xl" else (xu, f_xu)
+        return resultado(xr, f_xr, "raiz_en_extremo", True, None)
+    if not previa["cumple"]:
+        raise ValueError("Los extremos deben tener signos opuestos: f(x_l)·f(x_u) < 0. Pruebe otro intervalo.")
+
+    anterior = None
+    for numero in range(1, int(limite) + 1):
+        xr = falsa_posicion(xl, xu, f_xl, f_xu)
+        # El redondeo puede sacar a x_r del intervalo abierto; ya no hay progreso posible.
+        agotado = not math.isfinite(xr) or not xl < xr < xu
+        if agotado:
+            xr = min(max(xr, xl), xu) if math.isfinite(xr) else xu
+        f_xr = f(xr)
+        error_abs = None if anterior is None else abs(xr - anterior)
+        error_rel = None
+        if error_abs is not None and xr != 0:
+            porcentaje = error_abs / abs(xr) * 100
+            if math.isfinite(porcentaje):
+                error_rel = porcentaje
+        signo = _signo_producto(f_xl, f_xr)
+        if f_xr == 0:
+            motivo, convergio = "raiz_evaluada", True
+        elif error_rel is not None and error_rel <= tolerancia:
+            motivo, convergio = "tolerancia", True
+        elif agotado:
+            motivo, convergio = "precision_agotada", False
+        elif numero == int(limite):
+            motivo, convergio = "max_iteraciones", False
+        else:
+            motivo, convergio = None, False
+        reemplazo = None if signo == 0 else ("xu" if signo < 0 else "xl")
+        pasos.append({
+            "numero": numero, "xl": xl, "xu": xu, "f_xl": f_xl, "f_xu": f_xu,
+            "xr": xr, "f_xr": f_xr,
+            "error_absoluto": error_abs, "error_relativo": error_rel,
+            "signo_producto": {-1: "−", 0: "0", 1: "+"}[signo],
+            "decision": "Finalizar" if motivo else ("x_u ← x_r" if signo < 0 else "x_l ← x_r"),
+        })
+        # El intervalo final incorpora el último reemplazo: es el encierro más estrecho conocido.
+        if reemplazo == "xu":
+            xu, f_xu = xr, f_xr
+        elif reemplazo == "xl":
+            xl, f_xl = xr, f_xr
+        if motivo:
+            return resultado(xr, f_xr, motivo, convergio, error_rel)
+        anterior = xr
