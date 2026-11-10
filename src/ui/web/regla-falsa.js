@@ -105,11 +105,24 @@
     return Number(x.toFixed(decimales)) + 0;
   }
 
+  function describirDiscontinuidad(d) {
+    const x = numeroLatex(d.x, 8);
+    if (d.tipo === "asintota") return `Asíntota vertical en $x \\approx ${x}$.`;
+    if (d.tipo === "salto") return `Salto en $x \\approx ${x}$.`;
+    if (d.tipo === "punto_indefinido") return `$f$ no está definida en $x = ${x}$.`;
+    return `$f$ no está definida entre $x = ${numeroLatex(d.desde, 8)}$ y $x = ${numeroLatex(d.hasta, 8)}$.`;
+  }
+
+  function textoTramos(tramos) {
+    return tramos.map(t => `${t.abierto_izquierda ? "(" : "["}${numeroLatex(t.desde, 8)},\\; ${numeroLatex(t.hasta, 8)}${t.abierto_derecha ? ")" : "]"}`).join(" \\cup ");
+  }
+
   // Exporta solo las utilidades puras para verificarlas con el runner estándar de Node.
   if (typeof module !== "undefined" && module.exports) {
     module.exports = {
       MARCO, formatear, numeroLatex, marcas, rangoVertical, crearEscala, caminoCurva,
       interpolar, redondearSegunVista,
+      describirDiscontinuidad, textoTramos,
     };
   }
   if (typeof document === "undefined") return;
@@ -214,8 +227,33 @@
         if (px >= MARCO.x && px <= derecha) destino.push(svg("line", { x1: px, x2: px, y1: MARCO.y, y2: abajo, class: clase }));
         return px;
       };
+      let cortes = [];
+      if (g.analisis) {
+        for (const d of g.analisis.continuidad.discontinuidades) {
+          if (d.hasta > d.desde) banda(d.desde, d.hasta, "rf-break-band");
+          else vertical(d.x, "rf-break-line");
+        }
+        cortes = g.analisis.continuidad.discontinuidades.filter(d => d.hasta === d.desde).map(d => d.x);
+        // Franja inferior: un tramo por cada intervalo sugerido (se pulsa para elegirlo).
+        if (!g.resultado) {
+          for (const i of g.analisis.intervalos) {
+            const x1 = Math.max(MARCO.x, e.x(i.xl)) + 1, x2 = Math.min(derecha, e.x(i.xu)) - 1;
+            if (x2 > x1) fondo.push(svg("rect", { x: x1, y: abajo - 9, width: x2 - x1, height: 9, class: "rf-candidate-band" }));
+          }
+        }
+      }
+      const elegido = g.provisional || g.intervalo;
+      if (elegido) {
+        banda(elegido[0], elegido[1], "rf-interval-band");
+        for (const [x, subindice, ancla] of [[elegido[0], "l", "end"], [elegido[1], "u", "start"]]) {
+          const px = vertical(x, "rf-interval-edge");
+          if (px >= MARCO.x && px <= derecha) {
+            fondo.push(svgConSubindice({ x: px + (ancla === "end" ? -4 : 4), y: MARCO.y + 13, "text-anchor": ancla, class: "rf-interval-label" }, "x", subindice));
+          }
+        }
+      }
       capaFondo.replaceChildren(...fondo);
-      curva.setAttribute("d", caminoCurva(g.puntos, e));
+      curva.setAttribute("d", caminoCurva(g.puntos, e, cortes));
       capaMarcas.replaceChildren(...marcasResultado);
 
       nivelZoom.textContent = `${Math.round((g.base.xMax - g.base.xMin) / (xMax - xMin) * 100)}%`;
@@ -294,6 +332,13 @@
       lectura.textContent = `x = ${formatear(x, 6)} · f(x) ≈ ${y === null ? "—" : formatear(y, 6)}`;
       if (!arrastre) return;
       if (Math.abs(px - arrastre.inicioX) > 3) arrastre.movido = true;
+      if (g.marcando) {
+        const tramo = g.vista.xMax - g.vista.xMin;
+        const extremos = [e.xInversa(arrastre.inicioX), x].map(v => redondearSegunVista(v, tramo)).sort((u, v) => u - v);
+        g.provisional = arrastre.movido && extremos[1] > extremos[0] ? extremos : null;
+        dibujar();
+        return;
+      }
       desplazar(px - arrastre.px, py - arrastre.py);
       arrastre.px = px; arrastre.py = py;
     });
@@ -303,6 +348,20 @@
       arrastre = null;
       lienzo.classList.remove("bis-panning");
       try { lienzo.releasePointerCapture(evento.pointerId); } catch (_) { /* ya liberado */ }
+      if (g.marcando) {
+        const marcado = g.provisional;
+        g.provisional = null;
+        if (marcado) avisos.alMarcar?.(marcado[0], marcado[1]);
+        else dibujar();
+        return;
+      }
+      if (!movido && g.analisis && !g.resultado && evento.type === "pointerup") {
+        // Un clic sin arrastre sobre la franja inferior elige ese intervalo sugerido.
+        const [px, py] = posicion(evento);
+        const x = crearEscala(g.vista).xInversa(px);
+        const indice = py >= abajo - 14 && py <= abajo ? g.analisis.intervalos.findIndex(i => x >= i.xl && x <= i.xu) : -1;
+        if (indice >= 0) { avisos.alElegir?.(indice); return; }
+      }
       if (movido) muestrear();
     }
     lienzo.addEventListener("pointerup", soltar);
@@ -339,6 +398,15 @@
         contenedor.hidden = controles.hidden = leyenda.hidden = false;
         dibujar();
       },
+      /* Paso 2: discontinuidades detectadas e intervalos sugeridos. */
+      fijarAnalisis(analisis) { g.analisis = analisis; dibujar(); },
+      /* Pasos 2 y 3: intervalo [x_l, x_u] elegido; null lo retira. */
+      fijarIntervalo(intervalo) { g.intervalo = intervalo; dibujar(); },
+      marcar(activo) {
+        g.marcando = activo;
+        g.provisional = null;
+        lienzo.classList.toggle("rf-marking", activo);
+      },
       limpiar() {
         clearTimeout(temporizador);
         aborto?.abort();
@@ -355,6 +423,7 @@
     if (!panel) return;
     const el = id => document.getElementById(id);
     const formFuncion = el("rf-form-funcion");
+    const formIntervalo = el("rf-form-intervalo");
     const tarjetas = [1, 2, 3, 4].map(n => el(`rf-card-${n}`));
     const estados = [1, 2, 3, 4].map(n => el(`rf-status-${n}`));
     const pasos = [...panel.querySelectorAll(".rf-step")];
@@ -372,6 +441,9 @@
       contenedor: el("rf-plot"), controles: el("rf-graph-controls"), lectura: el("rf-readout"),
       leyenda: el("rf-legend"), nivelZoom: el("rf-zoom-level"),
       botones: { acercar: el("rf-zoom-in"), alejar: el("rf-zoom-out"), restablecer: el("rf-zoom-reset") },
+    }, {
+      alElegir: indice => elegirIntervalo(estado.analisis.intervalos[indice]),
+      alMarcar: (xl, xu) => { activarMarcado(false); elegirIntervalo({ xl, xu }); },
     });
 
     /* Muestra las tarjetas hasta el paso alcanzado y actualiza el indicador de progreso.
@@ -402,6 +474,11 @@
         estado.funcion = estado.analisis = null;
         errorFuncion.hidden = true;
         grafica.limpiar();
+        activarMarcado(false);
+        estado.alAnalizar = null;
+        el("rf-continuity").replaceChildren();
+        el("rf-candidates").replaceChildren();
+        formIntervalo.reset();
         insignia(estados[0], "Pendiente");
       }
       fijarPaso(visible);
@@ -478,8 +555,106 @@
         grafica.mostrar(respuesta);
         insignia(estados[0], "Gráfica lista", "badge-success");
         previewEstado.textContent = `Gráfica de la función en la región [${formatear(respuesta.intervalo[0], 6)}, ${formatear(respuesta.intervalo[1], 6)}].`;
+        analizar();
       });
     });
+
+    /* PASO 2: el sistema analiza la continuidad y propone intervalos; el usuario elige o define uno. */
+    function analizar() {
+      fijarPaso(2);
+      el("rf-continuity").replaceChildren(crear("p", "Analizando la continuidad en la región…", "placeholder-text"));
+      const [a, b] = estado.region;
+      ejecutar(2, el("rf-enviar"), "analizar", { funcion: estado.funcion, a, b }, analisis => {
+        estado.analisis = analisis;
+        grafica.fijarAnalisis(analisis);
+        renderizarContinuidad(analisis);
+        renderizarCandidatos(analisis);
+        const continua = analisis.continuidad.continua;
+        insignia(estados[1], continua ? "Continua en la región" : "Discontinua en la región", continua ? "badge-success" : "badge-warning");
+        if (estado.alAnalizar) estado.alAnalizar();
+        else if (analisis.intervalos.length === 1) elegirIntervalo(analisis.intervalos[0]);
+      });
+    }
+
+    function renderizarContinuidad({ continuidad }) {
+      const [a, b] = continuidad.intervalo;
+      const region = `$[${numeroLatex(a, 8)},\\; ${numeroLatex(b, 8)}]$`;
+      const dictamen = crear("div", undefined, `rf-verdict${continuidad.continua ? "" : " is-warning"}`);
+      const cantidad = continuidad.discontinuidades.length;
+      dictamen.append(crear("strong", continuidad.continua ? "Sin discontinuidades detectadas"
+        : `${cantidad === 1 ? "Se detectó una discontinuidad" : `Se detectaron ${cantidad} discontinuidades`}`));
+      dictamen.append(crearMixto("span", continuidad.continua
+        ? `$f$ se comporta como una función continua en ${region}. El análisis es numérico (${continuidad.muestras} muestras): confírmelo observando la gráfica.`
+        : `$f$ no es continua en toda la región ${region}. Elija un intervalo que no contenga las discontinuidades señaladas en la gráfica.`));
+      const nodos = [dictamen];
+      if (cantidad) {
+        const lista = crear("ul", undefined, "rf-list");
+        continuidad.discontinuidades.slice(0, 8).forEach(d => lista.append(crearMixto("li", describirDiscontinuidad(d))));
+        if (cantidad > 8) lista.append(crear("li", `… y ${cantidad - 8} más.`));
+        nodos.push(lista);
+        if (continuidad.tramos.length && continuidad.tramos.length <= 9) {
+          nodos.push(crearMixto("p", `Tramos continuos: $${textoTramos(continuidad.tramos)}$.`, "rf-empty"));
+        }
+      }
+      el("rf-continuity").replaceChildren(...nodos);
+    }
+
+    function renderizarCandidatos({ intervalos, raices_exactas: raices }) {
+      const contenedor = el("rf-candidates");
+      const nodos = intervalos.slice(0, 12).map((intervalo, indice) => {
+        const boton = crear("button", `[${formatear(intervalo.xl, 8)}, ${formatear(intervalo.xu, 8)}]`, "rf-candidate");
+        boton.type = "button";
+        boton.dataset.indice = indice;
+        boton.setAttribute("aria-pressed", "false");
+        boton.append(crear("small", `Raíz cerca de x ≈ ${formatear(intervalo.raiz_aprox, 6)}`));
+        boton.addEventListener("click", () => elegirIntervalo(intervalo));
+        return boton;
+      });
+      if (intervalos.length > 12) nodos.push(crear("p", `Se muestran 12 de ${intervalos.length} intervalos. Reduzca la región para estudiar los demás.`, "rf-empty"));
+      if (!intervalos.length) {
+        nodos.push(crear("p", "No se detectó ningún cambio de signo de una función continua en la región. Amplíe la región en el paso 1 o defina el intervalo manualmente.", "rf-empty"));
+      }
+      const sinCruce = raices.filter(x => !intervalos.some(i => i.raiz_aprox === x));
+      if (sinCruce.length) {
+        nodos.push(crearMixto("p", `$f(x) = 0$ exactamente en $x = ${sinCruce.slice(0, 4).map(x => numeroLatex(x, 8)).join(",\\; ")}$${sinCruce.length > 4 ? ", …" : ""}; sin cambio de signo alrededor, la regla falsa no puede encerrar esa raíz.`, "rf-empty"));
+      }
+      contenedor.replaceChildren(...nodos);
+    }
+
+    function leerIntervalo() {
+      const [xl, xu] = ["xl", "xu"].map(nombre => {
+        const texto = formIntervalo.elements[nombre].value.trim();
+        const partes = texto.split("/");
+        return partes.length === 2 ? Number(partes[0]) / Number(partes[1]) : (texto === "" ? NaN : Number(texto));
+      });
+      return Number.isFinite(xl) && Number.isFinite(xu) && xl < xu ? [xl, xu] : null;
+    }
+
+    /* Refleja en la gráfica y en los botones el intervalo escrito en los campos. */
+    function sincronizarIntervalo() {
+      const intervalo = leerIntervalo();
+      grafica.fijarIntervalo(intervalo);
+      el("rf-candidates").querySelectorAll(".rf-candidate").forEach(boton => {
+        const candidato = estado.analisis.intervalos[boton.dataset.indice];
+        boton.setAttribute("aria-pressed", String(!!intervalo && candidato.xl === intervalo[0] && candidato.xu === intervalo[1]));
+      });
+    }
+
+    function elegirIntervalo({ xl, xu }) {
+      formIntervalo.elements.xl.value = String(xl);
+      formIntervalo.elements.xu.value = String(xu);
+      reiniciarDesde(3);
+      sincronizarIntervalo();
+    }
+
+    function activarMarcado(activo) {
+      el("rf-mark").setAttribute("aria-pressed", String(activo));
+      grafica.marcar(activo);
+    }
+
+    el("rf-mark").addEventListener("click", () => activarMarcado(el("rf-mark").getAttribute("aria-pressed") !== "true"));
+    formIntervalo.addEventListener("input", () => { reiniciarDesde(3); sincronizarIntervalo(); });
+    formIntervalo.addEventListener("submit", evento => evento.preventDefault()); // el envío se conecta en el paso 3
 
     fijarPaso(1);
     actualizarPreview();

@@ -89,3 +89,22 @@ test('una posición marcada se redondea según el ancho visible', () => {
   assert.equal(redondearSegunVista(1234.5678, 5000), 1235);
   assert.equal(Object.is(redondearSegunVista(-0.0001, 6), 0), true);
 });
+
+test('las discontinuidades se describen según su tipo', () => {
+  const { describirDiscontinuidad } = rf;
+  assert.equal(describirDiscontinuidad({ tipo: 'asintota', x: 1.5707963, desde: 1.5707963, hasta: 1.5707963 }),
+    String.raw`Asíntota vertical en $x \approx 1.5707963$.`);
+  assert.equal(describirDiscontinuidad({ tipo: 'salto', x: 0, desde: 0, hasta: 0 }), String.raw`Salto en $x \approx 0$.`);
+  assert.equal(describirDiscontinuidad({ tipo: 'punto_indefinido', x: 0, desde: 0, hasta: 0 }), '$f$ no está definida en $x = 0$.');
+  assert.equal(describirDiscontinuidad({ tipo: 'fuera_de_dominio', x: -0.5, desde: -1, hasta: 0 }),
+    '$f$ no está definida entre $x = -1$ y $x = 0$.');
+});
+
+test('los tramos continuos se escriben como unión de intervalos abiertos o cerrados', () => {
+  const tramos = [
+    { desde: -1, hasta: 0, abierto_izquierda: false, abierto_derecha: true },
+    { desde: 0, hasta: 1.3, abierto_izquierda: true, abierto_derecha: false },
+  ];
+  assert.equal(rf.textoTramos(tramos), String.raw`[-1,\; 0) \cup (0,\; 1.3]`);
+  assert.equal(rf.textoTramos([]), '');
+});

@@ -84,10 +84,10 @@
 .regla-falsa-pane .rf-candidate-band:hover { opacity: .3; }
 .regla-falsa-pane .rf-interval-band { fill: var(--bis-accent); opacity: .12; pointer-events: none; }
 .regla-falsa-pane .rf-interval-edge { stroke: var(--bis-accent); stroke-width: 1.5; pointer-events: none; }
-.regla-falsa-pane .rf-interval-label { fill: var(--bis-accent); font: 11px 'JetBrains Mono', monospace; pointer-events: none; }
+.regla-falsa-pane .rf-interval-label { fill: var(--bis-accent); font: 11px 'JetBrains Mono', monospace; pointer-events: none; paint-order: stroke; stroke: var(--bis-paper); stroke-width: 3px; }
 .regla-falsa-pane .rf-secant { stroke: var(--rf-secant); stroke-width: 1; opacity: .75; pointer-events: none; }
 .regla-falsa-pane .rf-xr-dot { fill: var(--rf-secant); pointer-events: none; }
-.regla-falsa-pane .rf-root-label { fill: var(--accent-emerald); font: 11px 'JetBrains Mono', monospace; pointer-events: none; }
+.regla-falsa-pane .rf-root-label { fill: var(--accent-emerald); font: 11px 'JetBrains Mono', monospace; pointer-events: none; paint-order: stroke; stroke: var(--bis-paper); stroke-width: 3px; }
 .regla-falsa-pane .bis-root { pointer-events: none; }
 .regla-falsa-pane .rf-readout { min-height: 1.25rem; margin: .35rem 0 0; font: .75rem/1.6 'JetBrains Mono', monospace; color: var(--bis-muted); }
 .regla-falsa-pane .rf-legend { list-style: none; display: flex; flex-wrap: wrap; gap: .3rem 1rem; margin: .5rem 0 0; padding: 0; font-size: .75rem; color: var(--bis-muted); }
