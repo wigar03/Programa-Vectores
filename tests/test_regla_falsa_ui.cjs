@@ -108,3 +108,12 @@ test('los tramos continuos se escriben como unión de intervalos abiertos o cerr
   assert.equal(rf.textoTramos(tramos), String.raw`[-1,\; 0) \cup (0,\; 1.3]`);
   assert.equal(rf.textoTramos([]), '');
 });
+
+test('los ejemplos guiados definen región, intervalo y tolerancia', () => {
+  for (const ejemplo of Object.values(rf.EJEMPLOS)) {
+    assert.deepEqual(Object.keys(ejemplo), ['funcion', 'a', 'b', 'xl', 'xu', 'tolerancia']);
+    assert.ok(Number(ejemplo.a) <= Number(ejemplo.xl) && Number(ejemplo.xu) <= Number(ejemplo.b));
+  }
+  assert.equal(rf.EJEMPLOS.referencia.xl, '4.95');
+  assert.equal(rf.EJEMPLOS.potencia.funcion, 'x^10 - 1');
+});

@@ -5,6 +5,11 @@
 
   // Área de trazado dentro del viewBox 600 × 330 del SVG.
   const MARCO = { x: 58, y: 14, ancho: 528, alto: 270 };
+  const EJEMPLOS = {
+    referencia: { funcion: "x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10", a: "0", b: "6", xl: "4.95", xu: "5.5", tolerancia: "0.01" },
+    potencia: { funcion: "x^10 - 1", a: "0", b: "1.3", xl: "0", xu: "1.3", tolerancia: "0.0001" },
+    tangente: { funcion: "tan(x)", a: "-5", b: "5", xl: "1", xu: "2", tolerancia: "0.0001" },
+  };
   const MOTIVOS = {
     tolerancia: "Se alcanzó la tolerancia: $\\varepsilon_a \\le \\varepsilon_s$.",
     raiz_en_extremo: "La función se evaluó como cero en un extremo del intervalo; no se requieren iteraciones.",
@@ -130,6 +135,7 @@
       MARCO, formatear, numeroLatex, marcas, rangoVertical, crearEscala, caminoCurva,
       interpolar, redondearSegunVista,
       describirDiscontinuidad, textoTramos,
+      EJEMPLOS,
     };
   }
   if (typeof document === "undefined") return;
@@ -839,6 +845,29 @@
       tabla.append(cabecera, cuerpo);
       el("rf-table").replaceChildren(tabla);
     }
+
+    /* Navegación del indicador, ejemplos guiados y reinicio del flujo. */
+    pasos.forEach(paso => paso.querySelector("button").addEventListener("click", evento => {
+      el(evento.currentTarget.dataset.rfGoto).scrollIntoView({ block: "start", behavior: "smooth" });
+    }));
+    panel.querySelectorAll("[data-rf-example]").forEach(boton => boton.addEventListener("click", () => {
+      const ejemplo = EJEMPLOS[boton.dataset.rfExample];
+      for (const nombre of ["funcion", "a", "b"]) formFuncion.elements[nombre].value = ejemplo[nombre];
+      formMetodo.elements.tolerancia.value = ejemplo.tolerancia;
+      formMetodo.elements.max_iteraciones.value = "100";
+      actualizarPreview();
+      formFuncion.requestSubmit();
+      // El intervalo del ejemplo se coloca cuando termina el análisis de continuidad.
+      estado.alAnalizar = () => { estado.alAnalizar = null; elegirIntervalo(ejemplo); revelar(tarjetas[1]); };
+    }));
+    el("rf-clear").addEventListener("click", () => {
+      formFuncion.reset();
+      formMetodo.reset();
+      for (const nombre of ["funcion", "a", "b"]) formFuncion.elements[nombre].value = "";
+      reiniciarDesde(2);
+      actualizarPreview();
+      formFuncion.elements.funcion.focus();
+    });
 
     fijarPaso(1);
     actualizarPreview();

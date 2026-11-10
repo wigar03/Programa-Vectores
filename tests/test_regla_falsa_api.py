@@ -130,6 +130,16 @@ class TestReglaFalsaApi(unittest.TestCase):
                     self.assertEqual(estado, 400)
                     self.assertIsInstance(res["error"], str)
 
+    def test_recursos_de_interfaz_disponibles(self):
+        for ruta in ["/regla-falsa.js", "/regla-falsa.css"]:
+            with self.subTest(ruta=ruta), urlopen(self.url + ruta, timeout=5) as res:
+                self.assertEqual(res.status, 200)
+                self.assertTrue(res.read())
+        with urlopen(self.url + "/", timeout=5) as res:
+            pagina = res.read().decode("utf-8")
+        for fragmento in ['id="tab-regla-falsa"', 'data-tab="tab-regla-falsa"', "regla-falsa.js", "regla-falsa.css"]:
+            self.assertIn(fragmento, pagina)
+
     def test_vista_previa_compartida(self):
         estado, res = self.enviar("preview", {"funcion": "1/(x-1)"})
         self.assertEqual((estado, res), (200, {"latex": r"\frac{1}{x - 1}"}))
