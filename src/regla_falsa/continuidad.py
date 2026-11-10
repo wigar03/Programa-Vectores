@@ -13,6 +13,7 @@ from ..biseccion.expresiones import Expresion, numero_real
 MUESTRAS = 400          # subdivisiones de la región explorada
 _REFINAMIENTOS = 48     # bisecciones al estrechar un indicio
 _MAX_CANDIDATOS = 25    # acota el trabajo en funciones muy oscilantes
+_MAX_RAICES_EXACTAS = 20
 
 
 def _evaluar(f, x):
@@ -37,8 +38,7 @@ def _limpiar(x, paso):
     El refinamiento deja restos como 1e-17 o 0.123399999; la rejilla (cinco órdenes
     por debajo del paso) los muestra como 0 y 0.1234 sin perder resolución útil.
     """
-    rejilla = 10.0 ** (math.floor(math.log10(paso)) - 5)
-    return round(x / rejilla) * rejilla + 0.0
+    return round(x, 5 - math.floor(math.log10(paso))) + 0.0
 
 
 def _frontera(f, definido, indefinido):
@@ -69,7 +69,8 @@ def _estrechar(f, izq, der, y_izq, y_der, por_signo):
             break
         y_medio = _evaluar(f, medio)
         if y_medio is None:
-            return "punto_indefinido", medio
+            crece = max(abs(y_izq), abs(y_der)) > 1e3 * altura
+            return ("asintota" if crece else "punto_indefinido"), medio
         if por_signo:
             if y_medio == 0:
                 return None, medio
@@ -125,7 +126,15 @@ def _explorar(f, a, b, muestras):
             j += 1
         desde = _frontera(f, xs[i - 1], xs[i]) if i > 0 else xs[i]
         hasta = _frontera(f, xs[j + 1], xs[j]) if j < muestras else xs[j]
-        tipo = "fuera_de_dominio" if hasta - desde > paso * 1e-3 else "punto_indefinido"
+        if hasta - desde > paso * 1e-3:
+            tipo = "fuera_de_dominio"
+        else:
+            # Punto aislado: es una asíntota si |f| se dispara al acercarse a él.
+            cerca = [_evaluar(f, x) for x in (desde - paso * 1e-6, hasta + paso * 1e-6)]
+            lejos = [y for y in (ys[i - 1] if i else None, ys[j + 1] if j < muestras else None)
+                     if y is not None]
+            crece = any(y is not None and lejos and abs(y) > 1e3 * max(map(abs, lejos)) for y in cerca)
+            tipo = "asintota" if crece else "punto_indefinido"
         hallazgos.append(_discontinuidad(tipo, desde, hasta))
         i = j + 1
 
@@ -233,3 +242,69 @@ def analizar_continuidad(funcion, a, b, muestras=MUESTRAS):
     f, a, b = _leer_region(funcion, a, b, muestras)
     _, _, discontinuidades, _ = _explorar(f, a, b, muestras)
     return _resumen_continuidad(f, a, b, muestras, discontinuidades)
+
+
+def _redondear_dentro(x, minimo, maximo):
+    """El número con menos decimales cercano a x que sigue dentro de (minimo, maximo)."""
+    for decimales in range(7):
+        candidato = round(x, decimales) + 0.0
+        if minimo < candidato < maximo:
+            return candidato
+    return x
+
+
+def _intervalos_con_raiz(f, a, b, xs, ys, discontinuidades, cruces):
+    """Amplía cada cruce continuo hasta un intervalo [x_l, x_u] que encierra solo esa raíz.
+
+    Los límites se toman a medio camino de la barrera vecina (otra raíz, una
+    discontinuidad o el borde de la región), de modo que f sea continua y cambie de
+    signo una sola vez. Si la ampliación no conserva el cambio de signo se usa el
+    par de muestras que lo detectó.
+    """
+    paso = (b - a) / (len(xs) - 1)
+    ceros = [x for x, y in zip(xs, ys) if y == 0]
+    barreras = sorted([(d["desde"], d["hasta"]) for d in discontinuidades]
+                      + [(c["desde"], c["hasta"]) for c in cruces]
+                      + [(x, x) for x in ceros])
+    intervalos = []
+    for cruce in cruces:
+        izquierda = [hasta for _, hasta in barreras if hasta <= cruce["desde"]]
+        derecha = [desde for desde, _ in barreras if desde >= cruce["hasta"]]
+        xl, xu = a, b
+        if izquierda:
+            tope = max(izquierda)
+            xl = cruce["desde"] if tope == cruce["desde"] else _redondear_dentro(
+                tope + (cruce["desde"] - tope) / 2, tope, cruce["desde"])
+        if derecha:
+            tope = min(derecha)
+            xu = cruce["hasta"] if tope == cruce["hasta"] else _redondear_dentro(
+                cruce["hasta"] + (tope - cruce["hasta"]) / 2, cruce["hasta"], tope)
+        xl, xu = _limpiar(xl, paso), _limpiar(xu, paso)
+        f_xl, f_xu = _evaluar(f, xl), _evaluar(f, xu)
+        if None in (f_xl, f_xu) or f_xl == 0 or f_xu == 0 or (f_xl < 0) == (f_xu < 0):
+            xl, xu = cruce["desde"], cruce["hasta"]
+            f_xl, f_xu = f(xl), f(xu)
+        intervalos.append({"xl": xl, "xu": xu, "f_xl": f_xl, "f_xu": f_xu,
+                           "raiz_aprox": _limpiar(cruce["x"], paso)})
+    return intervalos, [_limpiar(x, paso) for x in ceros[:_MAX_RAICES_EXACTAS]]
+
+
+def analizar_region(funcion, a, b, muestras=MUESTRAS):
+    """Continuidad e intervalos candidatos de la región con una sola exploración.
+
+    Cada intervalo cumple f(x_l)·f(x_u) < 0 y no contiene discontinuidades detectadas.
+    "raices_exactas" lista (hasta 20) muestras donde f se evalúa como cero; las que
+    no cambian de signo (raíces de multiplicidad par) no pueden encerrarse.
+    """
+    f, a, b = _leer_region(funcion, a, b, muestras)
+    xs, ys, discontinuidades, cruces = _explorar(f, a, b, muestras)
+    intervalos, ceros = _intervalos_con_raiz(f, a, b, xs, ys, discontinuidades, cruces)
+    return {
+        "continuidad": _resumen_continuidad(f, a, b, muestras, discontinuidades),
+        "intervalos": intervalos, "raices_exactas": ceros,
+    }
+
+
+def buscar_intervalos(funcion, a, b, muestras=MUESTRAS):
+    """Intervalos [x_l, x_u] de la región aptos para la regla falsa."""
+    return analizar_region(funcion, a, b, muestras)["intervalos"]
