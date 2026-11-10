@@ -356,6 +356,34 @@ Se consultaron los materiales locales de `Docs`, especialmente la hoja `Bisecci�
 
 ---
 
+### Módulo 8: Método de la Regla Falsa (Regula Falsi)
+
+Abra la pestaña **Método de Regla Falsa**. El módulo guía un flujo de cuatro pasos y cada uno se habilita al completar el anterior:
+
+1. **Función y gráfica.** Se escribe $f(x)$ y una región de interés $[a,b]$; la calculadora dibuja la función en el plano cartesiano (zoom, desplazamiento y lectura de coordenadas).
+2. **Continuidad e intervalos.** El sistema muestrea la región y clasifica cada indicio: tramos fuera del dominio, puntos indefinidos, saltos y asíntotas verticales. Con ese análisis propone intervalos $[x_l, x_u]$ que encierran una sola raíz y evitan las discontinuidades. El intervalo también puede escribirse a mano o marcarse arrastrando sobre la gráfica.
+3. **Validación.** El intervalo se envía a la calculadora, que comprueba la condición obligatoria $f(x_l)\cdot f(x_u) < 0$ (Teorema del Valor Intermedio) y la continuidad dentro del intervalo. Un cambio de signo causado por una asíntota se rechaza.
+4. **Regla falsa.** Con el intervalo validado se itera
+
+$$x_r = x_u - \frac{f(x_u)\,(x_l - x_u)}{f(x_l) - f(x_u)}$$
+
+Si $f(x_l)\cdot f(x_r) < 0$, $x_u \leftarrow x_r$; si es $> 0$, $x_l \leftarrow x_r$; si es $0$, $x_r$ es la raíz. En cada iteración se calcula $\varepsilon_a = \left|\frac{x_r^{nuevo}-x_r^{anterior}}{x_r^{nuevo}}\right|\cdot 100\%$ hasta alcanzar la tolerancia (en %) o el máximo de iteraciones. La raíz, las primeras rectas secantes y los $x_r$ se muestran sobre la gráfica final, junto con la tabla de iteraciones.
+
+El análisis de continuidad es numérico (401 muestras con refinamiento) y orientativo: no demuestra continuidad y puede pasar por alto discontinuidades más estrechas que la separación entre muestras. Cuando un extremo queda fijo durante 10 o más iteraciones seguidas se informa el estancamiento, como ocurre con $x^{10}-1$ en $[0, 1.3]$. Los valores de los ejemplos se recalculan desde la función ingresada; con $x^4 - 5x^3 + 0.5x^2 - 11x + 10$ en $[4.95, 5.5]$ y tolerancia $0.01\%$ se obtienen 5 iteraciones y $x_r \approx 5.2360550811$.
+
+#### API de regla falsa
+
+Todas las rutas son `POST` con `Content-Type: application/json`; los errores de entrada devuelven HTTP 400 con `error`.
+
+| Ruta | Entrada | Respuesta |
+|---|---|---|
+| `/api/regla-falsa/graficar` | `funcion`, `a`, `b`, `cantidad` (opcional) | `funcion_latex`, `intervalo`, `grafica` |
+| `/api/regla-falsa/analizar` | `funcion`, `a`, `b` | `continuidad` (`continua`, `discontinuidades`, `tramos`), `intervalos`, `raices_exactas` |
+| `/api/regla-falsa/validar` | `funcion`, `xl`, `xu` | `f_xl`, `f_xu`, `producto`, `cumple`, `continuidad`, `estado`, `valido` |
+| `/api/regla-falsa/resolver` | `funcion`, `xl`, `xu`, `tolerancia`, `max_iteraciones` | `raiz`, `error_relativo`, `convergio`, `motivo`, `estancamiento`, `pasos`, `grafica` |
+
+---
+
 ## 4. Estructura del Código
 
 ```text
@@ -382,6 +410,9 @@ Programa Vectores/
 │   ├── biseccion/                  # Módulo 7: Búsqueda numérica de raíces
 │   │   ├── expresiones.py         # Evaluación controlada de funciones reales
 │   │   └── metodo.py              # Algoritmo, historial, errores y muestreo gráfico
+│   ├── regla_falsa/                # Módulo 8: Regla falsa paso a paso
+│   │   ├── metodo.py              # Falsa posición, validación del intervalo e iteraciones
+│   │   └── continuidad.py         # Discontinuidades detectadas e intervalos candidatos
 │   └── ui/                         # Interfaz web de usuario de alta estética
 │       ├── web_server.py           # Servidor local estándar en Python (cero dependencias externas)
 │       └── web/                    # Frontend SPA moderno (HTML5, CSS, JS reactivo, Modo Claro/Oscuro)
@@ -391,6 +422,9 @@ Programa Vectores/
 │           ├── sidebar.js          # Menú lateral y navegación móvil con teclado
 │           ├── biseccion.js        # Formulario, resultados, tabla y gráfica de bisección
 │           ├── biseccion.css       # Estilos limitados a la nueva sección
+│           ├── formula-keyboard.js # Teclado matemático de los editores de funciones
+│           ├── regla-falsa.js      # Flujo de cuatro pasos, gráfica interactiva y tabla
+│           ├── regla-falsa.css     # Indicador de pasos, validación y capas de la gráfica
 │           └── lucide.min.js       # Librería de iconos minimalistas (offline, open source)
 └── tests/                          # Suite completa de pruebas unitarias automatizadas
     ├── test_vectores.py            # Tests de operaciones vectoriales
@@ -403,7 +437,11 @@ Programa Vectores/
     ├── test_biseccion.py           # Convergencia, errores y precisión
     ├── test_biseccion_expresiones.py # Sintaxis, dominio y entradas del evaluador
     ├── test_biseccion_api.py       # API HTTP de bisección y recursos de interfaz
-    └── test_biseccion_ui.cjs       # Utilidades de gráfica y formato (Node.js)
+    ├── test_biseccion_ui.cjs       # Utilidades de gráfica y formato (Node.js)
+    ├── test_regla_falsa.py         # Fórmula, reemplazo, error aproximado y estancamiento
+    ├── test_regla_falsa_continuidad.py # Discontinuidades e intervalos sugeridos
+    ├── test_regla_falsa_api.py     # API HTTP de los cuatro pasos y recursos de interfaz
+    └── test_regla_falsa_ui.cjs     # Utilidades de la gráfica de regla falsa (Node.js)
 ```
 
 ---
@@ -415,7 +453,7 @@ Programa Vectores/
 - **Sin necesidad de instalar paquetes externos vía `pip`**: el programa funciona 100% con la biblioteca estándar (`fractions`, `http.server`, etc.).
 
 ### 1. Ejecutar la Aplicación Web Interactiva
-Inicia la aplicación web SPA con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y los 7 módulos integrados (Vectores, Combinación Lineal, Matrices, Inversa, Ax = b, Determinante y Bisección):
+Inicia la aplicación web SPA con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y los 8 módulos integrados (Vectores, Combinación Lineal, Matrices, Inversa, Ax = b, Determinante, Bisección y Regla Falsa):
 ```bash
 python main.py
 ```
@@ -428,18 +466,20 @@ python main.py --no-browser     # Iniciar servidor sin abrir navegador automáti
 ```
 
 ### 2. Ejecutar las Pruebas Unitarias Automatizadas
-El proyecto incluye **89 pruebas de Python**, entre ellas las 62 originales y 27 del nuevo módulo, que validan los algoritmos, las conversiones a LaTeX y sus respuestas HTTP:
+El proyecto incluye **138 pruebas de Python** (47 de ellas del módulo de regla falsa) que validan los algoritmos, las conversiones a LaTeX y sus respuestas HTTP:
 ```bash
 python -m unittest discover tests -v
 ```
 
-Las 5 pruebas de las utilidades de bisección en JavaScript usan el runner estándar de Node.js (18 o superior), sin instalar paquetes. Node.js es opcional para ejecutar estas pruebas y no se necesita para usar la calculadora:
+Las 22 pruebas de las utilidades de la interfaz en JavaScript (bisección, teclado matemático y regla falsa) usan el runner estándar de Node.js (18 o superior), sin instalar paquetes. Node.js es opcional para ejecutar estas pruebas y no se necesita para usar la calculadora:
 
 ```bash
-node --test tests/test_biseccion_ui.cjs
+node --test tests/test_biseccion_ui.cjs tests/test_formula_keyboard.cjs tests/test_regla_falsa_ui.cjs
 ```
 
 Para una revisión manual, seleccione **Método de Bisección** en la barra lateral, cargue el ejemplo de referencia y compruebe las 15 iteraciones. Pruebe después una función sin cambio de signo (`x^2+1`), un máximo de una iteración con `cos(x)-x`, una raíz en un extremo (`x` en `[0,1]`) y el botón **Limpiar**. Escriba `sqrt(x)+1/(x-1)` para revisar la vista matemática y abra **Ver detalle** en una iteración. Reduzca el ancho de la ventana para comprobar el menú desplegable y las tarjetas. La sección hereda el tema claro u oscuro de la calculadora.
+
+Para revisar la regla falsa, seleccione **Método de Regla Falsa** y cargue el **Ejemplo de referencia**: la gráfica muestra dos intervalos sugeridos y el campo queda en `[4.95, 5.5]`. Envíe el intervalo, compruebe la validación y calcule la raíz. Pruebe después `tan(x)` (el intervalo `[1, 2]` se rechaza por la asíntota), `x^10 - 1` (aviso de estancamiento) y el botón **Marcar intervalo** arrastrando sobre la gráfica.
 
 ---
 

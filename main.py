@@ -17,6 +17,8 @@ MÓDULOS INTEGRADOS:
 5. Resolución computacional de Ecuaciones Matriciales Ax = b y cálculo de residuo nulo.
 6. Determinante de Matrices Cuadradas |A| con selección entre Cofactores (Laplace) y
    Descomposición LU (PA = LU), con análisis comparativo previo de eficiencia (O(n!) vs O(n³)).
+7. Búsqueda numérica de raíces por Bisección.
+8. Regla Falsa (Regula Falsi): gráfica, continuidad, validación del intervalo e iteraciones.
 ================================================================================
 """
 
@@ -87,6 +89,8 @@ def main():
     print("    • Módulo 4: Inversa de una Matriz A^(-1) (Gauss y Gauss-Jordan)")
     print("    • Módulo 5: Ecuaciones Matriciales A·x = b")
     print("    • Módulo 6: Determinante |A| (Cofactores vs LU con Análisis de Eficiencia)")
+    print("    • Módulo 7: Método de Bisección")
+    print("    • Módulo 8: Método de la Regla Falsa (Regula Falsi)")
     print("=" * 76)
 
     # Iniciar el servidor web interactivo
