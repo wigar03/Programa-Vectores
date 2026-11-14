@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="cuaderno.css?v=cdccc5ddc75f">
   <link rel="stylesheet" href="biseccion.css?v=5f6326f92448">
   <link rel="stylesheet" href="regla-falsa.css?v=d85b03cb0518">
+  <link rel="stylesheet" href="newton-raphson.css?v=61e9ee7719cf">
 </head>
 <body>
   <div class="app-container">
@@ -28,7 +29,7 @@
     <header class="main-header">
       <div class="header-brand">
         <h1>Calculadora</h1>
-        <p class="subtitle" id="header-subtitle" data-math>Vectores en $\mathbb{R}^n$, Combinación Lineal, Matrices, Inversa $A^{-1}$, Ecuaciones $Ax=b$, Determinante $|A|$, Bisección y Regla Falsa</p>
+        <p class="subtitle" id="header-subtitle" data-math>Vectores en $\mathbb{R}^n$, Combinación Lineal, Matrices, Inversa $A^{-1}$, Ecuaciones $Ax=b$, Determinante $|A|$, Bisección, Regla Falsa, y Newton-Raphson</p>
       </div>
       <div class="header-actions">
         <button id="btn-nav-toggle" class="btn-theme sidebar-toggle" type="button" aria-controls="module-sidebar" aria-expanded="false">
@@ -89,6 +90,7 @@
         <span class="nav-chapter" aria-hidden="true">08</span>
         <span class="tab-label">Método de Regla Falsa</span>
       </button>
+      <button class="nav-tab" data-tab="tab-newton-raphson"><span class="nav-chapter" aria-hidden="true">09</span><span class="tab-label">Método de Newton-Raphson</span></button>
     </nav>
       <p class="sidebar-footer">Álgebra lineal y métodos numéricos</p>
     </aside>
@@ -104,7 +106,7 @@
             <h2 id="home-title">Cada problema tiene<br>su punto de partida.</h2>
             <p class="notebook-intro">Elija una herramienta para comenzar. En cada módulo encontrará las entradas, el procedimiento y la verificación del resultado.</p>
           </div>
-          <span class="home-folio" aria-hidden="true">Índice<br><span>01—08</span></span>
+          <span class="home-folio" aria-hidden="true">Índice<br><span>01—10</span></span>
         </header>
         <div class="home-index">
           <div class="home-subject">
@@ -142,6 +144,7 @@
             <button class="home-module" type="button" data-open-module="tab-regla-falsa">
               <span class="home-number">08</span><span class="home-module-copy"><strong>Método de la regla falsa</strong><span>Gráfica, continuidad, intervalos e iteraciones paso a paso.</span></span><span class="home-formula" data-math>$x_r$</span><span aria-hidden="true">↗</span>
             </button>
+            <button class="home-module" type="button" data-open-module="tab-newton-raphson"><span class="home-number">09</span><span class="home-module-copy"><strong>Método de Newton-Raphson</strong><span>Derivada, gráfica, valor inicial manual e iteraciones.</span></span><span class="home-formula" data-math>$f'(x)$</span><span aria-hidden="true">↗</span></button>
           </div>
         </div>
         <p class="home-note">Puede volver a este índice desde «Menú principal». Sus entradas se conservan al cambiar de módulo.</p>
@@ -965,7 +968,7 @@
                     <div id="rf-keyboard" class="bis-keyboard" role="group" aria-labelledby="rf-keyboard-label" hidden></div>
                     <p id="rf-keyboard-status" class="sr-only" role="status"></p>
                   </div>
-                  <p id="rf-syntax" class="bis-help">Use * para multiplicar y ^ para potencias. Funciones: sin, cos, tan, exp, ln (natural), log (base 10), sqrt y abs. Constantes: pi y e. Ángulos en radianes.</p>
+                  <p id="rf-syntax" class="bis-help">Use * para multiplicar y ^ para potencias. Funciones: sin, cos, tan, exp, ln (natural), log (base 10), sqrt y abs. Constantes: pi y e. Ángulos e inversas en radianes.</p>
                 </div>
                 <fieldset class="rf-region">
                   <legend class="field-label">Región de interés</legend>
@@ -1112,6 +1115,90 @@
           <div id="rf-table" class="bis-table-scroll" role="region" aria-label="Iteraciones de la regla falsa" tabindex="0"></div>
         </div>
       </section>
+      <section id="tab-newton-raphson" class="tab-pane biseccion-pane regla-falsa-pane newton-pane" aria-labelledby="nr-title">
+        <header class="bis-notebook-heading">
+          <div><p class="bis-eyebrow">Métodos abiertos · Cuaderno de cálculo</p><h2 id="nr-title">Método de Newton-Raphson</h2>
+          <p class="bis-intro">Derive la función, observe la gráfica y elija el punto desde el que comenzará a iterar.</p></div><span class="bis-chapter">09</span>
+        </header>
+        <ol class="rf-steps" aria-label="Pasos de Newton-Raphson">
+          <li class="rf-step" aria-current="step"><button type="button" data-nr-step="1"><span class="rf-step-number">1</span>Función y derivada</button></li>
+          <li class="rf-step"><button type="button" data-nr-step="2" disabled><span class="rf-step-number">2</span><span data-math>Elegir $x_0$</span></button></li>
+          <li class="rf-step"><button type="button" data-nr-step="3" disabled><span class="rf-step-number">3</span>Primera iteración</button></li>
+          <li class="rf-step"><button type="button" data-nr-step="4" disabled><span class="rf-step-number">4</span>Iteraciones y raíz</button></li>
+        </ol>
+        <div class="rf-layout">
+          <div class="rf-column">
+            <div id="nr-card-1" class="card rf-card">
+              <div class="card-header"><h3><span class="bis-section-number">01</span>Función y derivada</h3></div>
+              <form id="nr-function-form" class="rf-form">
+                <div><label class="field-label" for="nr-function" data-math>Función $f(x)$</label>
+                  <div class="bis-formula-editor"><input id="nr-function" class="bis-input bis-expression" value="x^3 - x - 2" maxlength="500" required spellcheck="false" autocomplete="off" aria-describedby="nr-syntax">
+                    <div class="bis-keyboard-toolbar"><span>Teclado matemático</span><button class="btn-text" type="button" aria-expanded="false" aria-controls="nr-keyboard">Mostrar teclas</button></div>
+                    <div id="nr-keyboard" class="bis-keyboard" hidden></div><p class="sr-only" role="status"></p>
+                  </div>
+                  <p id="nr-syntax" class="bis-help">Use * para multiplicar y ^ para potencias. Funciones: sin, cos, tan, asin, acos, atan, exp, ln, log (base 10), sqrt y abs. Constantes: pi y e. Ángulos e inversas en radianes.</p>
+                </div>
+                <fieldset class="rf-region"><legend class="field-label">Región de la gráfica</legend><div class="bis-fields">
+                  <div><label for="nr-a" data-math>Desde $x=$</label><input id="nr-a" class="bis-input" value="0" required></div>
+                  <div><label for="nr-b" data-math>Hasta $x=$</label><input id="nr-b" class="bis-input" value="2.5" required></div>
+                </div></fieldset>
+                <button class="btn-primary rf-action" type="submit">Derivar y graficar</button>
+              </form>
+              <div class="card-footer-actions"><div class="sample-actions">
+                <button type="button" class="btn-text" data-nr-example="referencia">Ejemplo de la presentación</button>
+                <button type="button" class="btn-text" data-nr-example="practica">Práctica</button>
+                <button type="button" class="btn-text" data-nr-example="ciclo">Ejemplo con ciclo</button>
+              </div><button id="nr-clear" class="btn-clear" type="button">Limpiar</button></div>
+              <div id="nr-derivative" class="nr-math" aria-live="polite"></div>
+            </div>
+            <div id="nr-card-2" class="card rf-card" hidden>
+              <div class="card-header"><h3><span class="bis-section-number">02</span><span data-math>Valor inicial $x_0$</span></h3></div>
+              <aside class="bis-theory"><strong>Elección del valor inicial</strong><p data-math>Observe dónde la curva corta el eje $x$ y elija un $x_0$ cercano. Evite puntos con $f'(x)=0$. La convergencia es local y depende de su elección.</p><p>La calculadora no propone este valor: la elección es suya.</p></aside>
+              <p id="nr-hint" class="bis-help"></p>
+              <form id="nr-initial-form" class="rf-form"><div><label for="nr-x0" class="field-label" data-math>Valor inicial $x_0$</label><input id="nr-x0" class="bis-input" required autocomplete="off" aria-describedby="nr-initial-help"><p id="nr-initial-help" class="bis-help">Escriba el valor observado o active «Marcar» y pulse la gráfica. Admite decimales, fracciones (3/2) y notación científica (1e-3).</p></div>
+                <div id="nr-initial-preview" aria-live="polite"></div><button class="btn-primary rf-action" type="submit" data-math>Enviar $x_0$ a la calculadora</button>
+              </form>
+            </div>
+            <div id="nr-card-3" class="card rf-card" hidden>
+              <div class="card-header"><h3><span class="bis-section-number">03</span>Primera iteración</h3></div>
+              <aside class="bis-theory"><strong>Fórmula iterativa</strong><p data-math>$$x_{n+1}=x_n-\dfrac{f(x_n)}{f'(x_n)}$$</p><p data-math>$f'(x_n)$ es la pendiente de la tangente. La derivada debe estar definida y ser distinta de cero.</p></aside>
+              <div id="nr-first" class="nr-math" aria-live="polite"></div>
+            </div>
+            <div id="nr-card-4" class="card rf-card" hidden>
+              <div class="card-header"><h3><span class="bis-section-number">04</span>Iteraciones y raíz</h3></div>
+              <aside class="bis-theory"><strong>Criterios de parada</strong><p data-math>El cambio $E_a=|x_n-x_{n-1}|$ y el residuo $|f(x_n)|$ miden cosas distintas. Revise ambos al terminar y establezca un máximo de iteraciones.</p></aside>
+              <form id="nr-solve-form" class="rf-form"><div class="bis-fields">
+                <div><label for="nr-tolerance" data-math>Tolerancia $\varepsilon$</label><input id="nr-tolerance" class="bis-input" value="0.000001" required></div>
+                <div><label for="nr-limit">Máximo de iteraciones</label><input id="nr-limit" class="bis-input" type="number" min="1" max="1000" value="50" required></div>
+              </div><fieldset class="nr-criteria"><legend>Criterio de parada</legend>
+                <label><input type="radio" name="nr-criterion" value="absoluto" checked><span data-math>Error absoluto: $E_a&lt;\varepsilon$</span></label>
+                <label><input type="radio" name="nr-criterion" value="relativo"><span data-math>Error relativo: $\varepsilon_r=E_a/|x_n|&lt;\varepsilon$</span></label>
+                <label><input type="radio" name="nr-criterion" value="residuo"><span data-math>Residuo: $|f(x_n)|&lt;\varepsilon$</span></label>
+              </fieldset><p class="bis-help">El error relativo se expresa como fracción, sin porcentaje.</p>
+              <button class="btn-primary rf-action" type="submit">Calcular raíz por Newton-Raphson</button></form>
+              <div id="nr-result" class="nr-math" aria-live="polite"></div>
+            </div>
+            <p id="nr-error" class="rf-verdict is-warning" role="alert" hidden></p>
+          </div>
+          <div id="nr-graph-card" class="card rf-graph-card">
+            <div class="card-header"><h3>Gráfica y tangentes</h3></div>
+            <div id="nr-graph-controls" class="nr-controls" hidden>
+              <button id="nr-mark" class="btn-text" type="button" aria-pressed="false" data-math>Marcar $x_0$</button>
+              <button id="nr-zoom-in" class="btn-text" type="button" aria-label="Acercar gráfica">+</button><button id="nr-zoom-out" class="btn-text" type="button" aria-label="Alejar gráfica">−</button>
+              <button id="nr-reset-view" class="btn-text" type="button">Restablecer vista</button><button id="nr-focus-root" class="btn-text" type="button" disabled>Enfocar raíz</button>
+            </div>
+            <div id="nr-plot" class="bis-plot" hidden></div><p class="bis-plot-placeholder placeholder-text">Derive y grafique la función para elegir su valor inicial.</p>
+            <p id="nr-readout" class="bis-help" aria-hidden="true"></p>
+            <p class="bis-help" data-math>Curva azul: $f(x)$. Tangentes y aproximaciones: violeta. Raíz: verde. Use la rueda para ampliar y arrastre para desplazar; las flechas desplazan y la tecla Inicio restablece la vista. La gráfica es orientativa.</p>
+          </div>
+        </div>
+        <div id="nr-table-card" class="card bis-table-card" hidden>
+          <div class="card-header"><h3><span class="bis-section-number">05</span>Tabla de iteraciones</h3></div>
+          <p class="bis-help" data-math>$E_a=|x_n-x_{n-1}|$, $\varepsilon_r=E_a/|x_n|$. El error relativo no está definido si $x_n=0$. Estos cambios no son cotas del error verdadero. Sitúe el cursor en una cifra para ver su valor completo.</p>
+          <div id="nr-table" class="bis-table-scroll" role="region" aria-label="Iteraciones de Newton-Raphson" tabindex="0"></div>
+        </div>
+      </section>
+
     </main>
 
     <!-- Modal para Notificaciones y Alertas -->
@@ -1122,8 +1209,10 @@
 
   <script src="app.js?v=29da006db57e"></script>
   <script src="sidebar.js?v=1b48755f71be"></script>
-  <script src="formula-keyboard.js?v=213fd2f29f74"></script>
+  <script src="formula-keyboard.js?v=0c1c9f2f5fbf"></script>
   <script src="biseccion.js?v=0d1030e5bbff"></script>
   <script src="regla-falsa.js?v=5d3155a24633"></script>
+  <script src="grafica-funciones.js?v=71cf11bc5eec"></script>
+  <script src="newton-raphson.js?v=fe00f4435dd2"></script>
 </body>
 </html>
