@@ -87,6 +87,9 @@ en una máquina que todavía no tenga ese componente.
 5. Prueba la candidata con usuarios antes de promover una versión estable.
 
 El workflow construye y valida; no publica releases automáticamente.
+Conserva las notas en un archivo UTF-8 y pásalo mediante `gh release --notes-file`;
+las [notas de esta candidata](notas-v1.0.0-rc.1.md) están versionadas para evitar
+conversiones de caracteres al generarlas mediante tuberías de la terminal.
 
 ## Datos y diagnóstico de errores
 
