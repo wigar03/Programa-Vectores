@@ -6,6 +6,7 @@ import operator
 
 
 FUNCIONES = {
+    "asin": math.asin, "acos": math.acos, "atan": math.atan,
     "sin": math.sin, "cos": math.cos, "tan": math.tan,
     "exp": math.exp, "ln": math.log, "log": math.log10,
     "sqrt": math.sqrt, "abs": abs,
@@ -114,7 +115,7 @@ class Expresion:
                     return rf"\left|{argumento}\right|"
                 if nombre == "exp":
                     return rf"e^{{{argumento}}}"
-                nombre = r"\log_{10}" if nombre == "log" else "\\" + nombre
+                nombre = {"log": r"\log_{10}", "asin": r"\arcsin", "acos": r"\arccos", "atan": r"\arctan"}.get(nombre, "\\" + nombre)
                 return nombre + parentesis(argumento)
             izquierda, derecha = convertir(nodo.left), convertir(nodo.right)
             if isinstance(nodo.op, ast.Div):
