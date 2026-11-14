@@ -19,6 +19,7 @@ MÓDULOS INTEGRADOS:
    Descomposición LU (PA = LU), con análisis comparativo previo de eficiencia (O(n!) vs O(n³)).
 7. Búsqueda numérica de raíces por Bisección.
 8. Regla Falsa (Regula Falsi): gráfica, continuidad, validación del intervalo e iteraciones.
+9. Newton-Raphson: derivada simbólica, gráfica, valor inicial elegido por el usuario e iteraciones.
 ================================================================================
 """
 
@@ -91,6 +92,8 @@ def main():
     print("    • Módulo 6: Determinante |A| (Cofactores vs LU con Análisis de Eficiencia)")
     print("    • Módulo 7: Método de Bisección")
     print("    • Módulo 8: Método de la Regla Falsa (Regula Falsi)")
+    print("    • Módulo 9: Método de Newton-Raphson")
+    print("    • Módulo 10: Método de la secante")
     print("=" * 76)
 
     # Iniciar el servidor web interactivo
