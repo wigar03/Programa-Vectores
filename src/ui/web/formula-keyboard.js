@@ -6,7 +6,7 @@ function prepararInsercionFormula(expression, start, end, value, kind) {
   const right = expression.slice(end).trimStart();
   const atomBefore = /(?:\d|\)|\bx|\bpi|\be)$/.test(left);
   const variableBefore = /(?:\)|\bx|\bpi|\be)$/.test(left);
-  const variableAfter = /^(?:x\b|pi\b|e\b|(?:sin|cos|tan|sqrt|abs|ln|log|exp)\s*\(|\()/.test(right);
+  const variableAfter = /^(?:x\b|pi\b|e\b|(?:asin|acos|atan|sin|cos|tan|sqrt|abs|ln|log|exp)\s*\(|\()/.test(right);
   const atomAfter = variableAfter || /^(?:\d|\.\d)/.test(right);
   const scientificNumber = kind === "digit" && /[\d.]$/.test(expression.slice(0, start)) && /^[eE][+-]?\d/.test(expression.slice(end));
   let text = value, cursor;
@@ -62,6 +62,9 @@ function montarTecladoFormula(editor) {
     [String.raw`\sin`, "Seno, en radianes", "sin", "function"],
     [String.raw`\cos`, "Coseno, en radianes", "cos", "function"],
     [String.raw`\tan`, "Tangente, en radianes", "tan", "function"],
+    [String.raw`\arcsin`, "Seno inverso, en radianes", "asin", "function"],
+    [String.raw`\arccos`, "Coseno inverso, en radianes", "acos", "function"],
+    [String.raw`\arctan`, "Tangente inversa, en radianes", "atan", "function"],
     [String.raw`\ln`, "Logaritmo natural", "ln", "function"],
     [String.raw`\log_{10}`, "Logaritmo en base diez", "log", "function"],
     ["e^x", "Exponencial", "exp", "function"],
