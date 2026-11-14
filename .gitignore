@@ -1,6 +1,7 @@
 # Entornos virtuales y paquetes
 venv/
 .venv/
+.venv-release/
 env/
 __pycache__/
 *.py[cod]

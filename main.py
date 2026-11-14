@@ -25,6 +25,7 @@ MÓDULOS INTEGRADOS:
 """
 
 import argparse
+from src.core.version import APP_NAME, VERSION
 from src.core.config import (
     INSTITUCION,
     FACULTAD,
@@ -48,6 +49,7 @@ def construir_parser_argumentos() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Calculadora de Álgebra Lineal: Vectores, Matrices, Inversa, Ax = b y Determinantes"
     )
+    parser.add_argument("--version", action="version", version=f"{APP_NAME} {VERSION}")
     parser.add_argument(
         "--port",
         type=int,

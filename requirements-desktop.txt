@@ -1,0 +1,2 @@
+# El modo web local conserva su ejecución con la biblioteca estándar.
+pywebview==6.2.1
