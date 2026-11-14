@@ -7,10 +7,10 @@ La misma interfaz funciona en el navegador y en una aplicación de escritorio.
 **Versión candidata: `1.0.0-rc.1`.** Se publica como prerelease para recibir
 comentarios antes de declarar la primera versión estable.
 
-[Descargar para Windows](https://github.com/wigar03/Programa-Vectores/releases/tag/v1.0.0-rc.1)
+[Descargar para Windows](https://github.com/wigar03/Calculadora-AlgebraLineal/releases/tag/v1.0.0-rc.1)
 · [Guía matemática](docs/guia-matematica.md)
 · [Notas de versión](CHANGELOG.md)
-· [Reportar un problema](https://github.com/wigar03/Programa-Vectores/issues)
+· [Reportar un problema](https://github.com/wigar03/Calculadora-AlgebraLineal/issues)
 
 ![Interfaz de la calculadora](docs/images/calculadora.png)
 
