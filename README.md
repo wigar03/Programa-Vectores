@@ -33,6 +33,9 @@ El presente proyecto integrador implementa un sistema computacional integral par
 5. **Resolución computacional de ecuaciones matriciales** de la forma $Ax = b$ con clasificación completa según el Teorema de Rouché-Capelli e integración directa con el programa de eliminación de renglones desarrollado en la **Semana #3**.
 6. **Cálculo del determinante de matrices cuadradas $|A|$ en la interfaz interactiva**: implementación 100% Python estándar (sin librerías externas) integrada en el servidor web, que permite seleccionar entre **Expansión por Cofactores (Laplace)** y **Descomposición LU ($PA = LU$)**, evaluando e indicando dinámicamente la eficiencia computacional ($O(n!)$ vs $O(n^3)$) antes de la selección.
 7. **Búsqueda numérica de raíces por bisección**: sección independiente con función editable, intervalo inicial, criterios de parada, tabla de iteraciones, verificación del residuo y gráfica interactiva con zoom in, zoom out, enfoque en la raíz, restablecimiento y desplazamiento.
+8. **Regla falsa**: gráfica, continuidad, selección y validación del intervalo e iteraciones.
+9. **Newton-Raphson**: derivada simbólica, gráfica, punto inicial elegido por el usuario, sustitución de la fórmula y tabla con errores y residuo.
+10. **Secante**: dos puntos manuales, rectas secantes, errores y residuo.
 
 ---
 
@@ -45,7 +48,7 @@ El presente proyecto integrador implementa un sistema computacional integral par
 > - **Aritmética Exacta en $\mathbb{Q}$**: Para prevenir imprecisiones por redondeo binario de coma flotante (IEEE-754) en el cálculo de rangos e independencia lineal, se utiliza la librería estándar `fractions.Fraction`.
 > - **Comentarios en el Código**: Cada función cuenta con documentación teórica exhaustiva que explica el procedimiento algebraico equivalente.
 
-Estas restricciones didácticas corresponden a los módulos originales de álgebra lineal (1 a 6). El módulo 7 de **bisección puede utilizar cualquier librería**; esta implementación utiliza `ast` y `math` de Python y SVG en el navegador, por lo que no añade dependencias de ejecución. Sus cálculos usan punto flotante y no alteran la aritmética fraccionaria de los otros módulos.
+Estas restricciones didácticas corresponden a los módulos originales de álgebra lineal (1 a 6). Los métodos numéricos (7 a 10) utilizan `ast` y `math` de Python y SVG en el navegador, sin dependencias de ejecución adicionales. Sus cálculos usan punto flotante y no alteran la aritmética fraccionaria de los otros módulos.
 
 ---
 
@@ -384,6 +387,64 @@ Todas las rutas son `POST` con `Content-Type: application/json`; los errores de 
 
 ---
 
+### Módulo 9: Método de Newton-Raphson
+
+Abra **Método de Newton-Raphson** desde el índice o la barra lateral. El flujo sigue el ejemplo de la presentación de métodos abiertos:
+
+1. **Función y derivada.** Ingrese la función y la región de interés. «Derivar y graficar» presenta su derivada simbólica y la gráfica. Admite las mismas funciones y constantes que bisección, con reglas de suma, producto, cociente, potencia y cadena.
+2. **Valor inicial.** El campo comienza vacío. Observe la gráfica y escriba su propio $x_0$, o active «Marcar» y pulse la gráfica. Los ejemplos cargan la función y la región; nunca seleccionan el punto inicial. Se admiten decimales, fracciones y notación científica.
+3. **Primera iteración.** Se evalúan la función y la derivada en el punto elegido, y se muestra la sustitución numérica de la fórmula:
+
+$$x_{n+1}=x_n-\frac{f(x_n)}{f'(x_n)}$$
+
+4. **Iteraciones y raíz.** Elija tolerancia, máximo de iteraciones y criterio de parada. La tabla incluye $n$, $x_n$, $f(x_n)$, $f'(x_n)$ y ambos errores, con detalles desplegables de las sustituciones. La gráfica muestra las primeras ocho tangentes y la aproximación final; permite ampliar, desplazar, restablecer y enfocar la raíz.
+
+El error absoluto aproximado es $E_a=|x_n-x_{n-1}|$ y el relativo es $\varepsilon_r=E_a/|x_n|$, expresado como **fracción, sin porcentaje**. El relativo no está definido cuando $x_n=0$. Para cambios distintos de cero, es menor que el absoluto cuando $|x_n|>1$, mayor cuando $|x_n|<1$ e igual cuando $|x_n|=1$. Estos cambios no son cotas del error respecto a la raíz verdadera.
+
+Se detiene cuando el criterio elegido cumple estrictamente $E_a<\varepsilon$, $\varepsilon_r<\varepsilon$ o $|f(x_n)|<\varepsilon$. El resultado comprueba los tres criterios, el residuo y las iteraciones; un cambio pequeño no garantiza un residuo pequeño. También reconoce una raíz evaluada como cero. Detecta derivada nula o no definida, salida del dominio, aproximaciones no finitas, ciclos, falta de progreso en punto flotante y agotamiento de iteraciones. Una derivada muy pequeña o pasos crecientes generan avisos. La convergencia es local y depende del punto inicial.
+
+La derivación opera sobre el árbol de expresiones validado, sin ejecutar código del usuario ni utilizar dependencias externas. Las fórmulas se evalúan en su dominio real, sin extenderlas por límites en puntos singulares; por ejemplo, la derivada de `abs(x)` no se evalúa en cero. La gráfica es orientativa y puede omitir singularidades estrechas. Las entradas conservan sintaxis editable; fórmulas, resultados, tabla y etiquetas matemáticas de la gráfica se presentan con KaTeX.
+
+**Ejemplo de la presentación:** para `x^3-x-2`, $x_0=1.5$ introducido manualmente, tolerancia $10^{-6}$ y criterio absoluto, se obtiene $f(1.5)=-0.125$, $f'(1.5)=5.75$ y $x_1\approx1.5217391304347827$. En tres iteraciones se llega a $x_n\approx1.5213797068045751$, con residuo de aproximadamente $4.53\times10^{-14}$. El ejemplo `x^3-2*x+2` con $x_0=0$ detecta el ciclo $0,1,0$.
+
+#### API de Newton-Raphson
+
+Rutas `POST` con JSON; entradas inválidas devuelven HTTP 400 con `error`. Las paradas numéricas devuelven HTTP 200 con `convergio=false`, su `motivo` y el historial válido.
+
+| Ruta | Entrada | Respuesta principal |
+|---|---|---|
+| `/api/newton-raphson/preparar` | `funcion`, `a`, `b`, `cantidad` opcional (2–2000) | `funcion_latex`, `derivada`, `derivada_latex`, `intervalo`, `grafica` |
+| `/api/newton-raphson/derivar` | `funcion` | Función y derivada en sintaxis editable y LaTeX |
+| `/api/newton-raphson/graficar` | `funcion`, `a`, `b`, `cantidad` opcional | Función, derivada y nuevo muestreo de la vista |
+| `/api/newton-raphson/evaluar` | `funcion`, `x0` | `f_x0`, `df_x0`, `x1`, `estado`, `valido`, `derivada_pequena` |
+| `/api/newton-raphson/resolver` | `funcion`, `x0`, `tolerancia` (por defecto `1e-6`), `max_iteraciones` (50), `criterio` (`absoluto`, `relativo` o `residuo`) | `raiz`, `residuo`, `error_absoluto`, `error_relativo`, `cumple`, `convergio`, `motivo`, `advertencias`, `pasos` |
+
+---
+
+### Motor reutilizable de derivadas
+
+`src/derivadas/motor.py` contiene la derivación simbólica independiente de Newton. `derivada_simbolica(funcion)` devuelve una expresión evaluable; `analizar_derivada(funcion)` devuelve función y derivada en sintaxis editable y LaTeX. Newton consume este motor. La ruta `POST /api/derivadas/derivar` acepta `{"funcion":"asin(x)"}` y deja preparado el contrato para un futuro módulo de derivadas.
+
+El motor cubre las operaciones del lenguaje admitido y sus composiciones: suma, resta, producto, cociente, potencias, reglas de cadena y funciones elementales. No pretende resolver expresiones fuera de ese lenguaje ni extender fórmulas por límites en singularidades. Las funciones inversas `asin`, `acos` y `atan` aparecen como arcoseno, arcocoseno y arcotangente en KaTeX y en el teclado compartido. Sus valores se expresan en radianes; `asin` y `acos` requieren argumentos entre −1 y 1 y sus derivadas son singulares en los extremos.
+
+### Módulo 10: Método de la secante
+
+Desde **Método de la secante**, grafique la función, elija manualmente dos valores distintos y revise la primera sustitución. Los ejemplos dejan ambos campos vacíos. Después seleccione tolerancia, máximo de iteraciones y criterio absoluto, relativo (fracción) o residuo. En cada iteración se actualizan los dos valores:
+
+$$x_{n+1}=x_n-\frac{f(x_n)(x_n-x_{n-1})}{f(x_n)-f(x_{n-1})}$$
+
+La gráfica muestra las primeras ocho rectas secantes y la aproximación final. Comparte el controlador de navegación con Newton-Raphson: zoom con botones y rueda centrado en el cursor, arrastre horizontal y vertical, flechas, teclas + y - e Inicio, doble clic para restablecer, porcentaje de ampliación y enfoque en la raíz. El zoom conserva los resultados y la escala vertical; el remuestreo cancela respuestas anteriores. Los botones Marcar permiten elegir manualmente ambos puntos en la gráfica. La tabla presenta las dos entradas, la nueva aproximación, el residuo y ambos errores, con la sustitución desplegable. No se exige cambio de signo ni se utiliza la derivada. Se detectan denominadores nulos, pasos no finitos, salidas del dominio, ciclos, falta de progreso y máximo de iteraciones; las diferencias muy pequeñas entre evaluaciones generan avisos.
+
+El ejemplo de la presentación usa `x^3-x-2`, puntos `1` y `2`, y produce primero `1.333333333`, luego `1.462686567` y finalmente una raíz cercana a `1.521379707`.
+
+| Ruta POST | Entrada | Respuesta |
+|---|---|---|
+| `/api/secante/graficar` | `funcion`, `a`, `b`, `cantidad` opcional | Función en LaTeX y muestras de la gráfica |
+| `/api/secante/evaluar` | `funcion`, `x0`, `x1` | Primera sustitución en `pasos` o motivo de parada |
+| `/api/secante/resolver` | Los anteriores, `tolerancia`, `max_iteraciones`, `criterio` | Aproximación, residuo, errores, historial, advertencias y motivo |
+
+Nuevos archivos: `src/derivadas/{__init__,motor}.py`, `src/secante/{__init__,metodo}.py`, `src/ui/web/secante.js`, `tests/test_secante.py` y `tests/test_secante_ui.cjs`. Para la revisión manual pruebe el ejemplo, `x^2+1` con puntos `-1` y `1` (denominador nulo), la vista móvil y ambos temas.
+
 ## 4. Estructura del Código
 
 ```text
@@ -413,6 +474,9 @@ Programa Vectores/
 │   ├── regla_falsa/                # Módulo 8: Regla falsa paso a paso
 │   │   ├── metodo.py              # Falsa posición, validación del intervalo e iteraciones
 │   │   └── continuidad.py         # Discontinuidades detectadas e intervalos candidatos
+│   ├── newton_raphson/             # Módulo 9: Método abierto con punto inicial manual
+│   │   ├── derivada.py            # Derivación simbólica del AST validado
+│   │   └── metodo.py              # Evaluación inicial, historial y criterios de parada
 │   └── ui/                         # Interfaz web de usuario de alta estética
 │       ├── web_server.py           # Servidor local estándar en Python (cero dependencias externas)
 │       └── web/                    # Frontend SPA moderno (HTML5, CSS, JS reactivo, Modo Claro/Oscuro)
@@ -425,6 +489,9 @@ Programa Vectores/
 │           ├── formula-keyboard.js # Teclado matemático de los editores de funciones
 │           ├── regla-falsa.js      # Flujo de cuatro pasos, gráfica interactiva y tabla
 │           ├── regla-falsa.css     # Indicador de pasos, validación y capas de la gráfica
+│           ├── grafica-funciones.js # Geometría pura para la gráfica de Newton
+│           ├── newton-raphson.js   # Cuatro pasos, tangentes y tabla con KaTeX
+│           ├── newton-raphson.css  # Estilos del módulo de Newton-Raphson
 │           └── lucide.min.js       # Librería de iconos minimalistas (offline, open source)
 └── tests/                          # Suite completa de pruebas unitarias automatizadas
     ├── test_vectores.py            # Tests de operaciones vectoriales
@@ -441,7 +508,10 @@ Programa Vectores/
     ├── test_regla_falsa.py         # Fórmula, reemplazo, error aproximado y estancamiento
     ├── test_regla_falsa_continuidad.py # Discontinuidades e intervalos sugeridos
     ├── test_regla_falsa_api.py     # API HTTP de los cuatro pasos y recursos de interfaz
-    └── test_regla_falsa_ui.cjs     # Utilidades de la gráfica de regla falsa (Node.js)
+    ├── test_regla_falsa_ui.cjs     # Utilidades de la gráfica de regla falsa (Node.js)
+    ├── test_newton_raphson.py      # Derivada, diferencias finitas y convergencia/fallos
+    ├── test_newton_raphson_api.py  # Flujo HTTP y recursos de la interfaz
+    └── test_newton_raphson_ui.cjs  # Entrada manual y sustituciones LaTeX (Node.js)
 ```
 
 ---
@@ -453,7 +523,7 @@ Programa Vectores/
 - **Sin necesidad de instalar paquetes externos vía `pip`**: el programa funciona 100% con la biblioteca estándar (`fractions`, `http.server`, etc.).
 
 ### 1. Ejecutar la Aplicación Web Interactiva
-Inicia la aplicación web SPA con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y los 8 módulos integrados (Vectores, Combinación Lineal, Matrices, Inversa, Ax = b, Determinante, Bisección y Regla Falsa):
+Inicia la aplicación web SPA con tema claro por defecto (y selector a modo oscuro), tarjetas limpias, selectores simétricos y los 10 módulos integrados (Vectores, Combinación Lineal, Matrices, Inversa, Ax = b, Determinante, Bisección, Regla Falsa, Newton-Raphson y Secante):
 ```bash
 python main.py
 ```
@@ -466,15 +536,15 @@ python main.py --no-browser     # Iniciar servidor sin abrir navegador automáti
 ```
 
 ### 2. Ejecutar las Pruebas Unitarias Automatizadas
-El proyecto incluye **138 pruebas de Python** (47 de ellas del módulo de regla falsa) que validan los algoritmos, las conversiones a LaTeX y sus respuestas HTTP:
+El proyecto incluye **163 pruebas de Python** que validan los algoritmos, las conversiones a LaTeX y sus respuestas HTTP, incluido el motor de derivadas y la secante:
 ```bash
 python -m unittest discover tests -v
 ```
 
-Las 22 pruebas de las utilidades de la interfaz en JavaScript (bisección, teclado matemático y regla falsa) usan el runner estándar de Node.js (18 o superior), sin instalar paquetes. Node.js es opcional para ejecutar estas pruebas y no se necesita para usar la calculadora:
+Las 30 pruebas de las utilidades de la interfaz en JavaScript (bisección, teclado matemático, regla falsa, Newton-Raphson y secante) usan el runner estándar de Node.js (18 o superior), sin instalar paquetes. Node.js es opcional para ejecutar estas pruebas y no se necesita para usar la calculadora:
 
 ```bash
-node --test tests/test_biseccion_ui.cjs tests/test_formula_keyboard.cjs tests/test_regla_falsa_ui.cjs
+node --test tests/test_biseccion_ui.cjs tests/test_formula_keyboard.cjs tests/test_regla_falsa_ui.cjs tests/test_newton_raphson_ui.cjs tests/test_secante_ui.cjs
 ```
 
 Para una revisión manual, seleccione **Método de Bisección** en la barra lateral, cargue el ejemplo de referencia y compruebe las 15 iteraciones. Pruebe después una función sin cambio de signo (`x^2+1`), un máximo de una iteración con `cos(x)-x`, una raíz en un extremo (`x` en `[0,1]`) y el botón **Limpiar**. Escriba `sqrt(x)+1/(x-1)` para revisar la vista matemática y abra **Ver detalle** en una iteración. Reduzca el ancho de la ventana para comprobar el menú desplegable y las tarjetas. La sección hereda el tema claro u oscuro de la calculadora.
@@ -482,6 +552,8 @@ Para una revisión manual, seleccione **Método de Bisección** en la barra late
 Para revisar la regla falsa, seleccione **Método de Regla Falsa** y cargue el **Ejemplo de referencia**: la gráfica muestra dos intervalos sugeridos y el campo queda en `[4.95, 5.5]`. Envíe el intervalo, compruebe la validación y calcule la raíz. Pruebe después `tan(x)` (el intervalo `[1, 2]` se rechaza por la asíntota), `x^10 - 1` (aviso de estancamiento) y el botón **Marcar intervalo** arrastrando sobre la gráfica.
 
 ---
+
+Para revisar Newton-Raphson, abra el módulo 9, derive y grafique el ejemplo de la presentación y compruebe que el campo inicial sigue vacío. Introduzca `1.5`, revise la primera sustitución y calcule la raíz; deben aparecer tres iteraciones con la configuración predeterminada. Pruebe también la selección mediante la gráfica, el ejemplo con ciclo usando `0`, `x^2-4` con punto inicial `0` (derivada nula), los detalles de la tabla y la vista móvil en ambos temas.
 
 ## 6. Registro de Commits del Desarrollo
 
