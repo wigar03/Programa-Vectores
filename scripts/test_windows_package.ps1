@@ -24,7 +24,10 @@ function Test-Desktop([string]$Executable, [string]$Name) {
     Write-Output "$Name OK: $($result.interfaz.modulos) módulos, $($result.interfaz.formulas) fórmulas, sin recursos externos"
 }
 
-$portable = Join-Path $Dist 'CalculadoraAlgebraLineal\CalculadoraAlgebraLineal.exe'
+$zip = Join-Path $Dist "CalculadoraAlgebraLineal-$releaseVersion-windows-x64-portable.zip"
+$unpacked = Join-Path $testRoot 'portable'
+Expand-Archive -LiteralPath $zip -DestinationPath $unpacked
+$portable = Join-Path $unpacked 'CalculadoraAlgebraLineal\CalculadoraAlgebraLineal.exe'
 Test-Desktop $portable 'portable'
 $target = Join-Path $testRoot 'instalada'
 $setup = Join-Path $Dist "CalculadoraAlgebraLineal-$releaseVersion-windows-x64-setup.exe"
