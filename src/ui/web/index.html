@@ -29,7 +29,7 @@
     <header class="main-header">
       <div class="header-brand">
         <h1>Calculadora</h1>
-        <p class="subtitle" id="header-subtitle" data-math>Vectores en $\mathbb{R}^n$, Combinación Lineal, Matrices, Inversa $A^{-1}$, Ecuaciones $Ax=b$, Determinante $|A|$, Bisección, Regla Falsa, y Newton-Raphson</p>
+        <p class="subtitle" id="header-subtitle" data-math>Vectores en $\mathbb{R}^n$, Combinación Lineal, Matrices, Inversa $A^{-1}$, Ecuaciones $Ax=b$, Determinante $|A|$, Bisección, Regla Falsa, Newton-Raphson y Secante</p>
       </div>
       <div class="header-actions">
         <button id="btn-nav-toggle" class="btn-theme sidebar-toggle" type="button" aria-controls="module-sidebar" aria-expanded="false">
@@ -91,6 +91,7 @@
         <span class="tab-label">Método de Regla Falsa</span>
       </button>
       <button class="nav-tab" data-tab="tab-newton-raphson"><span class="nav-chapter" aria-hidden="true">09</span><span class="tab-label">Método de Newton-Raphson</span></button>
+      <button class="nav-tab" data-tab="tab-secante"><span class="nav-chapter">10</span><span class="tab-label">Método de la secante</span></button>
     </nav>
       <p class="sidebar-footer">Álgebra lineal y métodos numéricos</p>
     </aside>
@@ -145,6 +146,7 @@
               <span class="home-number">08</span><span class="home-module-copy"><strong>Método de la regla falsa</strong><span>Gráfica, continuidad, intervalos e iteraciones paso a paso.</span></span><span class="home-formula" data-math>$x_r$</span><span aria-hidden="true">↗</span>
             </button>
             <button class="home-module" type="button" data-open-module="tab-newton-raphson"><span class="home-number">09</span><span class="home-module-copy"><strong>Método de Newton-Raphson</strong><span>Derivada, gráfica, valor inicial manual e iteraciones.</span></span><span class="home-formula" data-math>$f'(x)$</span><span aria-hidden="true">↗</span></button>
+<button class="home-module" type="button" data-open-module="tab-secante"><span class="home-number">10</span><span class="home-module-copy"><strong>Método de la secante</strong><span>Dos puntos iniciales, rectas secantes y tabla de iteraciones.</span></span><span class="home-formula" data-math>$x_{n+1}$</span><span aria-hidden="true">↗</span></button>
           </div>
         </div>
         <p class="home-note">Puede volver a este índice desde «Menú principal». Sus entradas se conservan al cambiar de módulo.</p>
@@ -1199,6 +1201,33 @@
         </div>
       </section>
 
+      <section id="tab-secante" class="tab-pane biseccion-pane regla-falsa-pane newton-pane secante-pane" aria-labelledby="sc-title">
+        <header class="bis-notebook-heading"><div><p class="bis-eyebrow">Métodos abiertos · Cuaderno de cálculo</p><h2 id="sc-title">Método de la secante</h2><p class="bis-intro">Dos aproximaciones, una recta y su intersección con el eje horizontal. No requiere derivada explícita.</p></div><span class="bis-chapter">10</span></header>
+        <div class="rf-layout"><div class="rf-column">
+          <div class="card rf-card" id="sc-card-1"><div class="card-header"><h3><span class="bis-section-number">01</span>Función y gráfica</h3></div>
+            <form id="sc-graph-form" class="rf-form"><div><label for="sc-function" data-math>Función $f(x)$</label>
+              <div class="bis-formula-editor"><input id="sc-function" class="bis-input bis-expression" value="x^3-x-2" required maxlength="500" autocomplete="off" spellcheck="false"><div class="bis-keyboard-toolbar"><span>Teclado matemático</span><button class="btn-text" type="button" aria-expanded="false" aria-controls="sc-keyboard">Mostrar teclas</button></div><div id="sc-keyboard" class="bis-keyboard" hidden></div><p class="sr-only" role="status"></p></div>
+              <p class="bis-help">Use * y ^. Funciones: sin, cos, tan, asin, acos, atan, exp, ln, log, sqrt y abs. Las inversas devuelven radianes.</p></div>
+              <div class="bis-fields"><div><label for="sc-a" data-math>Desde $x=$</label><input id="sc-a" class="bis-input" value="0" required></div><div><label for="sc-b" data-math>Hasta $x=$</label><input id="sc-b" class="bis-input" value="2.5" required></div></div><button class="btn-primary rf-action" type="submit">Graficar función</button>
+            </form><div class="card-footer-actions"><button class="btn-text" type="button" id="sc-example">Ejemplo de la presentación</button><button class="btn-text" type="button" id="sc-practice">Práctica</button><button class="btn-clear" type="button" id="sc-clear">Limpiar</button></div><p id="sc-hint" class="bis-help"></p>
+          </div>
+          <div class="card rf-card" id="sc-card-2" hidden><div class="card-header"><h3><span class="bis-section-number">02</span>Dos valores iniciales</h3></div><aside class="bis-theory"><strong>Elegir los puntos</strong><p data-math>Observe la gráfica y elija dos valores distintos, $x_0$ y $x_1$. No es obligatorio que encierren una raíz ni que tengan signos opuestos. La convergencia no está garantizada.</p></aside>
+            <form id="sc-initial-form" class="rf-form"><div class="bis-fields"><div><label for="sc-x0" data-math>Valor $x_0$</label><input id="sc-x0" class="bis-input" required></div><div><label for="sc-x1" data-math>Valor $x_1$</label><input id="sc-x1" class="bis-input" required></div></div><p class="bis-help">Introduzca decimales, fracciones o notación científica. Los puntos no se eligen automáticamente.</p><button class="btn-primary rf-action" type="submit">Evaluar primera secante</button></form>
+          </div>
+          <div class="card rf-card" id="sc-card-3" hidden><div class="card-header"><h3><span class="bis-section-number">03</span>Primera iteración</h3></div><aside class="bis-theory"><p data-math>$$x_{n+1}=x_n-\frac{f(x_n)(x_n-x_{n-1})}{f(x_n)-f(x_{n-1})}$$</p><p data-math>El denominador debe ser distinto de cero. Después se actualizan $x_{n-1}\leftarrow x_n$ y $x_n\leftarrow x_{n+1}$.</p></aside><div id="sc-first" class="nr-math" aria-live="polite"></div></div>
+          <div class="card rf-card" id="sc-card-4" hidden><div class="card-header"><h3><span class="bis-section-number">04</span>Iteraciones y raíz</h3></div><form id="sc-solve-form" class="rf-form"><div class="bis-fields"><div><label for="sc-tolerance" data-math>Tolerancia $\varepsilon$</label><input id="sc-tolerance" class="bis-input" value="0.000001" required></div><div><label for="sc-limit">Máximo de iteraciones</label><input id="sc-limit" class="bis-input" type="number" value="50" min="1" max="1000" required></div></div><fieldset class="nr-criteria"><legend>Criterio de parada</legend><label><input type="radio" name="sc-criterion" value="absoluto" checked><span data-math>$E_a=|x_{n+1}-x_n|&lt;\varepsilon$</span></label><label><input type="radio" name="sc-criterion" value="relativo"><span data-math>$\varepsilon_r=E_a/|x_{n+1}|&lt;\varepsilon$</span></label><label><input type="radio" name="sc-criterion" value="residuo"><span data-math>$|f(x_{n+1})|&lt;\varepsilon$</span></label></fieldset><p class="bis-help">El error relativo es una fracción, sin porcentaje. Compruebe también el residuo.</p><button class="btn-primary rf-action" type="submit">Calcular raíz por secante</button></form><div id="sc-result" class="nr-math" aria-live="polite"></div></div>
+          <p id="sc-error" class="rf-verdict is-warning" role="alert" hidden></p>
+        </div><div class="card rf-graph-card" id="sc-graph-card"><div class="card-header"><h3>Gráfica y rectas secantes</h3></div><div id="sc-graph-controls" class="nr-controls" hidden>
+<button id="sc-mark-x0" type="button" class="btn-text" aria-pressed="false" data-math>Marcar $x_0$</button>
+<button id="sc-mark-x1" type="button" class="btn-text" aria-pressed="false" data-math>Marcar $x_1$</button>
+<div class="bis-zoom-group"><button id="sc-zoom-in" type="button" class="btn-bis-zoom" aria-label="Acercar gráfica" title="Acercar (+)">+</button><span id="sc-zoom-level" class="bis-zoom-level">100%</span><button id="sc-zoom-out" type="button" class="btn-bis-zoom" aria-label="Alejar gráfica" title="Alejar (-)">−</button></div>
+<button id="sc-reset" type="button" class="btn-text">Restablecer vista</button><button id="sc-focus-root" type="button" class="btn-text" disabled>Enfocar raíz</button>
+</div><div id="sc-plot" class="bis-plot"></div><p id="sc-readout" class="bis-help" aria-hidden="true"></p>
+<p class="bis-help">Use la rueda para ampliar alrededor del cursor y arrastre para desplazar. Con la gráfica enfocada: flechas para mover, + / − para zoom e Inicio para restablecer. Doble clic restablece la vista.</p>
+<p class="bis-help" data-math>Azul: $f(x)$. Violeta: rectas secantes. Verde: aproximación final. La gráfica es orientativa; las primeras ocho rectas muestran cómo se desplazan los dos puntos.</p></div></div>
+        <div id="sc-table-card" class="card bis-table-card" hidden><div class="card-header"><h3><span class="bis-section-number">05</span>Tabla de iteraciones</h3></div><p class="bis-help" data-math>Cada fila aplica la fórmula y actualiza las dos aproximaciones. $E_a$ y $\varepsilon_r$ son cambios aproximados, no cotas del error verdadero. El relativo no está definido si la nueva aproximación es cero.</p><div id="sc-table" class="bis-table-scroll" tabindex="0" role="region" aria-label="Iteraciones de la secante"></div></div>
+      </section>
+
     </main>
 
     <!-- Modal para Notificaciones y Alertas -->
@@ -1214,5 +1243,6 @@
   <script src="regla-falsa.js?v=5d3155a24633"></script>
   <script src="grafica-funciones.js?v=71cf11bc5eec"></script>
   <script src="newton-raphson.js?v=fe00f4435dd2"></script>
+  <script src="secante.js?v=d3cde9ff7697"></script>
 </body>
 </html>
