@@ -20,6 +20,7 @@ MÓDULOS INTEGRADOS:
 7. Búsqueda numérica de raíces por Bisección.
 8. Regla Falsa (Regula Falsi): gráfica, continuidad, validación del intervalo e iteraciones.
 9. Newton-Raphson: derivada simbólica, gráfica, valor inicial elegido por el usuario e iteraciones.
+10. Secante: dos valores iniciales elegidos por el usuario e iteraciones sin derivada explícita.
 ================================================================================
 """
 
