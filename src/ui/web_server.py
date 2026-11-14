@@ -18,6 +18,7 @@ import math
 import socket
 import threading
 import webbrowser
+from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
@@ -591,6 +592,20 @@ def buscar_puerto_disponible(puerto_inicial: int = 8080) -> int:
     return puerto_inicial
 
 
+@contextmanager
+def servidor_local(puerto: int = 0):
+    """Servidor privado con puerto asignado por el SO y cierre determinista."""
+    servidor = HTTPServer(("127.0.0.1", puerto), AlgebraLinearHandler)
+    hilo = threading.Thread(target=servidor.serve_forever, daemon=True)
+    hilo.start()
+    try:
+        yield f"http://127.0.0.1:{servidor.server_port}"
+    finally:
+        servidor.shutdown()
+        hilo.join(timeout=5)
+        servidor.server_close()
+
+
 def iniciar_servidor_web(puerto: int = 8080, abrir_navegador: bool = True):
     puerto_libre = buscar_puerto_disponible(puerto)
     servidor = HTTPServer(("127.0.0.1", puerto_libre), AlgebraLinearHandler)
@@ -607,4 +622,5 @@ def iniciar_servidor_web(puerto: int = 8080, abrir_navegador: bool = True):
         servidor.serve_forever()
     except KeyboardInterrupt:
         print("\nServidor detenido.")
+    finally:
         servidor.server_close()
