@@ -11,6 +11,7 @@ comentarios antes de declarar la primera versión estable.
 · [Guía matemática](docs/guia-matematica.md)
 · [Notas de versión](CHANGELOG.md)
 · [Reportar un problema](https://github.com/wigar03/Calculadora-AlgebraLineal/issues)
+· [Code signing policy](docs/firma-codigo.md)
 
 ![Interfaz de la calculadora](docs/images/calculadora.png)
 
