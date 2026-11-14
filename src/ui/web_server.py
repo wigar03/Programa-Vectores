@@ -48,6 +48,7 @@ from src.biseccion.metodo import resolver_biseccion, muestrear_funcion
 from src.biseccion.expresiones import Expresion, numero_real
 from src.regla_falsa.continuidad import analizar_region
 from src.regla_falsa.metodo import preparar_intervalo, resolver_regla_falsa
+from src.newton_raphson.metodo import preparar_funcion, evaluar_inicial, resolver_newton
 from src.derivadas import analizar_derivada
 
 
@@ -97,6 +98,8 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 if not isinstance(body, dict):
                     raise ValueError("Envíe un objeto JSON con la función.")
                 self._send_json(analizar_derivada(body.get("funcion")))
+            elif parsed.path.startswith("/api/newton-raphson/"):
+                self._handle_newton(parsed.path.rsplit("/", 1)[-1], body)
             elif parsed.path == "/api/vectores/operar":
                 self._handle_vectores_operar(body)
             elif parsed.path == "/api/vectores/combinacion":
@@ -434,6 +437,30 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             "pasos": pasos_serializables,
         }
         self._send_json(data)
+
+    def _handle_newton(self, ruta, body):
+        """Derivar y graficar, validar el punto manual y ejecutar Newton-Raphson."""
+        if not isinstance(body, dict):
+            raise ValueError("Envíe un objeto JSON con los datos del método.")
+        funcion = body.get("funcion")
+        if ruta == "evaluar":
+            return self._send_json(evaluar_inicial(funcion, body.get("x0")))
+        if ruta == "resolver":
+            return self._send_json(resolver_newton(
+                funcion, body.get("x0"), body.get("tolerancia", 1e-6),
+                body.get("max_iteraciones", 50), body.get("criterio", "absoluto")))
+        if ruta not in ("preparar", "derivar", "graficar"):
+            return self._send_json({"error": "Ruta de Newton-Raphson no encontrada."}, 404)
+        datos = preparar_funcion(funcion)
+        if ruta != "derivar":
+            a, b = numero_real(body.get("a"), "a"), numero_real(body.get("b"), "b")
+            if a >= b or not math.isfinite(b - a):
+                raise ValueError("La región debe cumplir a < b y tener ancho finito.")
+            cantidad = numero_real(body.get("cantidad", 401), "La cantidad de puntos")
+            if not cantidad.is_integer() or not 2 <= cantidad <= 2000:
+                raise ValueError("La cantidad de puntos debe ser un entero entre 2 y 2000.")
+            datos.update(intervalo=[a, b], grafica=muestrear_funcion(funcion, a, b, int(cantidad)))
+        self._send_json(datos)
 
     def _handle_biseccion(self, body):
         """Ruta independiente para el módulo de búsqueda numérica de raíces."""
