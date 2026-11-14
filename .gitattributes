@@ -1,0 +1,2 @@
+# Conservar los bytes de terceros para que sus sumas sean iguales en cada SO.
+src/ui/web/vendor/** -text
