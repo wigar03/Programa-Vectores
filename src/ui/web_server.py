@@ -49,6 +49,7 @@ from src.biseccion.expresiones import Expresion, numero_real
 from src.regla_falsa.continuidad import analizar_region
 from src.regla_falsa.metodo import preparar_intervalo, resolver_regla_falsa
 from src.newton_raphson.metodo import preparar_funcion, evaluar_inicial, resolver_newton
+from src.secante.metodo import resolver_secante
 from src.derivadas import analizar_derivada
 
 
@@ -98,6 +99,8 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
                 if not isinstance(body, dict):
                     raise ValueError("Envíe un objeto JSON con la función.")
                 self._send_json(analizar_derivada(body.get("funcion")))
+            elif parsed.path.startswith("/api/secante/"):
+                self._handle_secante(parsed.path.rsplit("/", 1)[-1], body)
             elif parsed.path.startswith("/api/newton-raphson/"):
                 self._handle_newton(parsed.path.rsplit("/", 1)[-1], body)
             elif parsed.path == "/api/vectores/operar":
@@ -437,6 +440,18 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             "pasos": pasos_serializables,
         }
         self._send_json(data)
+
+    def _handle_secante(self, ruta, body):
+        if not isinstance(body, dict):
+            raise ValueError("Envíe un objeto JSON con la función y los puntos iniciales.")
+        if ruta == "graficar":
+            return self._handle_regla_falsa_graficar(body)
+        if ruta not in ("evaluar", "resolver"):
+            return self._send_json({"error": "Ruta no encontrada."}, 404)
+        self._send_json(resolver_secante(
+            body.get("funcion"), body.get("x0"), body.get("x1"),
+            body.get("tolerancia", 1e-6), 1 if ruta == "evaluar" else body.get("max_iteraciones", 50),
+            body.get("criterio", "absoluto")))
 
     def _handle_newton(self, ruta, body):
         """Derivar y graficar, validar el punto manual y ejecutar Newton-Raphson."""
