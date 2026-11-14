@@ -21,7 +21,8 @@ def comprobar_escritorio(ventana, cargada, url, destino):
             .map(r => r.name)
         }))()""")
         resultado["interfaz"] = interfaz
-        if interfaz["modulos"] != 10 or not interfaz["katex"] or not interfaz["formulas"]:
+        if (interfaz["modulos"] != 10 or not interfaz["katex"]
+                or not interfaz["formulas"] or not interfaz["fuentes"]):
             raise RuntimeError("Interfaz o renderizado matemático incompleto.")
         if interfaz["externos"]:
             raise RuntimeError("La interfaz solicitó recursos externos.")

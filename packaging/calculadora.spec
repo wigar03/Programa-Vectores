@@ -6,7 +6,9 @@ from PyInstaller.utils.hooks import copy_metadata
 root = Path(SPECPATH).parent
 datas = [(str(root / 'src/ui/web'), 'src/ui/web')]
 datas += [(str(Path(sys.base_prefix) / 'LICENSE.txt'), 'licenses/python')]
-for package in ('pywebview', 'pythonnet', 'clr_loader', 'cffi', 'bottle', 'proxy_tools', 'typing_extensions'):
+datas += [(str(root / 'packaging/licenses'), 'licenses/third-party')]
+for package in ('pywebview', 'pythonnet', 'clr_loader', 'cffi', 'bottle', 'proxy_tools',
+                'typing_extensions', 'setuptools', 'packaging', 'pycparser'):
     datas += copy_metadata(package)
 
 a = Analysis(
