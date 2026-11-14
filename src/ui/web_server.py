@@ -48,6 +48,7 @@ from src.biseccion.metodo import resolver_biseccion, muestrear_funcion
 from src.biseccion.expresiones import Expresion, numero_real
 from src.regla_falsa.continuidad import analizar_region
 from src.regla_falsa.metodo import preparar_intervalo, resolver_regla_falsa
+from src.derivadas import analizar_derivada
 
 
 def serialize_fraction_or_str(val):
@@ -92,7 +93,11 @@ class AlgebraLinearHandler(SimpleHTTPRequestHandler):
             body = {}
 
         try:
-            if parsed.path == "/api/vectores/operar":
+            if parsed.path == "/api/derivadas/derivar":
+                if not isinstance(body, dict):
+                    raise ValueError("Envíe un objeto JSON con la función.")
+                self._send_json(analizar_derivada(body.get("funcion")))
+            elif parsed.path == "/api/vectores/operar":
                 self._handle_vectores_operar(body)
             elif parsed.path == "/api/vectores/combinacion":
                 self._handle_vectores_combinacion(body)
