@@ -12,6 +12,7 @@ function Run-Checked([string]$Executable, [string[]]$Arguments) {
         $process.Kill()
         throw "Tiempo agotado: $Executable"
     }
+    $process.Refresh()
     if ($process.ExitCode -ne 0) { throw "Falló $Executable con código $($process.ExitCode)" }
 }
 
